@@ -313,7 +313,7 @@ struct ctfclientmode : clientmode
 
     bool canspawn(clientinfo *ci, bool connecting) 
     { 
-        return m_efficiency || !m_protect ? connecting || !ci->state.lastdeath || gamemillis+curtime-ci->state.lastdeath >= RESPAWNSECS*1000 : true;
+        return m_efficiency || !m_protect ? connecting || !ci->state.lastdeath || gamemillis-ci->state.lastdeath >= RESPAWNSECS*1000 : true;
     }
 
     bool canchangeteam(clientinfo *ci, const char *oldteam, const char *newteam)
@@ -496,6 +496,7 @@ struct ctfclientmode : clientmode
 
     void drawhud(fpsent *d, int w, int h)
     {
+        holdscreenlock;
         if(d->state == CS_ALIVE)
         {
             loopv(flags) if(flags[i].owner == d)

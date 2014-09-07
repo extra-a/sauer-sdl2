@@ -66,6 +66,7 @@ Shader *lookupshaderbyname(const char *name)
 
 static bool compileasmshader(GLenum type, GLuint &idx, const char *def, const char *tname, const char *name, bool msg = true, bool nativeonly = false)
 {
+    holdscreenlock;
     glGenProgramsARB_(1, &idx);
     glBindProgramARB_(type, idx);
     def += strspn(def, " \t\r\n");
@@ -103,6 +104,7 @@ static bool compileasmshader(GLenum type, GLuint &idx, const char *def, const ch
 static void showglslinfo(GLenum type, GLuint obj, const char *name, const char *source)
 {
     GLint length = 0;
+    holdscreenlock;
     if(type) glGetShaderiv_(obj, GL_INFO_LOG_LENGTH, &length);
     else glGetProgramiv_(obj, GL_INFO_LOG_LENGTH, &length);
     if(length > 1)
@@ -131,6 +133,7 @@ static void showglslinfo(GLenum type, GLuint obj, const char *name, const char *
 static void compileglslshader(GLenum type, GLuint &obj, const char *def, const char *name, bool msg = true) 
 {
     const GLchar *source = (const GLchar *)(def + strspn(def, " \t\r\n")); 
+    holdscreenlock;
     obj = glCreateShader_(type);
     glShaderSource_(obj, 1, &source, NULL);
     glCompileShader_(obj);
@@ -149,6 +152,7 @@ VAR(dbgubo, 0, 0, 1);
 
 static void bindglsluniform(Shader &s, UniformLoc &u)
 {
+    holdscreenlock;
     u.loc = glGetUniformLocation_(s.program, u.name);
     if(!u.blockname) return;
     if(hasUBO)
@@ -195,6 +199,7 @@ static void bindglsluniform(Shader &s, UniformLoc &u)
 
 static void linkglslprogram(Shader &s, bool msg = true)
 {
+    holdscreenlock;
     s.program = s.vsobj && s.psobj ? glCreateProgram_() : 0;
     GLint success = 0;
     if(s.program)
@@ -260,6 +265,7 @@ bool checkglslsupport()
         "   gl_FragColor = vec4(0.0);\n"
         "}\n";
 #endif
+    holdscreenlock;
     GLuint vsobj = glCreateShader_(GL_VERTEX_SHADER), psobj = glCreateShader_(GL_FRAGMENT_SHADER);
     GLuint program = glCreateProgram_();
     GLint success = 0;
@@ -316,6 +322,7 @@ static int addextparam(Shader &s, const char *name, int type, int index, int loc
 static void allocglsluniformparam(Shader &s, int type, int index, bool local = false)
 {
     ShaderParamState &val = (type==SHPARAM_VERTEX ? vertexparamstate[index] : pixelparamstate[index]);
+    holdscreenlock;
     int loc = val.name ? glGetUniformLocation_(s.program, val.name) : -1;
     if(loc == -1)
     {
@@ -360,6 +367,7 @@ static void setglsluniformformat(Shader &s, const char *name, GLenum format, int
             return;
     }
     if(size > 1 || !strncmp(name, "gl_", 3)) return;
+    holdscreenlock;
     int loc = glGetUniformLocation_(s.program, name);
     if(loc < 0) return;
     loopvj(s.defaultparams) if(s.defaultparams[j].loc == loc)
@@ -379,6 +387,7 @@ static void setglsluniformformat(Shader &s, const char *name, GLenum format, int
 static void allocglslactiveuniforms(Shader &s)
 {
     GLint numactive = 0;
+    holdscreenlock;
     glGetProgramiv_(s.program, GL_ACTIVE_UNIFORMS, &numactive);
     string name;
     loopi(numactive)
@@ -421,6 +430,7 @@ void Shader::allocenvparams(Slot *slot)
             if(loc != -1) glUniform1i_(loc, val); \
         }
         int loc, tmu = 2;
+        holdscreenlock;
         if(type & SHADER_NORMALSLMS)
         {
             UNIFORMTEX("lmcolor", 1);
@@ -469,6 +479,7 @@ static inline void setuniformval(LocalShaderParamState &l, const float *val)
     if(memcmp(l.curval, val, sizeof(l.curval)))
     {
         memcpy(l.curval, val, sizeof(l.curval));
+        holdscreenlock;
         switch(l.format)
         {
             case GL_FLOAT:      glUniform1fv_(l.loc, 1, l.curval); break;
@@ -491,6 +502,7 @@ static inline void flushparam(int type, int index)
     }
     else if(val.dirty==ShaderParamState::DIRTY)
     {
+        holdscreenlock;
         glProgramEnvParameter4fvARB_(type==SHPARAM_VERTEX ? GL_VERTEX_PROGRAM_ARB : GL_FRAGMENT_PROGRAM_ARB, index, val.val);
         val.dirty = ShaderParamState::CLEAN;
     }
@@ -612,6 +624,7 @@ void Shader::flushenvparams(Slot *slot)
     }
     else if(dirtyenvparams)
     {
+        holdscreenlock;
         loopi(RESERVEDSHADERPARAMS)
         {
             ShaderParamState &val = vertexparamstate[i];
@@ -672,6 +685,7 @@ static inline void setasmslotparam(const ShaderParam &p, LocalShaderParamState &
         ShaderParamState &val = (l.type==SHPARAM_VERTEX ? vertexparamstate[RESERVEDSHADERPARAMS+l.index] : pixelparamstate[RESERVEDSHADERPARAMS+l.index]);
         if(memcmp(val.val, p.val, sizeof(val.val))) memcpy(val.val, p.val, sizeof(val.val));
         else if(val.dirty==ShaderParamState::CLEAN) return;
+        holdscreenlock;
         glProgramEnvParameter4fvARB_(l.type==SHPARAM_VERTEX ? GL_VERTEX_PROGRAM_ARB : GL_FRAGMENT_PROGRAM_ARB, RESERVEDSHADERPARAMS+l.index, val.val);
         val.local = true;
         val.dirty = ShaderParamState::CLEAN;
@@ -711,6 +725,7 @@ void Shader::setslotparams(Slot &slot, VSlot &vslot)
 void Shader::bindprograms()
 {
     if(this == lastshader || type&(SHADER_DEFERRED|SHADER_INVALID)) return;
+    holdscreenlock;
     if(type & SHADER_GLSLANG)
     {
         glUseProgram_(program);
@@ -758,6 +773,7 @@ void Shader::cleanup(bool invalid)
     detailshader = NULL;
     used = false;
     native = true;
+    holdscreenlock;
     if(vs) { if(!reusevs) glDeleteProgramsARB_(1, &vs); vs = 0; }
     if(ps) { if(!reuseps) glDeleteProgramsARB_(1, &ps); ps = 0; }
     if(vsobj) { if(!reusevs) glDeleteShader_(vsobj); vsobj = 0; }
@@ -815,6 +831,7 @@ Shader *newshader(int type, const char *name, const char *vs, const char *ps, Sh
 {
     if(Shader::lastshader)
     {
+        holdscreenlock;
         if(renderpath==R_ASMSHADER || renderpath==R_ASMGLSLANG)
         {
             glBindProgramARB_(GL_VERTEX_PROGRAM_ARB, 0);
@@ -873,6 +890,7 @@ Shader *newshader(int type, const char *name, const char *vs, const char *ps, Sh
 
 void setupshaders()
 {
+    holdscreenlock;
     if(renderpath==R_ASMSHADER || renderpath==R_ASMGLSLANG)
     {
         GLint val;
@@ -1905,13 +1923,15 @@ static int allocatepostfxtex(int scale)
     }
     postfxtex &t = postfxtexs.add();
     t.scale = scale;
+    holdscreenlock;
     glGenTextures(1, &t.id);
-    createtexture(t.id, max(screen->w>>scale, 1), max(screen->h>>scale, 1), NULL, 3, 1, GL_RGB, GL_TEXTURE_RECTANGLE_ARB);
+    createtexture(t.id, max(screenw>>scale, 1), max(screenh>>scale, 1), NULL, 3, 1, GL_RGB, GL_TEXTURE_RECTANGLE_ARB);
     return postfxtexs.length()-1;
 }
 
 void cleanuppostfx(bool fullclean)
 {
+    holdscreenlock;
     if(fullclean && postfxfb)
     {
         glDeleteFramebuffers_(1, &postfxfb);
@@ -1929,11 +1949,11 @@ void renderpostfx()
 {
     if(postfxpasses.empty() || renderpath==R_FIXEDFUNCTION) return;
 
-    if(postfxw != screen->w || postfxh != screen->h) 
+    if(postfxw != screenw || postfxh != screenh) 
     {
         cleanuppostfx(false);
-        postfxw = screen->w;
-        postfxh = screen->h;
+        postfxw = screenw;
+        postfxh = screenh;
     }
 
     int binds[NUMPOSTFXBINDS];
@@ -1942,8 +1962,9 @@ void renderpostfx()
 
     binds[0] = allocatepostfxtex(0);
     postfxtexs[binds[0]].used = 0;
+    holdscreenlock;
     glBindTexture(GL_TEXTURE_RECTANGLE_ARB, postfxtexs[binds[0]].id);
-    glCopyTexSubImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, 0, 0, 0, 0, screen->w, screen->h);
+    glCopyTexSubImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, 0, 0, 0, 0, screenw, screenh);
 
     if(hasFBO && postfxpasses.length() > 1)
     {
@@ -1968,8 +1989,8 @@ void renderpostfx()
             if(hasFBO) glFramebufferTexture2D_(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_RECTANGLE_ARB, postfxtexs[tex].id, 0);
         }
 
-        int w = tex >= 0 ? max(screen->w>>postfxtexs[tex].scale, 1) : screen->w, 
-            h = tex >= 0 ? max(screen->h>>postfxtexs[tex].scale, 1) : screen->h;
+        int w = tex >= 0 ? max(screenw>>postfxtexs[tex].scale, 1) : screenw, 
+            h = tex >= 0 ? max(screenh>>postfxtexs[tex].scale, 1) : screenh;
         glViewport(0, 0, w, h);
         p.shader->set();
         setlocalparamfv("params", SHPARAM_VERTEX, 0, p.params.v);
@@ -1979,8 +2000,8 @@ void renderpostfx()
         {
             if(!tmu)
             {
-                tw = max(screen->w>>postfxtexs[binds[j]].scale, 1);
-                th = max(screen->h>>postfxtexs[binds[j]].scale, 1);
+                tw = max(screenw>>postfxtexs[binds[j]].scale, 1);
+                th = max(screenh>>postfxtexs[binds[j]].scale, 1);
             }
             else glActiveTexture_(GL_TEXTURE0_ARB + tmu);
             glBindTexture(GL_TEXTURE_RECTANGLE_ARB, postfxtexs[binds[j]].id);
@@ -2149,6 +2170,7 @@ void resettmu(int n)
 {
     if(renderpath!=R_FIXEDFUNCTION || n>=maxtmus) return;
     tmu &t = tmus[n];
+    holdscreenlock;
     if(t.mode!=GL_MODULATE) { t.mode = GL_MODULATE; glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, t.mode); }
     if(t.rgb.scale != 1)  { t.rgb.scale = 1; glTexEnvi(GL_TEXTURE_ENV, GL_RGB_SCALE_ARB, t.rgb.scale); }
     if(t.alpha.scale != 1)  { t.alpha.scale = 1; glTexEnvi(GL_TEXTURE_ENV, GL_ALPHA_SCALE, t.alpha.scale); }
@@ -2158,6 +2180,7 @@ void scaletmu(int n, int rgbscale, int alphascale)
 {
     if(renderpath!=R_FIXEDFUNCTION || n>=maxtmus) return;
     tmu &t = tmus[n];
+    holdscreenlock;
     if(rgbscale && t.rgb.scale != rgbscale)  { t.rgb.scale = rgbscale; glTexEnvi(GL_TEXTURE_ENV, GL_RGB_SCALE_ARB, t.rgb.scale); }
     if(alphascale && t.alpha.scale != alphascale)  { t.alpha.scale = alphascale; glTexEnvi(GL_TEXTURE_ENV, GL_ALPHA_SCALE, t.alpha.scale); }
 }
@@ -2172,12 +2195,14 @@ void colortmu(int n, float r, float g, float b, float a)
         t.color[1] = g;
         t.color[2] = b;
         t.color[3] = a;
+        holdscreenlock;
         glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, t.color);
     }
 }
 
 void committmufunc(GLenum mode, bool rgb, tmufunc &dst, tmufunc &src)
 {
+    holdscreenlock;
     if(dst.combine!=src.combine) glTexEnvi(GL_TEXTURE_ENV, rgb ? GL_COMBINE_RGB_ARB : GL_COMBINE_ALPHA_ARB, src.combine);
     loopi(3)
     {
@@ -2207,7 +2232,7 @@ void setuptmu(int n, const char *rgbfunc, const char *alphafunc)
     else f.alpha = init.alpha;
 
     tmu &t = tmus[n];
-    if(t.mode!=f.mode) { t.mode = f.mode; glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, t.mode); }
+    if(t.mode!=f.mode) { t.mode = f.mode; holdscreenlock; glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, t.mode); }
     committmufunc(f.mode, true, t.rgb, f.rgb);
     committmufunc(f.mode, false, t.alpha, f.alpha);
 }
@@ -2221,6 +2246,7 @@ void inittmus()
     if(hasTE && hasMT)
     {
         GLint val;
+        holdscreenlock;
         glGetIntegerv(GL_MAX_TEXTURE_UNITS_ARB, &val);
         maxtmus = max(1, min(MAXTMUS, int(val)));
         loopi(maxtmus)
@@ -2250,6 +2276,7 @@ void cleanupshaders()
     defaultshader = notextureshader = nocolorshader = foggedshader = foggednotextureshader = NULL;
     enumerate(shaders, Shader, s, s.cleanup());
     Shader::lastshader = NULL;
+    holdscreenlock;
     if(renderpath==R_ASMSHADER || renderpath==R_ASMGLSLANG)
     {
         glBindProgramARB_(GL_VERTEX_PROGRAM_ARB, 0);

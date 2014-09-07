@@ -1210,7 +1210,7 @@ namespace server
         lilswap(&nextplayback, 1);
     }
 
-    void readdemo()
+    void readdemo(int curtime)
     {
         if(!demoplayback) return;
         demomillis += curtime;
@@ -2311,7 +2311,7 @@ namespace server
         }
     }
 
-    void processevents()
+    void processevents(int curtime)
     {
         loopv(clients)
         {
@@ -2344,14 +2344,15 @@ namespace server
 
     void serverupdate()
     {
+        emulatecurtime;
         if(shouldstep && !gamepaused)
         {
             gamemillis += curtime;
 
-            if(m_demo) readdemo();
+            if(m_demo) readdemo(curtime);
             else if(!m_timed || gamemillis < gamelimit)
             {
-                processevents();
+                processevents(curtime);
                 if(curtime)
                 {
                     loopv(sents) if(sents[i].spawntime) // spawn entities when timer reached

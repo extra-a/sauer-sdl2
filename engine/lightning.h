@@ -46,6 +46,7 @@ static void renderlightning(Texture *tex, const vec &o, const vec &d, float sz)
           scrollscale = lnscrollscale*(LIGHTNINGSTEP*tex->ys)/(sz*tex->xs),
           blend = pow(clamp(float(lastmillis - lastlnjitter)/lnjittermillis, 0.0f, 1.0f), lnblendpower),
           jitter0 = (1-blend)*lnjitterscale*sz/lnjitterradius, jitter1 = blend*lnjitterscale*sz/lnjitterradius; 
+    holdscreenlock;
     glBegin(GL_TRIANGLE_STRIP);
     loopj(numsteps)
     {
@@ -83,11 +84,13 @@ struct lightningrenderer : listrenderer
 
     void startrender()
     {
+        holdscreenlock;
         glDisable(GL_CULL_FACE);
     }
 
     void endrender()
     {
+        holdscreenlock;
         glEnable(GL_CULL_FACE);
     }
 
@@ -106,6 +109,7 @@ struct lightningrenderer : listrenderer
     void renderpart(listparticle *p, const vec &o, const vec &d, int blend, int ts, uchar *color)
     {
         blend = min(blend<<2, 255);
+        holdscreenlock;
         if(type&PT_MOD) //multiply alpha into color
             glColor3ub((color[0]*blend)>>8, (color[1]*blend)>>8, (color[2]*blend)>>8);
         else

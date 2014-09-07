@@ -129,6 +129,7 @@ namespace varray
 
     static inline void setattrib(const attribinfo &a, uchar *buf)
     {
+        holdscreenlock;
         switch(a.type)
         {
             case ATTRIB_VERTEX:
@@ -159,6 +160,7 @@ namespace varray
 
     static inline void unsetattrib(const attribinfo &a)
     {
+        holdscreenlock;
         switch(a.type)
         {
             case ATTRIB_VERTEX:
@@ -213,6 +215,7 @@ namespace varray
             changedattribs = false;
         }
         int numvertexes = data.length()/vertexsize;
+        holdscreenlock;
         glDrawArrays(primtype, 0, numvertexes);
         data.setsize(0);
         return numvertexes;
@@ -221,6 +224,7 @@ namespace varray
     void disable()
     {
         if(!enabled) return;
+        holdscreenlock;
         if(enabled&ATTRIB_VERTEX) glDisableClientState(GL_VERTEX_ARRAY);
         if(enabled&ATTRIB_COLOR) glDisableClientState(GL_COLOR_ARRAY);
         if(enabled&ATTRIB_NORMAL) glDisableClientState(GL_NORMAL_ARRAY);

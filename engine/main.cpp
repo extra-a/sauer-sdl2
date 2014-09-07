@@ -1,15 +1,19 @@
 // main.cpp: initialisation & main loop
 
 #include "engine.h"
+#include "sdosscripts.h"
+#include <sched.h>
 
 extern void cleargamma();
 
 void cleanup()
 {
+    holdscreenlock;
     recorder::stop();
     cleanupserver();
-    SDL_ShowCursor(1);
-    SDL_WM_GrabInput(SDL_GRAB_OFF);
+    SDL_ShowCursor(SDL_TRUE);
+    SDL_SetRelativeMouseMode(SDL_FALSE);
+    if(screen) SDL_SetWindowGrab(screen, SDL_FALSE);
     cleargamma();
     freeocta(worldroot);
     extern void clear_command(); clear_command();
@@ -47,8 +51,9 @@ void fatal(const char *s, ...)    // failure exit
         {
             if(SDL_WasInit(SDL_INIT_VIDEO))
             {
-                SDL_ShowCursor(1);
-                SDL_WM_GrabInput(SDL_GRAB_OFF);
+                SDL_ShowCursor(SDL_TRUE);
+                SDL_SetRelativeMouseMode(SDL_FALSE);
+                if(screen) SDL_SetWindowGrab(screen, SDL_FALSE);
                 cleargamma();
             }
             #ifdef WIN32
@@ -61,9 +66,11 @@ void fatal(const char *s, ...)    // failure exit
     exit(EXIT_FAILURE);
 }
 
-SDL_Surface *screen = NULL;
+SDL_Window *screen = NULL;
+int screenw = 0, screenh = 0, desktopw = 0, desktoph = 0;
+SDL_GLContext glcontext = NULL;
 
-int curtime = 0, lastmillis = 1, elapsedtime = 0, totalmillis = 1;
+int lastmillis = 1, totalmillis = 1;
 
 dynent *player = NULL;
 
@@ -87,11 +94,13 @@ bool initwarning(const char *desc, int level, int type)
 #define SCR_DEFAULTH 768
 VARF(scr_w, SCR_MINW, -1, SCR_MAXW, initwarning("screen resolution"));
 VARF(scr_h, SCR_MINH, -1, SCR_MAXH, initwarning("screen resolution"));
-VARF(colorbits, 0, 0, 32, initwarning("color depth"));
+VAR(colorbits, 0, 0, 32);
 VARF(depthbits, 0, 0, 32, initwarning("depth-buffer precision"));
 VARF(stencilbits, 0, 0, 32, initwarning("stencil-buffer precision"));
 VARF(fsaa, -1, -1, 16, initwarning("anti-aliasing"));
-VARF(vsync, -1, -1, 1, initwarning("vertical sync"));
+extern void updatevsync();
+VARF(vsync, 0, 0, 1, updatevsync());
+XIDENT(IDF_SWLACC, VARFP, vsynctear, 0, 0, 1, if(vsync) updatevsync());
 
 void writeinitcfg()
 {
@@ -147,11 +156,12 @@ void renderbackground(const char *caption, Texture *mapshot, const char *mapname
 
     stopsounds(); // stop sounds while loading
  
-    int w = screen->w, h = screen->h;
+    int w = screenw, h = screenh;
     if(forceaspect) w = int(ceil(h*forceaspect));
     getbackgroundres(w, h);
     gettextres(w, h);
 
+    holdscreenlock;
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glOrtho(0, w, h, 0, -1, 1);
@@ -220,7 +230,7 @@ void renderbackground(const char *caption, Texture *mapshot, const char *mapname
         glEnd();
         float lh = 0.5f*min(w, h), lw = lh*2,
               lx = 0.5f*(w - lw), ly = 0.5f*(h*0.5f - lh);
-        settexture((maxtexsize ? min(maxtexsize, hwtexsize) : hwtexsize) >= 1024 && (screen->w > 1280 || screen->h > 800) ? "data/logo_1024.png" : "data/logo.png", 3);
+        settexture((maxtexsize ? min(maxtexsize, hwtexsize) : hwtexsize) >= 1024 && (screenw > 1280 || screenh > 800) ? "data/logo_1024.png" : "data/logo.png", 3);
         glBegin(GL_TRIANGLE_STRIP);
         glTexCoord2f(0, 0); glVertex2f(lx,    ly);
         glTexCoord2f(1, 0); glVertex2f(lx+lw, ly);
@@ -319,6 +329,7 @@ void renderbackground(const char *caption, Texture *mapshot, const char *mapname
 }
 
 float loadprogress = 0;
+static ullong tick();
 
 void renderprogress(float bar, const char *text, GLuint tex, bool background)   // also used during loading
 {
@@ -330,14 +341,20 @@ void renderprogress(float bar, const char *text, GLuint tex, bool background)   
     interceptkey(SDLK_UNKNOWN); // keep the event queue awake to avoid 'beachball' cursor
     #endif
 
+    static ullong lastprogress = 0;
+    ullong now = tick();
+    if(now - lastprogress <= 1000000000/59) return;
+    lastprogress = now;
+
     extern int sdl_backingstore_bug;
     if(background || sdl_backingstore_bug > 0) restorebackground();
 
-    int w = screen->w, h = screen->h;
+    int w = screenw, h = screenh;
     if(forceaspect) w = int(ceil(h*forceaspect));
     getbackgroundres(w, h);
     gettextres(w, h);
 
+    holdscreenlock;
     glMatrixMode(GL_PROJECTION);
     glPushMatrix();
     glLoadIdentity();
@@ -440,36 +457,82 @@ void renderprogress(float bar, const char *text, GLuint tex, bool background)   
     swapbuffers(false);
 }
 
-void keyrepeat(bool on)
+XIDENT(IDF_SWLACC, VARNP, relativemouse, userelativemouse, 0, 1, 1);
+
+bool shouldgrab = false, grabinput = false, minimized = false, canrelativemouse = true, relativemouse = false;
+int keyrepeatmask = 0, textinputmask = 0;
+
+void keyrepeat(bool on, int mask)
 {
-    SDL_EnableKeyRepeat(on ? SDL_DEFAULT_REPEAT_DELAY : 0,
-                             SDL_DEFAULT_REPEAT_INTERVAL);
+    if(on) keyrepeatmask |= mask;
+    else keyrepeatmask &= ~mask;
 }
 
-bool grabinput = false, minimized = false;
+void textinput(bool on, int mask)
+{
+    if(on) 
+    {
+        if(!textinputmask) SDL_StartTextInput(); 
+        textinputmask |= mask;
+    }
+    else
+    {
+        textinputmask &= ~mask;
+        if(!textinputmask) SDL_StopTextInput();
+    }
+}
 
 void inputgrab(bool on)
 {
-#ifndef WIN32
-    if(!(screen->flags & SDL_FULLSCREEN)) SDL_WM_GrabInput(SDL_GRAB_OFF);
-    else
-#endif
-    SDL_WM_GrabInput(on ? SDL_GRAB_ON : SDL_GRAB_OFF);
-    SDL_ShowCursor(on ? SDL_DISABLE : SDL_ENABLE);
+    if(on)
+    {
+        SDL_ShowCursor(SDL_FALSE);
+        if(canrelativemouse && userelativemouse)
+        {
+            if(SDL_SetRelativeMouseMode(SDL_TRUE) >= 0) 
+            {
+                SDL_SetWindowGrab(screen, SDL_TRUE);
+                relativemouse = true;
+            }
+            else 
+            {
+                SDL_SetWindowGrab(screen, SDL_FALSE);
+                canrelativemouse = false;
+                relativemouse = false;
+            }
+        }
+    }
+    else 
+    {
+        SDL_ShowCursor(SDL_TRUE);
+        if(relativemouse)
+        {
+            SDL_SetRelativeMouseMode(SDL_FALSE);
+            SDL_SetWindowGrab(screen, SDL_FALSE);
+            relativemouse = false;
+        }
+    }
+    shouldgrab = false;
 }
+
+bool initwindowpos = false;
 
 void setfullscreen(bool enable)
 {
+    holdscreenlock;
     if(!screen) return;
-#if defined(WIN32) || defined(__APPLE__)
-    initwarning(enable ? "fullscreen" : "windowed");
-#else
-    if(enable == !(screen->flags&SDL_FULLSCREEN))
+    //initwarning(enable ? "fullscreen" : "windowed");
+    SDL_SetWindowFullscreen(screen, enable ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
+    if(!enable) 
     {
-        SDL_WM_ToggleFullScreen(screen);
-        inputgrab(grabinput);
+        SDL_SetWindowSize(screen, scr_w, scr_h);
+        if(initwindowpos)
+        {
+            int winx = SDL_WINDOWPOS_CENTERED, winy = SDL_WINDOWPOS_CENTERED;
+            SDL_SetWindowPosition(screen, winx, winy);
+            initwindowpos = false;
+        }
     }
-#endif
 }
 
 #ifdef _DEBUG
@@ -478,121 +541,85 @@ VARF(fullscreen, 0, 0, 1, setfullscreen(fullscreen!=0));
 VARF(fullscreen, 0, 1, 1, setfullscreen(fullscreen!=0));
 #endif
 
-void screenres(int *w, int *h)
+void screenres(int w, int h)
 {
-#if !defined(WIN32) && !defined(__APPLE__)
-    if(initing >= INIT_RESET)
+    scr_w = clamp(w, SCR_MINW, SCR_MAXW);
+    scr_h = clamp(h, SCR_MINH, SCR_MAXH);
+    if(screen)
     {
-#endif
-        scr_w = clamp(*w, SCR_MINW, SCR_MAXW);
-        scr_h = clamp(*h, SCR_MINH, SCR_MAXH);
-#if defined(WIN32) || defined(__APPLE__)
-        initwarning("screen resolution");
-#else
-        return;
+        scr_w = min(scr_w, desktopw);
+        scr_h = min(scr_h, desktoph);
+        holdscreenlock;
+        if(SDL_GetWindowFlags(screen) & SDL_WINDOW_FULLSCREEN) gl_resize();
+        else SDL_SetWindowSize(screen, scr_w, scr_h);
     }
-    SDL_Surface *surf = SDL_SetVideoMode(clamp(*w, SCR_MINW, SCR_MAXW), clamp(*h, SCR_MINH, SCR_MAXH), 0, SDL_OPENGL|(screen->flags&SDL_FULLSCREEN ? SDL_FULLSCREEN : SDL_RESIZABLE));
-    if(!surf) return;
-    screen = surf;
-    scr_w = screen->w;
-    scr_h = screen->h;
-    glViewport(0, 0, scr_w, scr_h);
-#endif
+    else 
+    {
+        initwarning("screen resolution");
+    }
 }
 
-COMMAND(screenres, "ii");
+ICOMMAND(screenres, "ii", (int *w, int *h), screenres(*w, *h));
 
 static int curgamma = 100;
 VARFP(gamma, 30, 100, 300,
 {
     if(gamma == curgamma) return;
     curgamma = gamma;
-	float f = gamma/100.0f;
-    if(SDL_SetGamma(f,f,f)==-1) conoutf(CON_ERROR, "Could not set gamma: %s", SDL_GetError());
+    holdscreenlock;
+    if(SDL_SetWindowBrightness(screen, gamma/100.0f)==-1) conoutf(CON_ERROR, "Could not set gamma: %s", SDL_GetError());
 });
 
 void restoregamma()
 {
     if(curgamma == 100) return;
-    float f = curgamma/100.0f;
-    SDL_SetGamma(1, 1, 1);
-    SDL_SetGamma(f, f, f);
+    holdscreenlock;
+    SDL_SetWindowBrightness(screen, curgamma/100.0f);
 }
 
 void cleargamma()
 {
-    if(curgamma != 100) SDL_SetGamma(1, 1, 1);
+    holdscreenlock;
+    if(curgamma != 100 && screen) SDL_SetWindowBrightness(screen, 1.0f);
 }
 
 VAR(dbgmodes, 0, 0, 1);
 
-int desktopw = 0, desktoph = 0;
-
-void setupscreen(int &usedcolorbits, int &useddepthbits, int &usedfsaa)
+void setupscreen(int &useddepthbits, int &usedfsaa)
 {
-    int flags = SDL_RESIZABLE;
-    #if defined(WIN32) || defined(__APPLE__)
-    flags = 0;
-    #endif
-    if(fullscreen) flags = SDL_FULLSCREEN;
-    SDL_Rect **modes = SDL_ListModes(NULL, SDL_OPENGL|flags);
-    if(modes && modes!=(SDL_Rect **)-1)
+    holdscreenlock;
+    if(glcontext)
     {
-        int widest = -1, best = -1;
-        for(int i = 0; modes[i]; i++)
-        {
-            if(dbgmodes) conoutf(CON_DEBUG, "mode[%d]: %d x %d", i, modes[i]->w, modes[i]->h);
-            if(widest < 0 || modes[i]->w > modes[widest]->w || (modes[i]->w == modes[widest]->w && modes[i]->h > modes[widest]->h)) 
-                widest = i; 
-        }
-        if(scr_w < 0 || scr_h < 0)
-        {
-            int w = scr_w, h = scr_h, ratiow = desktopw, ratioh = desktoph;
-            if(w < 0 && h < 0) { w = SCR_DEFAULTW; h = SCR_DEFAULTH; }
-            if(ratiow <= 0 || ratioh <= 0) { ratiow = modes[widest]->w; ratioh = modes[widest]->h; }
-            for(int i = 0; modes[i]; i++) if(modes[i]->w*ratioh == modes[i]->h*ratiow)
-            {
-                if(w <= modes[i]->w && h <= modes[i]->h && (best < 0 || modes[i]->w < modes[best]->w))
-                    best = i;
-            }
-        } 
-        if(best < 0)
-        {
-            int w = scr_w, h = scr_h;
-            if(w < 0 && h < 0) { w = SCR_DEFAULTW; h = SCR_DEFAULTH; }
-            else if(w < 0) w = (h*SCR_DEFAULTW)/SCR_DEFAULTH;
-            else if(h < 0) h = (w*SCR_DEFAULTH)/SCR_DEFAULTW;
-            for(int i = 0; modes[i]; i++)
-            {
-                if(w <= modes[i]->w && h <= modes[i]->h && (best < 0 || modes[i]->w < modes[best]->w || (modes[i]->w == modes[best]->w && modes[i]->h < modes[best]->h)))
-                    best = i;
-            }
-        }
-        if(flags&SDL_FULLSCREEN)
-        {
-            if(best >= 0) { scr_w = modes[best]->w; scr_h = modes[best]->h; }
-            else if(desktopw > 0 && desktoph > 0) { scr_w = desktopw; scr_h = desktoph; }
-            else if(widest >= 0) { scr_w = modes[widest]->w; scr_h = modes[widest]->h; } 
-        }
-        else if(best < 0)
-        { 
-            scr_w = min(scr_w >= 0 ? scr_w : (scr_h >= 0 ? (scr_h*SCR_DEFAULTW)/SCR_DEFAULTH : SCR_DEFAULTW), (int)modes[widest]->w); 
-            scr_h = min(scr_h >= 0 ? scr_h : (scr_w >= 0 ? (scr_w*SCR_DEFAULTH)/SCR_DEFAULTW : SCR_DEFAULTH), (int)modes[widest]->h);
-        }
-        if(dbgmodes) conoutf(CON_DEBUG, "selected %d x %d", scr_w, scr_h);
+        SDL_GL_DeleteContext(glcontext);
+        glcontext = NULL;
     }
-    if(scr_w < 0 && scr_h < 0) { scr_w = SCR_DEFAULTW; scr_h = SCR_DEFAULTH; }
-    else if(scr_w < 0) scr_w = (scr_h*SCR_DEFAULTW)/SCR_DEFAULTH;
-    else if(scr_h < 0) scr_h = (scr_w*SCR_DEFAULTH)/SCR_DEFAULTW;
+    if(screen)
+    {
+        SDL_DestroyWindow(screen);
+        screen = NULL;
+    }
 
-    bool hasbpp = true;
-    if(colorbits)
-        hasbpp = SDL_VideoModeOK(scr_w, scr_h, colorbits, SDL_OPENGL|flags)==colorbits;
+    SDL_DisplayMode desktop;
+    if(SDL_GetDesktopDisplayMode(0, &desktop) < 0) fatal("failed querying desktop display mode: %s", SDL_GetError());
+    desktopw = desktop.w;
+    desktoph = desktop.h;
+
+    if(scr_h < 0) scr_h = SCR_DEFAULTH;
+    if(scr_w < 0) scr_w = (scr_h*desktopw)/desktoph;
+    scr_w = min(scr_w, desktopw);
+    scr_h = min(scr_h, desktoph);
+
+    int winx = SDL_WINDOWPOS_UNDEFINED, winy = SDL_WINDOWPOS_UNDEFINED, winw = scr_w, winh = scr_h, flags = SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI;
+    if(fullscreen)
+    {
+        winw = desktopw;
+        winh = desktoph;
+        flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
+        initwindowpos = true;
+    }
 
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-#if SDL_VERSION_ATLEAST(1, 2, 11)
-    if(vsync>=0) SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, vsync);
-#endif
+
     static int configs[] =
     {
         0x7, /* try everything */
@@ -626,28 +653,42 @@ void setupscreen(int &usedcolorbits, int &useddepthbits, int &usedfsaa)
             SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, config&4 ? 1 : 0);
             SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, config&4 ? fsaa : 0);
         }
-        screen = SDL_SetVideoMode(scr_w, scr_h, hasbpp ? colorbits : 0, SDL_OPENGL|flags);
+        screen = SDL_CreateWindow("Cube 2: Sauerbraten", winx, winy, winw, winh, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_INPUT_FOCUS | SDL_WINDOW_MOUSE_FOCUS | flags);
         if(screen) break;
     }
-    if(!screen) fatal("Unable to create OpenGL screen: %s", SDL_GetError());
+    if(!screen) fatal("failed to create OpenGL window: %s", SDL_GetError());
     else
     {
-        if(!hasbpp) conoutf(CON_WARN, "%d bit color buffer not supported - disabling", colorbits);
         if(depthbits && (config&1)==0) conoutf(CON_WARN, "%d bit z-buffer not supported - disabling", depthbits);
         if(stencilbits && (config&2)==0) conoutf(CON_WARN, "Stencil buffer not supported - disabling");
         if(fsaa>0 && (config&4)==0) conoutf(CON_WARN, "%dx anti-aliasing not supported - disabling", fsaa);
     }
 
-    scr_w = screen->w;
-    scr_h = screen->h;
+    SDL_SetWindowMinimumSize(screen, SCR_MINW, SCR_MINH);
+    SDL_SetWindowMaximumSize(screen, SCR_MAXW, SCR_MAXH);
 
-    usedcolorbits = hasbpp ? colorbits : 0;
+    glcontext = SDL_GL_CreateContext(screen);
+    if(!glcontext) fatal("failed to create OpenGL context: %s", SDL_GetError());
+    updatevsync();
+
+    SDL_GetWindowSize(screen, &screenw, &screenh);
+
     useddepthbits = config&1 ? depthbits : 0;
     usedfsaa = config&4 ? fsaa : 0;
 }
 
+void updatevsync(){
+       if(!glcontext) return;
+       holdscreenlock;
+       if(!SDL_GL_SetSwapInterval(vsync ? (vsynctear ? -1 : 1) : 0)) return;
+       if(vsync && vsynctear) conoutf("vsynctear not supported, or you need to restart sauer to apply changes.");
+       else if(vsync) conoutf("vsynctear not supported, or you need to restart sauer to apply changes.");
+       else conoutf("You need to restart sauer to disable vsync.");
+}
+
 void resetgl()
 {
+    holdscreenlock;
     clearchanges(CHANGE_GFX);
 
     renderbackground("resetting OpenGL");
@@ -680,11 +721,12 @@ void resetgl()
     cleanupshaders();
     cleanupgl();
     
-    SDL_SetVideoMode(0, 0, 0, 0);
+    int useddepthbits = 0, usedfsaa = 0;
+    setupscreen(useddepthbits, usedfsaa);
 
-    int usedcolorbits = 0, useddepthbits = 0, usedfsaa = 0;
-    setupscreen(usedcolorbits, useddepthbits, usedfsaa);
-    gl_init(scr_w, scr_h, usedcolorbits, useddepthbits, usedfsaa);
+    inputgrab(grabinput);
+
+    gl_init(useddepthbits, usedfsaa);
 
     extern void reloadfonts();
     extern void reloadtextures();
@@ -724,17 +766,15 @@ static bool filterevent(const SDL_Event &event)
     switch(event.type)
     {
         case SDL_MOUSEMOTION:
-            #ifndef WIN32
-            if(grabinput && !(screen->flags&SDL_FULLSCREEN))
+            if(grabinput && !relativemouse && !(SDL_GetWindowFlags(screen) & SDL_WINDOW_FULLSCREEN))
             {
-                if(event.motion.x == screen->w / 2 && event.motion.y == screen->h / 2) 
+                if(event.motion.x == screenw / 2 && event.motion.y == screenh / 2) 
                     return false;  // ignore any motion events generated by SDL_WarpMouse
                 #ifdef __APPLE__
                 if(event.motion.y == 0) 
                     return false;  // let mac users drag windows via the title bar
                 #endif
             }
-            #endif
             break;
     }
     return true;
@@ -774,17 +814,15 @@ static void ignoremousemotion()
 {
     SDL_Event e;
     SDL_PumpEvents();
-    while(SDL_PeepEvents(&e, 1, SDL_GETEVENT, SDL_EVENTMASK(SDL_MOUSEMOTION)));
+    while(SDL_PeepEvents(&e, 1, SDL_GETEVENT, SDL_MOUSEMOTION, SDL_MOUSEMOTION));
 }
 
 static void resetmousemotion()
 {
-#ifndef WIN32
-    if(grabinput && !(screen->flags&SDL_FULLSCREEN))
+    if(grabinput && !relativemouse && !(SDL_GetWindowFlags(screen) & SDL_WINDOW_FULLSCREEN))
     {
-        SDL_WarpMouse(screen->w / 2, screen->h / 2);
+        SDL_WarpMouseInWindow(screen, screenw / 2, screenh / 2);
     }
-#endif
 }
 
 static void checkmousemotion(int &dx, int &dy)
@@ -817,7 +855,7 @@ static void checkmousemotion(int &dx, int &dy)
 void checkinput()
 {
     SDL_Event event;
-    int lasttype = 0, lastbut = 0;
+    //int lasttype = 0, lastbut = 0;
     bool mousemoved = false; 
     while(events.length() || pollevent(event))
     {
@@ -829,22 +867,64 @@ void checkinput()
                 quit();
                 return;
 
-            #if !defined(WIN32) && !defined(__APPLE__)
-            case SDL_VIDEORESIZE:
-                screenres(&event.resize.w, &event.resize.h);
+            case SDL_TEXTINPUT:
+            {
+                static uchar buf[SDL_TEXTINPUTEVENT_TEXT_SIZE+1];
+                int len = decodeutf8(buf, int(sizeof(buf)-1), (const uchar *)event.text.text, strlen(event.text.text));
+                if(len > 0) { buf[len] = '\0'; processtextinput((const char *)buf, len); }
                 break;
-            #endif
+            }
 
             case SDL_KEYDOWN:
             case SDL_KEYUP:
-                keypress(event.key.keysym.sym, event.key.state==SDL_PRESSED, uni2cube(event.key.keysym.unicode));
+                if(keyrepeatmask || !event.key.repeat)
+                    processkey(event.key.keysym.sym, event.key.state==SDL_PRESSED);
                 break;
 
-            case SDL_ACTIVEEVENT:
-                if(event.active.state & SDL_APPINPUTFOCUS)
-                    inputgrab(grabinput = event.active.gain!=0);
-                if(event.active.state & SDL_APPACTIVE)
-                    minimized = !event.active.gain;
+            case SDL_WINDOWEVENT:
+                switch(event.window.event)
+                {
+                    case SDL_WINDOWEVENT_CLOSE:
+                        quit();
+                        break;
+
+                    case SDL_WINDOWEVENT_FOCUS_GAINED:
+                        shouldgrab = true;
+                        break;
+                    case SDL_WINDOWEVENT_ENTER:
+                        inputgrab(grabinput = true);
+                        break;
+
+                    case SDL_WINDOWEVENT_LEAVE:
+                    case SDL_WINDOWEVENT_FOCUS_LOST:
+                        inputgrab(grabinput = false);
+                        break;
+
+                    case SDL_WINDOWEVENT_MINIMIZED:
+                        minimized = true;
+                        break;
+
+                    case SDL_WINDOWEVENT_MAXIMIZED:
+                    case SDL_WINDOWEVENT_RESTORED:
+                        minimized = false;
+                        break;
+
+                    case SDL_WINDOWEVENT_RESIZED:
+                        break;
+
+                    case SDL_WINDOWEVENT_SIZE_CHANGED:
+                    {
+                        holdscreenlock;
+                        SDL_GetWindowSize(screen, &screenw, &screenh);
+                        if(!(SDL_GetWindowFlags(screen) & SDL_WINDOW_FULLSCREEN))
+                        {
+                            scr_w = clamp(screenw, SCR_MINW, SCR_MAXW);
+                            scr_h = clamp(screenh, SCR_MINH, SCR_MAXH);
+                        }
+                        gl_resize();
+                    }
+                        break;
+                }
                 break;
 
             case SDL_MOUSEMOTION:
@@ -855,14 +935,24 @@ void checkinput()
                     if(!g3d_movecursor(dx, dy)) mousemove(dx, dy);
                     mousemoved = true;
                 }
+                else if(shouldgrab) inputgrab(grabinput = true);
                 break;
 
             case SDL_MOUSEBUTTONDOWN:
             case SDL_MOUSEBUTTONUP:
-                if(lasttype==event.type && lastbut==event.button.button) break; // why?? get event twice without it
-                keypress(-event.button.button, event.button.state!=0, 0);
-                lasttype = event.type;
-                lastbut = event.button.button;
+#ifdef __linux__
+#define keycodeshift 0
+#else
+#define keycodeshift 2*(event.button.button>=SDL_BUTTON_X1)
+#endif
+                processkey(-event.button.button - keycodeshift, event.button.state==SDL_PRESSED);
+                break;
+    
+            case SDL_MOUSEWHEEL:
+                if(event.wheel.y > 0) { processkey(-4, true); processkey(-4, false); }
+                else if(event.wheel.y < 0) { processkey(-5, true); processkey(-5, false); }
+                if(event.wheel.x > 0) { processkey(-35, true); processkey(-35, false); }
+                else if(event.wheel.x < 0) { processkey(-36, true); processkey(-36, false); }
                 break;
         }
     }
@@ -871,34 +961,73 @@ void checkinput()
 
 void swapbuffers(bool overlay)
 {
+    holdscreenlock;
     recorder::capture(overlay);
-    SDL_GL_SwapBuffers();
+    SDL_GL_SwapWindow(screen);
 }
  
 VAR(menufps, 0, 60, 1000);
 VARP(maxfps, 0, 200, 1000);
+XIDENT(IDF_SWLACC, VARFP, multipoll, -1, 0, 1,
+    drawer::keepgl(multipoll == 1);
+    if(initing == NOT_INITING && multipoll < 0 && (vsync || !maxfps)) conoutf(CON_WARN, "/multipoll -1 makes sense only with /vsync 0 and /maxfps non-zero. Make sure you really understand what /multipoll does.");
+);
+XIDENT(IDF_SWLACC, VAR, nanodelay, 0, 50000, 999999);
 
-void limitfps(int &millis, int curmillis)
+#ifdef __APPLE__
+
+#include <mach/mach_time.h>
+static inline ullong tick(){
+        static mach_timebase_info_data_t tb;
+        if(!tb.denom) mach_timebase_info(&tb);
+        return (mach_absolute_time()*ullong(tb.numer))/tb.denom;
+}
+
+#define main SDL_main
+
+#else
+
+static inline ullong tick(){
+    timespec t;
+    clock_gettime(CLOCK_MONOTONIC, &t);
+    return t.tv_sec * 1000000000ULL + t.tv_nsec;
+}
+
+#endif
+
+bool limitfps(ullong &tick_now)
 {
-    int limit = (mainmenu || minimized) && menufps ? (maxfps ? min(maxfps, menufps) : menufps) : maxfps;
-    if(!limit) return;
-    static int fpserror = 0;
-    int delay = 1000/limit - (millis-curmillis);
-    if(delay < 0) fpserror = 0;
-    else
-    {
-        fpserror += 1000%limit;
-        if(fpserror >= limit)
-        {
-            ++delay;
-            fpserror -= limit;
+    static ullong lastdraw = 0, lastrefresh = 0;
+    int fpslimit = (mainmenu || minimized) && menufps ? (maxfps ? min(maxfps, menufps) : menufps) : maxfps;
+    ullong nextdraw = (fpslimit ? 1000000000ULL / fpslimit : 0) + lastdraw;
+    bool dodraw;
+    timespec t, _;
+    t.tv_sec = 0;
+    if(multipoll){
+        if(fpslimit && nextdraw <= tick_now){
+            dodraw = true;
+            goto frame;
         }
-        if(delay > 0)
-        {
-            SDL_Delay(delay);
-            millis += delay;
-        }
+        dodraw = fpslimit == 0;
+        ullong nextrefresh = lastrefresh + nanodelay;
+        if(nextrefresh <= tick_now) goto frame;
+        t.tv_nsec = nextrefresh - tick_now;
+        nanosleep(&t, &_);
+        return limitfps(tick_now = tick());
     }
+    else{
+        if(nextdraw <= tick_now){
+            dodraw = true;
+            goto frame;
+        }
+        t.tv_nsec = nextdraw - tick_now;
+        nanosleep(&t, &_);
+        return limitfps(tick_now = tick());
+    }
+frame:
+    lastrefresh = tick_now;
+    if(dodraw) lastdraw = tick_now;
+    return dodraw;
 }
 
 #if defined(WIN32) && !defined(_DEBUG) && !defined(__GNUC__)
@@ -944,47 +1073,35 @@ void stackdumper(unsigned int type, EXCEPTION_POINTERS *ep)
 }
 #endif
 
-#define MAXFPSHISTORY 60
+int currentfps[3] = {0, 0, 0};
 
-int fpspos = 0, fpshistory[MAXFPSHISTORY];
-
-void resetfpshistory()
-{
-    loopi(MAXFPSHISTORY) fpshistory[i] = 1;
-    fpspos = 0;
+void updatefps(int which, int value = 1){
+	static int fpsaccumulator[3] = {0, 0, 0};
+	static int fpsbasemillis = 0, drawmillistot = 0;
+	if(totalmillis - fpsbasemillis >= 1000){
+		loopi(3){
+			currentfps[i] = fpsaccumulator[i];
+			fpsaccumulator[i] = 0;
+		}
+		if(drawmillistot) currentfps[2]/=drawmillistot;
+		drawmillistot = 0;
+		fpsbasemillis = totalmillis;
+	}
+	fpsaccumulator[which]+=value;
+	if(which==2) drawmillistot++;
 }
 
-void updatefpshistory(int millis)
+int getfps(int which)
 {
-    fpshistory[fpspos++] = max(1, min(1000, millis));
-    if(fpspos>=MAXFPSHISTORY) fpspos = 0;
+    return currentfps[which];
 }
 
-void getfps(int &fps, int &bestdiff, int &worstdiff)
+void getfps_(int *raw, int *which)
 {
-    int total = fpshistory[MAXFPSHISTORY-1], best = total, worst = total;
-    loopi(MAXFPSHISTORY-1)
-    {
-        int millis = fpshistory[i];
-        total += millis;
-        if(millis < best) best = millis;
-        if(millis > worst) worst = millis;
-    }
-
-    fps = (1000*MAXFPSHISTORY)/total;
-    bestdiff = 1000/best-fps;
-    worstdiff = fps-1000/worst;
+    intret(getfps(clamp(*which, 0, 2)));
 }
 
-void getfps_(int *raw)
-{
-    int fps, bestdiff, worstdiff;
-    if(*raw) fps = 1000/fpshistory[(fpspos+MAXFPSHISTORY-1)%MAXFPSHISTORY];
-    else getfps(fps, bestdiff, worstdiff);
-    intret(fps);
-}
-
-COMMANDN(getfps, getfps_, "i");
+COMMANDN(getfps, getfps_, "ii");
 
 bool inbetweenframes = false, renderedframe = true;
 
@@ -1008,6 +1125,10 @@ int getclockmillis()
 }
 
 VAR(numcpus, 1, 1, 16);
+
+#ifdef __APPLE__
+#define main SDL_main
+#endif
 
 int main(int argc, char **argv)
 {
@@ -1056,9 +1177,9 @@ int main(int argc, char **argv)
             case 'w': scr_w = clamp(atoi(&argv[i][2]), SCR_MINW, SCR_MAXW); if(!findarg(argc, argv, "-h")) scr_h = -1; break;
             case 'h': scr_h = clamp(atoi(&argv[i][2]), SCR_MINH, SCR_MAXH); if(!findarg(argc, argv, "-w")) scr_w = -1; break;
             case 'z': depthbits = atoi(&argv[i][2]); break;
-            case 'b': colorbits = atoi(&argv[i][2]); break;
+            case 'b': /* compat, ignore */ break;
             case 'a': fsaa = atoi(&argv[i][2]); break;
-            case 'v': vsync = atoi(&argv[i][2]); break;
+            case 'v': vsync = atoi(&argv[i][2]); if(vsync < 0) { vsynctear = 1; vsync = 1; } else vsynctear = 0; break;
             case 't': fullscreen = atoi(&argv[i][2]); break;
             case 's': stencilbits = atoi(&argv[i][2]); break;
             case 'f': 
@@ -1090,9 +1211,12 @@ int main(int argc, char **argv)
         }
         else gameargs.add(argv[i]);
     }
+
+    execfile("sdos.cfg", false);
+
     initing = NOT_INITING;
 
-    numcpus = clamp(guessnumcpus(), 1, 16);
+    numcpus = clamp(SDL_GetCPUCount(), 1, 16);
 
     if(dedicated <= 1)
     {
@@ -1101,15 +1225,9 @@ int main(int argc, char **argv)
         int par = 0;
         #ifdef _DEBUG
         par = SDL_INIT_NOPARACHUTE;
-        #ifdef WIN32
-        SetEnvironmentVariable("SDL_DEBUG", "1");
-        #endif
         #endif
 
         if(SDL_Init(SDL_INIT_TIMER|SDL_INIT_VIDEO|SDL_INIT_AUDIO|par)<0) fatal("Unable to initialize SDL: %s", SDL_GetError());
-        
-        const SDL_version *v = SDL_Linked_Version();
-        conoutf(CON_INIT, "Library: SDL %u.%u.%u", v->major, v->minor, v->patch);
     }
     
     logoutf("init: net");
@@ -1124,22 +1242,18 @@ int main(int argc, char **argv)
     game::initclient();
 
     logoutf("init: video");
-    const SDL_VideoInfo *video = SDL_GetVideoInfo();
-    if(video) 
-    {
-        desktopw = video->current_w;
-        desktoph = video->current_h;
-    }
-    int usedcolorbits = 0, useddepthbits = 0, usedfsaa = 0;
-    setupscreen(usedcolorbits, useddepthbits, usedfsaa);
-
-    SDL_WM_SetCaption("Cube 2: Sauerbraten", NULL);
-    keyrepeat(false);
-    SDL_ShowCursor(0);
+    SDL_SetHint(SDL_HINT_GRAB_KEYBOARD, "0");
+    #if !defined(WIN32) && !defined(__APPLE__)
+    SDL_SetHint(SDL_HINT_VIDEO_MINIMIZE_ON_FOCUS_LOSS, "0");
+    #endif
+    int useddepthbits = 0, usedfsaa = 0;
+    setupscreen(useddepthbits, usedfsaa);
+    SDL_ShowCursor(SDL_FALSE);
+    SDL_StopTextInput(); // workaround for spurious text-input events getting sent on first text input toggle?
 
     logoutf("init: gl");
     gl_checkextensions();
-    gl_init(scr_w, scr_h, usedcolorbits, useddepthbits, usedfsaa);
+    gl_init(useddepthbits, usedfsaa);
     notexture = textureload("packages/textures/notexture.png");
     if(!notexture) fatal("could not find core textures");
 
@@ -1168,8 +1282,8 @@ int main(int argc, char **argv)
     execfile("data/stdedit.cfg");
     execfile("data/menus.cfg");
     execfile("data/sounds.cfg");
-    execfile("data/heightmap.cfg");
-    execfile("data/blendbrush.cfg");
+    execfile("data/brush.cfg");
+    execfile("mybrushes.cfg", false);
     if(game::savedservers()) execfile(game::savedservers(), false);
     
     identflags |= IDF_PERSIST;
@@ -1181,6 +1295,13 @@ int main(int argc, char **argv)
         writecfg(game::restoreconfig());
     }
     execfile(game::autoexec(), false);
+
+    logoutf("init: sdos");
+    for (int i = 0; sdos_scripts[i] != 0; i++)
+    {
+        executestr(sdos_scripts[i]);
+    }
+
     initing = NOT_INITING;
 
     identflags &= ~IDF_PERSIST;
@@ -1209,39 +1330,48 @@ int main(int argc, char **argv)
     logoutf("init: mainloop");
 
     initmumble();
-    resetfpshistory();
 
     inputgrab(grabinput = true);
     ignoremousemotion();
 
+    conoutf(stringify_macro(\f0Sauerbraten Day of Sobriety Test Client\f2 v1.5.0));
+
+    ullong tick_last = tick();
+    double finelastmillis = lastmillis, finetotalmillis = totalmillis;
+    bool drawrequested = false;
     for(;;)
     {
-        static int frames = 0;
-        int millis = getclockmillis();
-        limitfps(millis, totalmillis);
-        elapsedtime = millis - totalmillis;
-        static int timeerr = 0;
-        int scaledtime = game::scaletime(elapsedtime) + timeerr;
-        curtime = scaledtime/100;
-        timeerr = scaledtime%100;
-        if(!multiplayer(false) && curtime>200) curtime = 200;
-        if(game::ispaused()) curtime = 0;
-		lastmillis += curtime;
-        totalmillis = millis;
+        ullong tick_now = tick();
+        drawrequested |= limitfps(tick_now);
+        double elapsedmillis = double(tick_now - tick_last)/1000000;
+        tick_last = tick_now;
+        totalmillis = (finetotalmillis += elapsedmillis);
+        int oldlastmillis = lastmillis;
+        lastmillis = (finelastmillis += game::ispaused() ? 0 : game::scaletime(1) * elapsedmillis / 100);
+        bool lightupdate = oldlastmillis == lastmillis;
         updatetime();
  
         checkinput();
         menuprocess();
         tryedit();
 
-        if(lastmillis) game::updateworld();
+        game::updateworld();
 
         checksleep(lastmillis);
 
         serverslice(false, 0);
 
-        if(frames) updatefpshistory(elapsedtime);
-        frames++;
+        if(!lightupdate) updatefps(1);
+
+        if(!drawrequested || drawer::swapping()){
+            if(lightupdate && !nanodelay) sched_yield();
+            continue;
+        }
+        drawrequested = false;
+
+        ullong start = tick();
+
+        updatefps(0);
 
         // miscellaneous general game effects
         recomputecamera();
@@ -1250,11 +1380,10 @@ int main(int argc, char **argv)
 
         if(minimized) continue;
 
-        inbetweenframes = false;
-        if(mainmenu) gl_drawmainmenu(screen->w, screen->h);
-        else gl_drawframe(screen->w, screen->h);
-        swapbuffers();
-        renderedframe = inbetweenframes = true;
+        if(!mainmenu && multipoll > 0) drawer::letdraw();
+        else drawer::draw();
+        updatefps(2, (tick() - start)/1000);
+
     }
     
     ASSERT(0);   

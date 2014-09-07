@@ -480,6 +480,7 @@ VAR(showboundingbox, 0, 0, 2);
 
 void render2dbox(vec &o, float x, float y, float z)
 {
+    holdscreenlock;
     glBegin(GL_LINE_LOOP);
     glVertex3f(o.x, o.y, o.z);
     glVertex3f(o.x, o.y, o.z+z);
@@ -496,6 +497,7 @@ void render3dbox(vec &o, float tofloor, float toceil, float xradius, float yradi
     float xsz = xradius*2, ysz = yradius*2;
     float h = tofloor+toceil;
     lineshader->set();
+    holdscreenlock;
     glDisable(GL_TEXTURE_2D);
     glColor3f(1, 1, 1);
     render2dbox(c, xsz, 0, h);
@@ -510,6 +512,7 @@ void render3dbox(vec &o, float tofloor, float toceil, float xradius, float yradi
 void renderellipse(vec &o, float xradius, float yradius, float yaw)
 {
     lineshader->set();
+    holdscreenlock;
     glDisable(GL_TEXTURE_2D);
     glColor3f(0.5f, 0.5f, 0.5f);
     glBegin(GL_LINE_LOOP);
@@ -745,6 +748,7 @@ void rendermodelquery(model *m, dynent *d, const vec &center, float radius)
     d->query = newquery(d);
     if(!d->query) return;
     nocolorshader->set();
+    holdscreenlock;
     glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
     glDepthMask(GL_FALSE);
     startquery(d->query);

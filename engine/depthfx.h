@@ -83,6 +83,7 @@ static struct depthfxtexture : rendertarget
 
     bool dorender()
     {
+        holdscreenlock;
         glClearColor(1, 1, 1, 1);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -117,6 +118,7 @@ static struct depthfxtexture : rendertarget
     {
         if(numdepthfxranges > 0)
         {
+            holdscreenlock;
             glColor3f(0, 1, 0);
             debugscissor(w, h, true);
             glColor3f(0, 0, 1);
@@ -143,6 +145,7 @@ bool binddepthfxtex()
 {
     if(renderpath!=R_FIXEDFUNCTION && !reflecting && !refracting && depthfx && depthfxtex.rendertex && numdepthfxranges>0)        
     {
+        holdscreenlock;
         glActiveTexture_(GL_TEXTURE2_ARB);
         glBindTexture(depthfxtex.target, depthfxtex.rendertex);
         glActiveTexture_(GL_TEXTURE0_ARB);
@@ -199,6 +202,7 @@ void drawdepthfxtex()
 {
     if(!depthfx || renderpath==R_FIXEDFUNCTION) return;
 
+    holdscreenlock;
     // Apple/ATI bug - fixed-function fog state can force software fallback even when fragment program is enabled
     glDisable(GL_FOG);
     depthfxtex.render(1<<depthfxsize, 1<<depthfxsize, blurdepthfx, blurdepthfxsigma/100.0f);

@@ -40,7 +40,7 @@ enum
 
 enum { ID_VAR, ID_FVAR, ID_SVAR, ID_COMMAND, ID_ALIAS, ID_LOCAL };
 
-enum { IDF_PERSIST = 1<<0, IDF_OVERRIDE = 1<<1, IDF_HEX = 1<<2, IDF_READONLY = 1<<3, IDF_OVERRIDDEN = 1<<4, IDF_UNKNOWN = 1<<5, IDF_ARG = 1<<6 };
+enum { IDF_PERSIST = 1<<0, IDF_OVERRIDE = 1<<1, IDF_HEX = 1<<2, IDF_READONLY = 1<<3, IDF_OVERRIDDEN = 1<<4, IDF_UNKNOWN = 1<<5, IDF_ARG = 1<<6, IDF_SWLACC = 1<<7 };
 
 struct ident;
 
@@ -328,3 +328,11 @@ inline void ident::getval(tagval &v) const
 #define ICOMMANDSNAME _icmds_
 #define ICOMMANDS(name, nargs, proto, b) ICOMMANDNS(name, ICOMMANDSNAME, nargs, proto, b)
  
+
+//add flag at time of ident creation. Avoiding *VAR* macro proliferation.
+extern int ident_mod_boot(const char* name, int orflags);
+
+#define XIDENT(orflags, macro, name, ...)\
+		macro(name, ##__VA_ARGS__);\
+		static int name ## Xhook = ident_mod_boot(#name, orflags);
+

@@ -32,10 +32,32 @@ typedef unsigned long long int ullong;
 #define UNUSED
 #endif
 
-inline void *operator new(size_t, void *p) { return p; }
-inline void *operator new[](size_t, void *p) { return p; }
-inline void operator delete(void *, void *) {}
-inline void operator delete[](void *, void *) {}
+#include <new>
+
+#define GCC_VERSION_AT_LEAST(major, minor, patch) \
+    (defined(__GNUC__) && \
+    (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__) >= \
+    (major * 10000 + minor * 100 + patch))
+
+#define CLANG_VERSION_AT_LEAST(major, minor, patch) \
+    (defined(__clang__) && \
+    (__clang_major__ * 10000 + __clang_minor__ * 100 + __clang_patchlevel__) >= \
+    (major * 10000 + minor * 100 + patch))
+
+#define ICC_VERSION_AT_LEAST(major, minor, patch) \
+    (defined(__INTEL_COMPILER) && \
+    ((__INTEL_COMPILER * 10000 + __INTEL_COMPILER_UPDATE) >= \
+    ((major * 100 + minor) * 10000) + patch))
+
+#define stringify_(x)		#x
+#define stringify_macro(x)	stringify_(x)
+
+
+#if __cplusplus < 201103L
+#define decltype typeof
+#else
+#define CPP11
+#endif
 
 #ifdef swap
 #undef swap
@@ -83,6 +105,8 @@ static inline T clamp(T a, U b, U c)
 #define loopjrev(m) looprev(j,m)
 #define loopkrev(m) looprev(k,m)
 #define looplrev(m) looprev(l,m)
+
+#define arraylen(x) (sizeof(x)/sizeof(*(x)))
 
 #define DELETEP(p) if(p) { delete   p; p = 0; }
 #define DELETEA(p) if(p) { delete[] p; p = 0; }
@@ -1182,7 +1206,6 @@ extern int listfiles(const char *dir, const char *ext, vector<char *> &files);
 extern int listzipfiles(const char *dir, const char *ext, vector<char *> &files);
 extern void seedMT(uint seed);
 extern uint randomMT();
-extern int guessnumcpus();
 
 extern void putint(ucharbuf &p, int n);
 extern void putint(packetbuf &p, int n);

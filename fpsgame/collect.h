@@ -290,7 +290,7 @@ struct collectclientmode : clientmode
 
     bool canspawn(clientinfo *ci, bool connecting)
     {
-        return connecting || !ci->state.lastdeath || gamemillis+curtime-ci->state.lastdeath >= RESPAWNSECS*1000;
+        return connecting || !ci->state.lastdeath || gamemillis-ci->state.lastdeath >= RESPAWNSECS*1000;
     }
 
     bool canchangeteam(clientinfo *ci, const char *oldteam, const char *newteam)
@@ -444,6 +444,7 @@ struct collectclientmode : clientmode
 
     void drawhud(fpsent *d, int w, int h)
     {
+        holdscreenlock;
         if(d->state == CS_ALIVE && d->tokens > 0)
         {
             int x = HICON_X + 3*HICON_STEP + (d->quadmillis ? HICON_SIZE + HICON_SPACE : 0);

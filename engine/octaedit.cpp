@@ -10,6 +10,7 @@ void boxs(int orient, vec o, const vec &s)
     float f = boxoutline ? (dc>0 ? 0.2f : -0.2f) : 0;
     o[D[d]] += dc * s[D[d]] + f;
 
+    holdscreenlock;
     glBegin(GL_LINE_LOOP);
 
     glVertex3fv(o.v); o[R[d]] += s[R[d]];
@@ -39,6 +40,7 @@ void boxsgrid(int orient, vec o, vec s, int g)
 
     o[D[d]] += dc * s[D[d]]*g + f;
 
+    holdscreenlock;
     glBegin(GL_LINES);
     loop(x, xs) {
         o[R[d]] += g;
@@ -58,7 +60,7 @@ void boxsgrid(int orient, vec o, vec s, int g)
     xtraverts += 2*int(xs+ys);
 }
 
-selinfo sel, lastsel, savedsel;
+selinfo sel, lastsel;
 
 int orient = 0;
 int gridsize = 8;
@@ -81,16 +83,12 @@ VARF(dragging, 0, 0, 1,
     sel.orient = orient;
 );
 
-int moving = 0;
-ICOMMAND(moving, "b", (int *n),
-{
-    if(*n >= 0)
-    {
-        if(!*n || (moving<=1 && !pointinsel(sel, cur.tovec().add(1)))) moving = 0;
-        else if(!moving) moving = 1;
-    }
-    intret(moving);
-});
+VARF(moving, 0, 0, 1,
+    if(!moving) return;
+    vec v(cur.v); v.add(1);
+    moving = pointinsel(sel, v);
+    if(moving) havesel = false; // tell cursorupdate to create handle
+);
 
 VARF(gridpower, 0, 3, 12,
 {
@@ -107,14 +105,11 @@ VARF(hmapedit, 0, 0, 1, horient = sel.orient);
 
 void forcenextundo() { lastsel.orient = -1; }
 
-extern void hmapcancel();
-
 void cubecancel()
 {
     havesel = false;
     moving = dragging = hmapedit = passthroughsel = 0;
     forcenextundo();
-    hmapcancel();
 }
 
 void cancelsel()
@@ -145,7 +140,7 @@ void toggleedit(bool force)
     }
     cancelsel();
     stoppaintblendmap();
-    keyrepeat(editmode);
+    keyrepeat(editmode, KR_EDITMODE);
     editing = entediting = editmode;
     extern int fullbright;
     if(fullbright) { initlights(); lightents(); }
@@ -198,11 +193,6 @@ COMMAND(cubecancel, "");
 COMMAND(cancelsel, "");
 COMMAND(reorient, "");
 COMMAND(selextend, "");
-
-ICOMMAND(selmoved, "", (), { if(noedit(true)) return; intret(sel.o != savedsel.o ? 1 : 0); });
-ICOMMAND(selsave, "", (), { if(noedit(true)) return; savedsel = sel; });
-ICOMMAND(selrestore, "", (), { if(noedit(true)) return; sel = savedsel; });
-ICOMMAND(selswap, "", (), { if(noedit(true)) return; swap(sel, savedsel); });
 
 ///////// selection support /////////////
 
@@ -272,17 +262,23 @@ void updateselection()
     sel.s.z = abs(lastcur.z-cur.z)/sel.grid+1;
 }
 
-bool editmoveplane(const vec &o, const vec &ray, int d, float off, vec &handle, vec &dest, bool first)
+void editmoveplane(const vec &o, const vec &ray, int d, float off, vec &handle, vec &dest, bool first)
 {
     plane pl(d, off);
     float dist = 0.0f;
-    if(!pl.rayintersect(player->o, ray, dist))
-        return false;
 
-    dest = vec(ray).mul(dist).add(player->o);
-    if(first) handle = vec(dest).sub(o);
-    dest.sub(handle);
-    return true;
+    if(pl.rayintersect(player->o, ray, dist))
+    {
+        dest = ray;
+        dest.mul(dist);
+        dest.add(player->o);
+        if(first)
+        {
+            handle = dest;
+            handle.sub(o);
+        }
+        dest.sub(handle);
+    }
 }
 
 inline bool isheightmap(int orient, int d, bool empty, cube *c);
@@ -305,20 +301,19 @@ void rendereditcursor()
 
     if(moving)
     {
-        static vec dest, handle;
-        if(editmoveplane(sel.o.tovec(), camdir, od, sel.o[D[od]]+odc*sel.grid*sel.s[D[od]], handle, dest, moving==1))
+        ivec e;
+        static vec v, handle;
+        editmoveplane(sel.o.tovec(), camdir, od, sel.o[D[od]]+odc*sel.grid*sel.s[D[od]], handle, v, !havesel);
+        if(!havesel)
         {
-            if(moving==1)
-            {
-                dest.add(handle);
-                handle = ivec(handle).mask(~(sel.grid-1)).tovec();
-                dest.sub(handle);
-                moving = 2;
-            }
-            ivec o = ivec(dest).mask(~(sel.grid-1));
-            sel.o[R[od]] = o[R[od]];
-            sel.o[C[od]] = o[C[od]];
+            v.add(handle);
+            (e = handle).mask(~(sel.grid-1));
+            v.sub(handle = e.tovec());
+            havesel = true;
         }
+        (e = v).mask(~(sel.grid-1));
+        sel.o[R[od]] = e[R[od]];
+        sel.o[C[od]] = e[C[od]];
     }
     else
     if(entmoving)
@@ -436,6 +431,7 @@ void rendereditcursor()
         }
     }
 
+    holdscreenlock;
     glEnable(GL_BLEND);
     glBlendFunc(GL_ONE, GL_ONE);
 
@@ -459,7 +455,7 @@ void rendereditcursor()
     }
 
     // selections
-    if(havesel || moving)
+    if(havesel)
     {
         d = dimension(sel.orient);
         glColor3ub(50,50,50);   // grid
@@ -923,58 +919,58 @@ void freeeditinfo(editinfo *&e)
     e = NULL;
 }
 
-struct prefabheader
+struct octabrushheader
 {
     char magic[4];
     int version;
 };
 
-struct prefab : editinfo
+struct octabrush : editinfo
 {
     char *name;
 
-    prefab() : name(NULL) {}
-    ~prefab() { DELETEA(name); if(copy) freeblock(copy); }
+    octabrush() : name(NULL) {}
+    ~octabrush() { DELETEA(name); if(copy) freeblock(copy); }
 };
 
-static inline bool htcmp(const char *key, const prefab &b) { return !strcmp(key, b.name); }
+static inline bool htcmp(const char *key, const octabrush &b) { return !strcmp(key, b.name); }
 
-static hashset<prefab> prefabs;
+static hashset<octabrush> octabrushes;
 
-void delprefab(char *name)
+void delbrush(char *name)
 {
-    if(prefabs.remove(name))
-        conoutf("deleted prefab %s", name);
+    if(octabrushes.remove(name))
+        conoutf("deleted brush %s", name);
 }
-COMMAND(delprefab, "s");
+COMMAND(delbrush, "s");
 
-void saveprefab(char *name)
+void savebrush(char *name)
 {
     if(!name[0] || noedit(true) || (nompedit && multiplayer())) return;
-    prefab *b = prefabs.access(name);
+    octabrush *b = octabrushes.access(name);
     if(!b)
     {
-        b = &prefabs[name];
+        b = &octabrushes[name];
         b->name = newstring(name);
     }
     if(b->copy) freeblock(b->copy);
     protectsel(b->copy = blockcopy(block3(sel), sel.grid));
     changed(sel);
-    defformatstring(filename)(strpbrk(name, "/\\") ? "packages/%s.obr" : "packages/prefab/%s.obr", name);
+    defformatstring(filename)(strpbrk(name, "/\\") ? "packages/%s.obr" : "packages/brush/%s.obr", name);
     path(filename);
     stream *f = opengzfile(filename, "wb");
-    if(!f) { conoutf(CON_ERROR, "could not write prefab to %s", filename); return; }
-    prefabheader hdr;
+    if(!f) { conoutf(CON_ERROR, "could not write brush to %s", filename); return; }
+    octabrushheader hdr;
     memcpy(hdr.magic, "OEBR", 4);
     hdr.version = 0;
     lilswap(&hdr.version, 1);
     f->write(&hdr, sizeof(hdr));
     streambuf<uchar> s(f);
-    if(!packblock(*b->copy, s)) { delete f; conoutf(CON_ERROR, "could not pack prefab %s", filename); return; }
+    if(!packblock(*b->copy, s)) { delete f; conoutf(CON_ERROR, "could not pack brush %s", filename); return; }
     delete f;
-    conoutf("wrote prefab file %s", filename);
+    conoutf("wrote brush file %s", filename);
 }
-COMMAND(saveprefab, "s");
+COMMAND(savebrush, "s");
 
 void pasteblock(block3 &b, selinfo &sel, bool local)
 {
@@ -986,31 +982,31 @@ void pasteblock(block3 &b, selinfo &sel, bool local)
     sel.orient = o;
 }
 
-void pasteprefab(char *name)
+void pastebrush(char *name)
 {
     if(!name[0] || noedit() || (nompedit && multiplayer())) return;
-    prefab *b = prefabs.access(name);
+    octabrush *b = octabrushes.access(name);
     if(!b)
     {
-        defformatstring(filename)(strpbrk(name, "/\\") ? "packages/%s.obr" : "packages/prefab/%s.obr", name);
+        defformatstring(filename)(strpbrk(name, "/\\") ? "packages/%s.obr" : "packages/brush/%s.obr", name);
         path(filename);
         stream *f = opengzfile(filename, "rb");
-        if(!f) { conoutf(CON_ERROR, "could not read prefab %s", filename); return; }
-        prefabheader hdr;
-        if(f->read(&hdr, sizeof(hdr)) != sizeof(prefabheader) || memcmp(hdr.magic, "OEBR", 4)) { delete f; conoutf(CON_ERROR, "prefab %s has malformatted header", filename); return; }
+        if(!f) { conoutf(CON_ERROR, "could not read brush %s", filename); return; }
+        octabrushheader hdr;
+        if(f->read(&hdr, sizeof(hdr)) != sizeof(octabrushheader) || memcmp(hdr.magic, "OEBR", 4)) { delete f; conoutf(CON_ERROR, "brush %s has malformatted header", filename); return; }
         lilswap(&hdr.version, 1);
-        if(hdr.version != 0) { delete f; conoutf(CON_ERROR, "prefab %s uses unsupported version", filename); return; }
+        if(hdr.version != 0) { delete f; conoutf(CON_ERROR, "brush %s uses unsupported version", filename); return; }
         streambuf<uchar> s(f);
         block3 *copy = NULL;
-        if(!unpackblock(copy, s)) { delete f; conoutf(CON_ERROR, "could not unpack prefab %s", filename); return; }
+        if(!unpackblock(copy, s)) { delete f; conoutf(CON_ERROR, "could not unpack brush %s", filename); return; }
         delete f;
-        b = &prefabs[name];
+        b = &octabrushes[name];
         b->name = newstring(name);
         b->copy = copy;
     }
     pasteblock(*b->copy, sel, true);
 }
-COMMAND(pasteprefab, "s");
+COMMAND(pastebrush, "s");
 
 void mpcopy(editinfo *&e, selinfo &sel, bool local)
 {
@@ -1110,8 +1106,7 @@ vector<int> htextures;
 
 COMMAND(clearbrush, "");
 COMMAND(brushvert, "iii");
-void hmapcancel() { htextures.setsize(0); }
-COMMAND(hmapcancel, "");
+ICOMMAND(hmapcancel, "", (), htextures.setsize(0); );
 ICOMMAND(hmapselect, "", (),
     int t = lookupcube(cur.x, cur.y, cur.z).texture[orient];
     int i = htextures.find(t);
@@ -1121,12 +1116,21 @@ ICOMMAND(hmapselect, "", (),
         htextures.remove(i);
 );
 
+inline bool ishtexture(int t)
+{
+    loopv(htextures)
+        if(t == htextures[i])
+            return false;
+    return true;
+}
+
+VARP(bypassheightmapcheck, 0, 0, 1);    // temp
+
 inline bool isheightmap(int o, int d, bool empty, cube *c)
 {
     return havesel ||
            (empty && isempty(*c)) ||
-           htextures.empty() ||
-           htextures.find(c->texture[o]) >= 0;
+           ishtexture(c->texture[o]);
 }
 
 namespace hmap
@@ -2257,8 +2261,10 @@ COMMAND(showtexgui, "i");
 
 void rendertexturepanel(int w, int h)
 {
+    emulatecurtime;
     if((texpaneltimer -= curtime)>0 && editmode)
     {
+        holdscreenlock;
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
         glPushMatrix();

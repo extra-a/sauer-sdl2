@@ -282,6 +282,11 @@ struct AttribLoc
     AttribLoc(const char *name = NULL, int loc = -1) : name(name), loc(loc) {}
 };
 
+#if CLANG_VERSION_AT_LEAST(3, 5, 0)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wundefined-bool-conversion"
+#endif
+
 struct Shader
 {
     static Shader *lastshader;
@@ -396,6 +401,10 @@ struct Shader
     
     static int uniformlocversion();
 };
+
+#if CLANG_VERSION_AT_LEAST(3, 5, 0)
+#pragma clang diagnostic pop
+#endif
 
 #define SETSHADER(name) \
     do { \

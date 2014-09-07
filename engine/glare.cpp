@@ -44,6 +44,7 @@ void addglare()
 {
     if(!glare || renderpath==R_FIXEDFUNCTION) return;
 
+    holdscreenlock;
     glEnable(GL_BLEND);
     glBlendFunc(GL_ONE, GL_ONE);
 

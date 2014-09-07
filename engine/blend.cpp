@@ -508,12 +508,12 @@ struct BlendBrush
 
     void cleanup()
     {
-        if(tex) { glDeleteTextures(1, &tex); tex = 0; }
+        if(tex) { holdscreenlock; glDeleteTextures(1, &tex); tex = 0; }
     }
 
     void gentex()
     {
-        if(!tex) glGenTextures(1, &tex);
+        if(!tex){ holdscreenlock; glGenTextures(1, &tex); }
         uchar *buf = new uchar[2*w*h];
         uchar *dst = buf, *src = data;
         loopi(h)
@@ -525,6 +525,7 @@ struct BlendBrush
             }
         }
         createtexture(tex, w, h, buf, 3, 1, GL_LUMINANCE_ALPHA);
+        holdscreenlock;
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
         GLfloat border[4] = { 0, 0, 0, 0 };

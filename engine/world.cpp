@@ -280,7 +280,7 @@ bool noentedit()
     return !entediting;
 }
 
-bool pointinsel(const selinfo &sel, const vec &o)
+bool pointinsel(selinfo &sel, vec &o)
 {
     return(o.x <= sel.o.x+sel.s.x*sel.grid
         && o.x >= sel.o.x
@@ -500,9 +500,9 @@ VAR(entmovingshadow, 0, 1, 1);
 
 extern void boxs(int orient, vec o, const vec &s);
 extern void boxs3D(const vec &o, vec s, int g);
-extern bool editmoveplane(const vec &o, const vec &ray, int d, float off, vec &handle, vec &dest, bool first);
+extern void editmoveplane(const vec &o, const vec &ray, int d, float off, vec &handle, vec &dest, bool first);
 
-int entmoving = 0;
+bool initentdragging = true;
 
 void entdrag(const vec &ray)
 {
@@ -517,8 +517,7 @@ void entdrag(const vec &ray)
     entfocus(entgroup.last(),        
         entselectionbox(e, eo, es);
 
-        if(!editmoveplane(e.o, ray, d, eo[d] + (dc ? es[d] : 0), handle, v, entmoving==1))
-            return;        
+        editmoveplane(e.o, ray, d, eo[d] + (dc ? es[d] : 0), handle, v, initentdragging);        
 
         ivec g(v);
         int z = g[d]&(~(sel.grid-1));
@@ -529,9 +528,9 @@ void entdrag(const vec &ray)
         c = (entselsnap ? g[C[d]] : v[C[d]]) - e.o[C[d]];       
     );
 
-    if(entmoving==1) makeundoent();
+    if(initentdragging) makeundoent();
     groupeditpure(e.o[R[d]] += r; e.o[C[d]] += c);
-    entmoving = 2;
+    initentdragging = false;
 }
 
 VAR(showentradius, 0, 1, 1);
@@ -539,6 +538,7 @@ VAR(showentradius, 0, 1, 1);
 void renderentring(const extentity &e, float radius, int axis)
 {
     if(radius <= 0) return;
+    holdscreenlock;
     glBegin(GL_LINE_LOOP);
     loopi(15)
     {
@@ -560,6 +560,7 @@ void renderentsphere(const extentity &e, float radius)
 void renderentattachment(const extentity &e)
 {
     if(!e.attached) return;
+    holdscreenlock;
     glBegin(GL_LINES);
     glVertex3fv(e.o.v);
     glVertex3fv(e.attached->o.v);
@@ -574,6 +575,7 @@ void renderentarrow(const extentity &e, const vec &dir, float radius)
     spoke.orthogonal(dir);
     spoke.normalize();
     spoke.mul(arrowsize);
+    holdscreenlock;
     glBegin(GL_LINES);
     glVertex3fv(e.o.v);
     glVertex3fv(target.v);
@@ -597,6 +599,7 @@ void renderentcone(const extentity &e, const vec &dir, float radius, float angle
     spoke.orthogonal(dir);
     spoke.normalize();
     spoke.mul(radius*sinf(angle*RAD));
+    holdscreenlock;
     glBegin(GL_LINES);
     loopi(8)
     {
@@ -620,6 +623,7 @@ void renderentcone(const extentity &e, const vec &dir, float radius, float angle
 
 void renderentradius(extentity &e, bool color)
 {
+    holdscreenlock;
     switch(e.type)
     {
         case ET_LIGHT:
@@ -679,6 +683,7 @@ void renderentselection(const vec &o, const vec &ray, bool entmoving)
     if(noentedit()) return;
     vec eo, es;
 
+    holdscreenlock;
     glColor3ub(0, 40, 0);
     loopv(entgroup) entfocus(entgroup[i],     
         entselectionbox(e, eo, es);
@@ -738,35 +743,16 @@ bool hoveringonent(int ent, int orient)
 }
 
 VAR(entitysurf, 0, 0, 1);
-
-ICOMMAND(entadd, "", (),
-{
-    if(enthover >= 0 && !noentedit())
-    {
-        if(entgroup.find(enthover) < 0) entadd(enthover);
-        if(entmoving > 1) entmoving = 1;
-    }
-});
-
-ICOMMAND(enttoggle, "", (),
-{
-    if(enthover < 0 || noentedit() || !enttoggle(enthover)) { entmoving = 0; intret(0); }
-    else { if(entmoving > 1) entmoving = 1; intret(1); }
-});
-
-ICOMMAND(entmoving, "b", (int *n),
-{
-    if(*n >= 0)
-    {
-        if(!*n || enthover < 0 || noentedit()) entmoving = 0;
-        else
-        {
-            if(entgroup.find(enthover) < 0) { entadd(enthover); entmoving = 1; }
-            else if(!entmoving) entmoving = 1;
-        }
-    }
-    intret(entmoving);
-});
+VARF(entmoving, 0, 0, 2,
+    if(enthover < 0 || noentedit())
+        entmoving = 0;
+    else if(entmoving == 1)
+        entmoving = enttoggle(enthover);
+    else if(entmoving == 2 && entgroup.find(enthover) < 0)
+        entadd(enthover);
+    if(entmoving > 0)
+        initentdragging = true;
+);
 
 void entpush(int *dir)
 {

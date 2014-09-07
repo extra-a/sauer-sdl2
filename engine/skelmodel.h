@@ -462,6 +462,7 @@ struct skelmodel : animmodel
 
         void render(const animstate *as, skin &s, vbocacheentry &vc)
         {
+            holdscreenlock;
             if(!(as->cur.anim&ANIM_NOSKIN))
             {
                 if(s.multitextured())
@@ -1297,6 +1298,7 @@ struct skelmodel : animmodel
             else if((count ? lastbdata : lastsdata) == (usematskel ? (void *)sc.mdata : (void *)sc.bdata)) return;
             int offset = count ? numgpubones : 0;
             if(!offset) count = numgpubones;
+            holdscreenlock;
             if(hasPP)
             {
                 if(usematskel) glProgramEnvParameters4fv_(GL_VERTEX_PROGRAM_ARB, 10 + 3*offset, 3*count, sc.mdata[0].a.v);
@@ -1323,6 +1325,7 @@ struct skelmodel : animmodel
             if(offset < 0)
             {
                 defformatstring(offsetname)("%s[%d]", u.name, (usematskel ? 3 : 2)*numgpubones); 
+                holdscreenlock;
                 offset = glGetUniformLocation_(Shader::lastshader->program, offsetname);
             }
             return offset;
@@ -1331,6 +1334,7 @@ struct skelmodel : animmodel
         void setglslbones(UniformLoc &u, skelcacheentry &sc, skelcacheentry &bc, int count)
         {
             if(u.version == bc.version && u.data == (usematskel ? (void *)bc.mdata : (void *)bc.bdata)) return;
+            holdscreenlock;
             if(usematskel)
             {
                 glUniform4fv_(u.loc, 3*numgpubones, sc.mdata[0].a.v);
@@ -1406,6 +1410,7 @@ struct skelmodel : animmodel
                 if(skel->shared) skel->users.removeobj(this);
                 else DELETEP(skel);
             }
+            holdscreenlock;
             if(ebuf) glDeleteBuffers_(1, &ebuf);
             loopi(MAXBLENDCACHE)
             {
@@ -1453,6 +1458,7 @@ struct skelmodel : animmodel
 
         void genvbo(bool norms, bool tangents, vbocacheentry &vc)
         {
+            holdscreenlock;
             if(hasVBO)
             {
                 if(!vc.vbuf) glGenBuffers_(1, &vc.vbuf);
@@ -1574,6 +1580,7 @@ struct skelmodel : animmodel
 
         void bindvbo(const animstate *as, vbocacheentry &vc, skelcacheentry *sc = NULL, blendcacheentry *bc = NULL)
         {
+            holdscreenlock;
             vvertn *vverts = hasVBO ? 0 : (vvertn *)vc.vdata;
             if(hasVBO && lastebuf!=ebuf)
             {
@@ -1732,6 +1739,7 @@ struct skelmodel : animmodel
                 DELETEA(c.mdata);
                 c.owner = -1;
             }
+            holdscreenlock;
             loopi(MAXVBOCACHE)
             {
                 vbocacheentry &c = vbocache[i];
@@ -1848,6 +1856,7 @@ struct skelmodel : animmodel
                     }
                     if(hasVBO)
                     {
+                        holdscreenlock;
                         glBindBuffer_(GL_ARRAY_BUFFER_ARB, vc.vbuf);
                         glBufferData_(GL_ARRAY_BUFFER_ARB, vlen*vertsize, vdata, GL_STREAM_DRAW_ARB);
                     }

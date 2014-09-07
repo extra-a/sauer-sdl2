@@ -465,6 +465,7 @@ struct blobrenderer
 
         enablepolygonoffset(GL_POLYGON_OFFSET_FILL);
 
+        holdscreenlock;
         glDepthMask(GL_FALSE);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         if(!dbgblob) glEnable(GL_BLEND);
@@ -476,6 +477,7 @@ struct blobrenderer
 
     static void cleanuprenderstate()
     {
+        holdscreenlock;
         glDisableClientState(GL_VERTEX_ARRAY);
         glDisableClientState(GL_TEXTURE_COORD_ARRAY);
         glDisableClientState(GL_COLOR_ARRAY);
@@ -527,6 +529,7 @@ struct blobrenderer
 
                 setuprenderstate();
             }
+            holdscreenlock;
             glVertexPointer(3, GL_FLOAT, sizeof(blobvert), &verts->pos);
             glTexCoordPointer(2, GL_FLOAT, sizeof(blobvert), &verts->u);
             glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(blobvert), &verts->color);
@@ -550,6 +553,7 @@ struct blobrenderer
         {
             if(b->endvert - b->startvert >= 3)
             {
+                holdscreenlock;
                 if(hasDRE) glDrawRangeElements_(GL_TRIANGLES, b->startvert, b->endvert-1, b->endindex - b->startindex, GL_UNSIGNED_SHORT, &indexes[b->startindex]);
                 else glDrawElements(GL_TRIANGLES, b->endindex - b->startindex, GL_UNSIGNED_SHORT, &indexes[b->startindex]);
                 xtravertsva += b->endvert - b->startvert;

@@ -290,9 +290,9 @@ namespace ai
     extern bool cansee(fpsent *d, vec &x, vec &y, vec &targ = aitarget);
 
     extern void init(fpsent *d, int at, int on, int sk, int bn, int pm, const char *name, const char *team);
-    extern void update();
+    extern void update(int curtime);
     extern void avoid();
-    extern void think(fpsent *d, bool run);
+    extern void think(fpsent *d, bool run, int curtime);
 
     extern bool badhealth(fpsent *d);
     extern bool checkothers(vector<int> &targets, fpsent *d = NULL, int state = -1, int targtype = -1, int target = -1, bool teams = false, int *members = NULL);

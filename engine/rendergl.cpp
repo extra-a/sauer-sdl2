@@ -203,6 +203,7 @@ bool hasext(const char *exts, const char *ext)
 
 void gl_checkextensions()
 {
+    holdscreenlock;
     const char *vendor = (const char *)glGetString(GL_VENDOR);
     const char *exts = (const char *)glGetString(GL_EXTENSIONS);
     const char *renderer = (const char *)glGetString(GL_RENDERER);
@@ -511,7 +512,7 @@ void gl_checkextensions()
 #endif
 #ifdef WIN32
             intel_immediate_bug = 1;
-            intel_vertexarray_bug = 1;
+            //intel_vertexarray_bug = 1;
 #endif
         }
 
@@ -748,19 +749,26 @@ void gl_checkextensions()
 
 void glext(char *ext)
 {
+    holdscreenlock;
     const char *exts = (const char *)glGetString(GL_EXTENSIONS);
     intret(hasext(exts, ext) ? 1 : 0);
 }
 COMMAND(glext, "s");
 
-void gl_init(int w, int h, int bpp, int depth, int fsaa)
+void gl_resize()
 {
-    glViewport(0, 0, w, h);
+    holdscreenlock;
+    glViewport(0, 0, screenw, screenh);
+}
+ 
+void gl_init(int depth, int fsaa)
+{
+    holdscreenlock;
+    gl_resize();
     glClearColor(0, 0, 0, 0);
     glClearDepth(1);
     glDepthFunc(GL_LESS);
     glDisable(GL_DEPTH_TEST);
-    glShadeModel(GL_SMOOTH);
     
     
     glDisable(GL_FOG);
@@ -851,6 +859,7 @@ void findorientation()
 void transplayer()
 {
     // move from RH to Z-up LH quake style worldspace
+    holdscreenlock;
     glLoadMatrixf(viewmatrix.v);
 
     glRotatef(camera1->roll, 0, 1, 0);
@@ -882,6 +891,7 @@ void disablezoom()
 
 void computezoom()
 {
+    emulateelapsedtime;
     if(!zoom) { zoomprogress = 0; curfov = fov; curavatarfov = avatarfov; return; }
     if(zoom > 0) zoomprogress = zoominvel ? min(zoomprogress + float(elapsedtime) / zoominvel, 1.0f) : 1;
     else
@@ -898,6 +908,7 @@ FVARP(zoomaccel, 0, 0, 1000);
 VARP(zoomautosens, 0, 1, 1);
 FVARP(sensitivity, 1e-3f, 3, 1000);
 FVARP(sensitivityscale, 1e-3f, 1, 1000);
+XIDENT(IDF_SWLACC, FVARP, sdl2_sensitivity_adjust, 1e-3f, 1, 1000);
 VARP(invmouse, 0, 0, 1);
 FVARP(mouseaccel, 0, 0, 1000);
  
@@ -935,8 +946,9 @@ void mousemove(int dx, int dy)
             curaccel = zoomaccel;
         }
     }
-    if(curaccel && curtime && (dx || dy)) cursens += curaccel * sqrtf(dx*dx + dy*dy)/curtime;
-    cursens /= 33.0f*sensitivityscale;
+    emulateelapsedtime;
+    if(curaccel && (dx || dy)) cursens += curaccel * sqrtf(dx*dx + dy*dy)/max(elapsedtime, 1);
+    cursens /= 33.0f*sensitivityscale/sdl2_sensitivity_adjust;
     camera1->yaw += dx*cursens;
     camera1->pitch -= dy*cursens*(invmouse ? -1 : 1);
     fixcamerarange();
@@ -1017,6 +1029,7 @@ glmatrixf mvmatrix, projmatrix, mvpmatrix, invmvmatrix, invmvpmatrix;
 
 void readmatrices()
 {
+    holdscreenlock;
     glGetFloatv(GL_MODELVIEW_MATRIX, mvmatrix.v);
     glGetFloatv(GL_PROJECTION_MATRIX, projmatrix.v);
 
@@ -1029,6 +1042,7 @@ FVAR(nearplane, 0.01f, 0.54f, 2.0f);
 
 void project(float fovy, float aspect, int farplane, bool flipx = false, bool flipy = false, bool swapxy = false, float zscale = 1)
 {
+    holdscreenlock;
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     if(swapxy) glRotatef(90, 0, 0, 1);
@@ -1063,6 +1077,7 @@ static const glmatrixf dummymatrix;
 static int projectioncount = 0;
 void pushprojection(const glmatrixf &m = dummymatrix)
 {
+    holdscreenlock;
     glMatrixMode(GL_PROJECTION);
     if(projectioncount <= 0) glPushMatrix();
     if(&m != &dummymatrix) glLoadMatrixf(m.v);
@@ -1078,6 +1093,7 @@ void pushprojection(const glmatrixf &m = dummymatrix)
 void popprojection()
 {
     --projectioncount;
+    holdscreenlock;
     glMatrixMode(GL_PROJECTION);
     glPopMatrix();
     if(projectioncount > 0)
@@ -1098,6 +1114,7 @@ FVAR(depthoffset, -1e4f, 0.01f, 1e4f);
 
 void enablepolygonoffset(GLenum type)
 {
+    holdscreenlock;
     if(!depthoffset)
     {
         glPolygonOffset(polygonoffsetfactor, polygonoffsetunits);
@@ -1123,6 +1140,7 @@ void enablepolygonoffset(GLenum type)
 
 void disablepolygonoffset(GLenum type)
 {
+    holdscreenlock;
     if(!depthoffset)
     {
         glDisable(type);
@@ -1199,6 +1217,7 @@ int pushscissor(float sx1, float sy1, float sx2, float sy2)
     sy2 = min(sy2, 1.0f);
 
     GLint viewport[4];
+    holdscreenlock;
     glGetIntegerv(GL_VIEWPORT, viewport);
     int sx = viewport[0] + int(floor((sx1+1)*0.5f*viewport[2])),
         sy = viewport[1] + int(floor((sy1+1)*0.5f*viewport[3])),
@@ -1228,6 +1247,7 @@ int pushscissor(float sx1, float sy1, float sx2, float sy2)
 
 void popscissor()
 {
+    holdscreenlock;
     if(scissoring>1) glScissor(oldscissor[0], oldscissor[1], oldscissor[2], oldscissor[3]);
     else if(scissoring) glDisable(GL_SCISSOR_TEST);
     scissoring = 0;
@@ -1309,6 +1329,7 @@ static void setfog(int fogmat, float below = 1, int abovemat = MAT_AIR)
     blendfog(fogmat, below, logblend, start, end, fogc);
     if(below < 1) blendfog(abovemat, 1-below, 1-logblend, start, end, fogc);
 
+    holdscreenlock;
     glFogf(GL_FOG_START, start);
     glFogf(GL_FOG_END, end);
     glFogfv(GL_FOG_COLOR, fogc);
@@ -1345,6 +1366,7 @@ static void blendfogoverlay(int fogmat, float blend, float *overlay)
 void drawfogoverlay(int fogmat, float fogblend, int abovemat)
 {
     notextureshader->set();
+    holdscreenlock;
     glDisable(GL_TEXTURE_2D);
 
     glEnable(GL_BLEND);
@@ -1396,6 +1418,7 @@ void drawglare()
     refracting = -1;
 
     float oldfogstart, oldfogend, oldfogcolor[4], zerofog[4] = { 0, 0, 0, 1 };
+    holdscreenlock;
     glGetFloatv(GL_FOG_START, &oldfogstart);
     glGetFloatv(GL_FOG_END, &oldfogend);
     glGetFloatv(GL_FOG_COLOR, oldfogcolor);
@@ -1449,6 +1472,7 @@ void drawreflection(float z, bool refract, int fogdepth, const bvec &col)
     refractcolor = fogging ? col : fogcolor;
 
     float oldfogstart, oldfogend, oldfogcolor[4];
+    holdscreenlock;
     glGetFloatv(GL_FOG_START, &oldfogstart);
     glGetFloatv(GL_FOG_END, &oldfogend);
     glGetFloatv(GL_FOG_COLOR, oldfogcolor);
@@ -1621,6 +1645,7 @@ void drawcubemap(int size, const vec &o, float yaw, float pitch, const cubemapsi
 
     setfog(fogmat);
 
+    holdscreenlock;
     glClear(GL_DEPTH_BUFFER_BIT);
 
     int farplane = worldsize*2;
@@ -1690,6 +1715,7 @@ namespace modelpreview
         camera.roll = 0;
         camera1 = &camera;
 
+        holdscreenlock;
         glGetFloatv(GL_FOG_START, &oldfogstart);
         glGetFloatv(GL_FOG_END, &oldfogend);
         glGetFloatv(GL_FOG_COLOR, oldfogcolor);
@@ -1718,6 +1744,7 @@ namespace modelpreview
 
     void end()
     {
+        holdscreenlock;
         glDisable(GL_CULL_FACE);
         glDisable(GL_DEPTH_TEST);
 
@@ -1745,7 +1772,7 @@ vec minimapcenter(0, 0, 0), minimapradius(0, 0, 0), minimapscale(0, 0, 0);
 
 void clearminimap()
 {
-    if(minimaptex) { glDeleteTextures(1, &minimaptex); minimaptex = 0; }
+    if(minimaptex) { holdscreenlock; glDeleteTextures(1, &minimaptex); minimaptex = 0; }
 }
 
 VARR(minimapheight, 0, 0, 2<<16);
@@ -1759,6 +1786,7 @@ VARFP(minimapsize, 7, 8, 10, { if(minimaptex) drawminimap(); });
 
 void bindminimap()
 {
+    holdscreenlock;
     glBindTexture(GL_TEXTURE_2D, minimaptex);
 }
 
@@ -1782,8 +1810,9 @@ void drawminimap()
 
     renderprogress(0, "generating mini-map...", 0, !renderedframe);
 
-    int size = 1<<minimapsize, sizelimit = min(hwtexsize, min(screen->w, screen->h));
+    int size = 1<<minimapsize, sizelimit = min(hwtexsize, min(screenw, screenh));
     while(size > sizelimit) size /= 2;
+    holdscreenlock;
     if(!minimaptex) glGenTextures(1, &minimaptex);
 
     extern vector<vtxarray *> valist;
@@ -1880,7 +1909,7 @@ void drawminimap()
     glDisable(GL_CULL_FACE);
     glDisable(GL_FOG);
 
-    glViewport(0, 0, screen->w, screen->h);
+    glViewport(0, 0, screenw, screenh);
 
     camera1 = oldcamera;
     envmapping = minimapping = false;
@@ -1910,7 +1939,7 @@ int motionw = 0, motionh = 0, lastmotion = 0;
 
 void cleanupmotionblur()
 {
-    if(motiontex) { glDeleteTextures(1, &motiontex); motiontex = 0; }
+    if(motiontex) { holdscreenlock; glDeleteTextures(1, &motiontex); motiontex = 0; }
     motionw = motionh = 0;
     lastmotion = 0;
 }
@@ -1921,15 +1950,16 @@ FVARP(motionblurscale, 0, 0.5f, 1);
 
 void addmotionblur()
 {
-    if(!motionblur || !hasTR || max(screen->w, screen->h) > hwtexsize) return;
+    if(!motionblur || !hasTR || max(screenw, screenh) > hwtexsize) return;
 
     if(game::ispaused()) { lastmotion = 0; return; }
 
-    if(!motiontex || motionw != screen->w || motionh != screen->h)
+    holdscreenlock;
+    if(!motiontex || motionw != screenw || motionh != screenh)
     {
         if(!motiontex) glGenTextures(1, &motiontex);
-        motionw = screen->w;
-        motionh = screen->h;
+        motionw = screenw;
+        motionh = screenh;
         lastmotion = 0;
         createtexture(motiontex, motionw, motionh, NULL, 3, 0, GL_RGB, GL_TEXTURE_RECTANGLE_ARB);
     }
@@ -1975,7 +2005,7 @@ void addmotionblur()
     {
         lastmotion = lastmillis - lastmillis%motionblurmillis;
 
-        glCopyTexSubImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, 0, 0, 0, 0, screen->w, screen->h);
+        glCopyTexSubImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, 0, 0, 0, 0, screenw, screenh);
     }
 }
 
@@ -1990,7 +2020,7 @@ void gl_drawhud(int w, int h);
 
 int xtraverts, xtravertsva;
 
-void gl_drawframe(int w, int h)
+void gl_drawframe()
 {
     if(deferdrawtextures) drawtextures();
 
@@ -1998,7 +2028,7 @@ void gl_drawframe(int w, int h)
 
     updatedynlights();
 
-    aspect = forceaspect ? forceaspect : w/float(h);
+    aspect = forceaspect ? forceaspect : screenw/float(screenh);
     fovy = 2*atan2(tan(curfov/2*RAD), aspect)/RAD;
     
     int fogmat = lookupmaterial(camera1->o)&(MATF_VOLUME|MATF_INDEX), abovemat = MAT_AIR;
@@ -2028,6 +2058,7 @@ void gl_drawframe(int w, int h)
     findorientation();
     setenvmatrix();
 
+    holdscreenlock;
     glEnable(GL_FOG);
     glEnable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
@@ -2114,18 +2145,19 @@ void gl_drawframe(int w, int h)
     glDisable(GL_TEXTURE_2D);
     notextureshader->set();
 
-    gl_drawhud(w, h);
+    gl_drawhud();
 
     renderedgame = false;
 }
 
-void gl_drawmainmenu(int w, int h)
+void gl_drawmainmenu()
 {
     xtravertsva = xtraverts = glde = gbatches = 0;
 
     renderbackground(NULL, NULL, NULL, NULL, true, true);
     renderpostfx();
     
+    holdscreenlock;
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glMatrixMode(GL_MODELVIEW);
@@ -2138,7 +2170,7 @@ void gl_drawmainmenu(int w, int h)
     notextureshader->set();
     glDisable(GL_TEXTURE_2D);
 
-    gl_drawhud(w, h);
+    gl_drawhud();
 }
 
 VARNP(damagecompass, usedamagecompass, 0, 1, 1);
@@ -2169,6 +2201,8 @@ void drawdamagecompass(int w, int h)
 {
     int dirs = 0;
     float size = damagecompasssize/100.0f*min(h, w)/2.0f;
+    holdscreenlock;
+    emulatecurtime;
     loopi(8) if(dcompass[i]>0)
     {
         if(!dirs)
@@ -2220,6 +2254,7 @@ void drawdamagescreen(int w, int h)
     if(lastmillis >= damageblendmillis) return;
 
     defaultshader->set();
+    holdscreenlock;
     glEnable(GL_TEXTURE_2D);
 
     static Texture *damagetex = NULL;
@@ -2320,6 +2355,7 @@ void drawcrosshair(int w, int h)
         }
         chsize = crosshairsize*w/900.0f;
     }
+    holdscreenlock;
     if(crosshair->type&Texture::ALPHA) glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     else glBlendFunc(GL_ONE, GL_ONE);
     glColor3f(r, g, b);
@@ -2347,10 +2383,12 @@ VAR(statrate, 1, 200, 1000);
 
 FVARP(conscale, 1e-3f, 0.33f, 1e3f);
 
-void gl_drawhud(int w, int h)
+void gl_drawhud()
 {
+    int w = screenw, h = screenh;
     if(forceaspect) w = int(ceil(h*forceaspect));
 
+    holdscreenlock;
     if(editmode && !hidehud && !mainmenu)
     {
         glEnable(GL_DEPTH_TEST);
@@ -2417,17 +2455,8 @@ void gl_drawhud(int w, int h)
             int roffset = 0;
             if(showfps)
             {
-                static int lastfps = 0, prevfps[3] = { 0, 0, 0 }, curfps[3] = { 0, 0, 0 };
-                if(totalmillis - lastfps >= statrate)
-                {
-                    memcpy(prevfps, curfps, sizeof(prevfps));
-                    lastfps = totalmillis - (totalmillis%statrate);
-                }
-                int nextfps[3];
-                getfps(nextfps[0], nextfps[1], nextfps[2]);
-                loopi(3) if(prevfps[i]==curfps[i]) curfps[i] = nextfps[i];
-                if(showfpsrange) draw_textf("fps %d+%d-%d", conw-7*FONTH, conh-FONTH*3/2, curfps[0], curfps[1], curfps[2]);
-                else draw_textf("fps %d", conw-5*FONTH, conh-FONTH*3/2, curfps[0]);
+                int decimilli = getfps(2)/100;
+                draw_textf("fps %d draw %d.%dms ifps %d", conw-14*FONTH, conh-FONTH*3/2, getfps(0), decimilli/10, decimilli%10, getfps(1));
                 roffset += FONTH;
             }
 
@@ -2542,3 +2571,101 @@ void gl_drawhud(int w, int h)
 }
 
 
+static enum djob { DRAWER_NONE, DRAWER_DRAW, DRAWER_ACQUIRE, DRAWER_RELEASE } job = DRAWER_NONE;
+static SDL_mutex *screenmutex = NULL;
+static bool _keepgl;
+static SDL_atomic_t _swapping;
+static SDL_sem *dojob, *donejob;
+static SDL_threadID drawerID;
+
+extern SDL_GLContext glcontext;
+static int drawerfn(void *){
+    while(true){
+        SDL_SemWait(dojob);
+        if(job == DRAWER_DRAW) drawer::draw();
+        else{
+            job == DRAWER_ACQUIRE ? SDL_GL_MakeCurrent(screen, glcontext) : SDL_GL_MakeCurrent(NULL, NULL);
+            job = DRAWER_NONE;
+            SDL_SemPost(donejob);
+        }
+    }
+    return 0;
+}
+
+extern int multipoll;
+void initializedrawer(){
+    screenmutex = SDL_CreateMutex();
+    SDL_AtomicSet(&_swapping, 0);
+    _keepgl = multipoll == 1;
+    dojob = SDL_CreateSemaphore(0);
+    donejob = SDL_CreateSemaphore(0);
+    drawerID = SDL_GetThreadID(SDL_CreateThread(drawerfn, "drawer", NULL));
+}
+
+static bool isdrawer(){
+    return SDL_GetThreadID(NULL) == drawerID;
+}
+
+bool drawer::swapping(){
+    return SDL_AtomicGet(&_swapping);
+}
+
+static void dispatch_job(djob j){
+    job = j;
+    SDL_SemPost(dojob);
+    SDL_SemWait(donejob);
+}
+
+void drawer::keepgl(bool on){
+    holdscreenlock;
+    _keepgl = on;
+}
+
+void drawer::letdraw(){
+    dispatch_job(DRAWER_DRAW);
+}
+
+void drawer::draw(){
+    {
+        //grab the screen first to prevent the master thread from drawing next frame stuff on it
+        holdscreenlock;
+
+        inbetweenframes = false;
+        if(mainmenu) gl_drawmainmenu();
+        else gl_drawframe();
+
+        recorder::capture(true);
+        renderedframe = inbetweenframes = true;
+
+        if(isdrawer()){
+            SDL_AtomicSet(&_swapping, 1);
+            job = DRAWER_NONE;
+            SDL_SemPost(donejob);
+        }
+        SDL_GL_SwapWindow(screen);
+        //do this to concentrate OpenGL work in the swapper thread
+        if(isdrawer()){
+            glClear(GL_DEPTH_BUFFER_BIT);   //for some reason glFinish returns before the buffer is really available
+            glFinish();
+        }
+        //release the lock first to avoid mutex contention
+    }
+    if(isdrawer()) SDL_AtomicSet(&_swapping, 0);
+}
+
+static int recursion = 0;
+drawer::drawer(){
+    if(!screenmutex) initializedrawer();
+    SDL_LockMutex(screenmutex);
+    if(recursion++) return;
+    if(_keepgl && !isdrawer()) dispatch_job(DRAWER_RELEASE);
+    SDL_GL_MakeCurrent(screen, glcontext);
+}
+
+drawer::~drawer(){
+    if(!--recursion && _keepgl && !isdrawer()){
+        SDL_GL_MakeCurrent(NULL, NULL);
+        dispatch_job(DRAWER_ACQUIRE);
+    }
+    SDL_UnlockMutex(screenmutex);
+}

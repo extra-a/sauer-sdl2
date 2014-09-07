@@ -204,6 +204,7 @@ struct decalrenderer
     {
         enablepolygonoffset(GL_POLYGON_OFFSET_FILL);
 
+        holdscreenlock;
         glDepthMask(GL_FALSE);
         glEnable(GL_BLEND);
 
@@ -214,6 +215,7 @@ struct decalrenderer
 
     static void cleanuprenderstate()
     {
+        holdscreenlock;
         glDisableClientState(GL_VERTEX_ARRAY);
         glDisableClientState(GL_TEXTURE_COORD_ARRAY);
         glDisableClientState(GL_COLOR_ARRAY);
@@ -228,6 +230,7 @@ struct decalrenderer
     {
         if(startvert==endvert) return;
 
+        holdscreenlock;
         float oldfogc[4];
         if(flags&(DF_ADD|DF_INVMOD|DF_OVERBRIGHT))
         {

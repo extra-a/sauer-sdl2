@@ -237,6 +237,7 @@ struct vertmodel : animmodel
 
         void render(const animstate *as, skin &s, vbocacheentry &vc)
         {
+            holdscreenlock;
             if(!(as->cur.anim&ANIM_NOSKIN))
             {
                 if(s.multitextured())
@@ -339,6 +340,7 @@ struct vertmodel : animmodel
 
         virtual ~vertmeshgroup()
         {
+            holdscreenlock;
             DELETEA(tags);
             if(ebuf) glDeleteBuffers_(1, &ebuf);
             loopi(MAXVBOCACHE) 
@@ -385,6 +387,7 @@ struct vertmodel : animmodel
 
         void genvbo(bool norms, bool tangents, vbocacheentry &vc)
         {
+            holdscreenlock;
             if(hasVBO) 
             {
                 if(!vc.vbuf) glGenBuffers_(1, &vc.vbuf);
@@ -463,6 +466,7 @@ struct vertmodel : animmodel
 
         void bindvbo(const animstate *as, vbocacheentry &vc)
         {
+            holdscreenlock;
             vvert *vverts = hasVBO ? 0 : (vvert *)vc.vdata;
             if(hasVBO && lastebuf!=ebuf)
             {
@@ -514,6 +518,7 @@ struct vertmodel : animmodel
 
         void cleanup()
         {
+            holdscreenlock;
             loopi(MAXVBOCACHE)
             {
                 vbocacheentry &c = vbocache[i];
@@ -579,6 +584,7 @@ struct vertmodel : animmodel
                     }
                     if(hasVBO)
                     {
+                        holdscreenlock;
                         glBindBuffer_(GL_ARRAY_BUFFER_ARB, vc->vbuf);
                         glBufferData_(GL_ARRAY_BUFFER_ARB, vlen*vertsize, vdata, GL_STREAM_DRAW_ARB);    
                     }

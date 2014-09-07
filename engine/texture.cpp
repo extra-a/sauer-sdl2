@@ -445,6 +445,7 @@ void setuptexcompress()
         case 1: hint = GL_NICEST; break;
         case 0: hint = GL_FASTEST; break;
     }
+    holdscreenlock;
     glHint(GL_TEXTURE_COMPRESSION_HINT_ARB, hint);
 }
 
@@ -531,6 +532,7 @@ void uploadtexture(GLenum target, GLenum internal, int tw, int th, GLenum format
             loopi(th) memcpy(&buf[i*tw*bpp], &((uchar *)pixels)[i*pitch], tw*bpp);
         }
     }
+    holdscreenlock;
     for(int level = 0, align = 0;; level++)
     {
         uchar *src = buf ? buf : (uchar *)pixels;
@@ -556,6 +558,7 @@ void uploadcompressedtexture(GLenum target, GLenum subtarget, GLenum format, int
     int hwlimit = target==GL_TEXTURE_CUBE_MAP_ARB ? hwcubetexsize : hwtexsize,
         sizelimit = levels > 1 && maxtexsize ? min(maxtexsize, hwlimit) : hwlimit;
     int level = 0;
+    holdscreenlock;
     loopi(levels)
     {
         int size = ((w + align-1)/align) * ((h + align-1)/align) * blocksize;
@@ -606,6 +609,7 @@ GLenum uncompressedformat(GLenum format)
     
 void setuptexparameters(int tnum, void *pixels, int clamp, int filter, GLenum format, GLenum target)
 {
+    holdscreenlock;
     glBindTexture(target, tnum);
     glTexParameteri(target, GL_TEXTURE_WRAP_S, clamp&1 ? GL_CLAMP_TO_EDGE : GL_REPEAT);
     if(target!=GL_TEXTURE_1D) glTexParameteri(target, GL_TEXTURE_WRAP_T, clamp&2 ? GL_CLAMP_TO_EDGE : GL_REPEAT);
@@ -758,6 +762,7 @@ static Texture *newtexture(Texture *t, const char *rname, ImageData &s, int clam
     t->h = t->ys = s.h;
 
     int filter = !canreduce || reducefilter ? (mipit ? 2 : 1) : 0;
+    holdscreenlock;
     glGenTextures(1, &t->id);
     if(s.compressed)
     {
@@ -820,7 +825,7 @@ SDL_Surface *creatergbasurface(SDL_Surface *os)
     SDL_Surface *ns = SDL_CreateRGBSurface(SDL_SWSURFACE, os->w, os->h, 32, RGBAMASKS);
     if(ns) 
     {
-        SDL_SetAlpha(os, 0, 0);
+        SDL_SetSurfaceBlendMode(os, SDL_BLENDMODE_NONE);
         SDL_BlitSurface(os, NULL, ns, NULL);
     }
     SDL_FreeSurface(os);
@@ -832,7 +837,7 @@ bool checkgrayscale(SDL_Surface *s)
     // gray scale images have 256 levels, no colorkey, and the palette is a ramp
     if(s->format->palette)
     {
-        if(s->format->palette->ncolors != 256 || s->format->colorkey) return false;
+        if(s->format->palette->ncolors != 256 || SDL_GetColorKey(s, NULL) >= 0) return false;
         const SDL_Color *colors = s->format->palette->colors;
         loopi(256) if(colors[i].r != i || colors[i].g != i || colors[i].b != i) return false;
     }
@@ -851,7 +856,7 @@ SDL_Surface *fixsurfaceformat(SDL_Surface *s)
     switch(s->format->BytesPerPixel)
     {
         case 1:
-            if(!checkgrayscale(s)) return s->format->colorkey ? creatergbasurface(s) : creatergbsurface(s);
+            if(!checkgrayscale(s)) return SDL_GetColorKey(s, NULL) >= 0 ? creatergbasurface(s) : creatergbsurface(s);
             break;
         case 3:
             if(s->format->Rmask != rgbmasks[0] || s->format->Gmask != rgbmasks[1] || s->format->Bmask != rgbmasks[2]) 
@@ -1296,6 +1301,7 @@ Texture *textureload(const char *name, int clamp, bool mipit, bool msg)
 bool settexture(const char *name, int clamp)
 {
     Texture *t = textureload(name, clamp, true, false);
+    holdscreenlock;
     glBindTexture(GL_TEXTURE_2D, t->id);
     return t != notexture;
 }
@@ -2183,6 +2189,7 @@ void forcecubemapload(GLuint tex)
     extern int ati_cubemap_bug;
     if(!ati_cubemap_bug || !tex) return;
 
+    holdscreenlock;
     glMatrixMode(GL_PROJECTION);
     glPushMatrix();
     glLoadIdentity();
@@ -2307,6 +2314,7 @@ Texture *cubemaploadwildcard(Texture *t, const char *name, bool mipit, bool msg,
             case GL_RGB: component = GL_RGB5; break;
         }
     }
+    holdscreenlock;
     glGenTextures(1, &t->id);
     loopi(6)
     {
@@ -2376,6 +2384,7 @@ void clearenvmaps()
         if(skyenvmap->type&Texture::TRANSIENT) cleanuptexture(skyenvmap);
         skyenvmap = NULL;
     }
+    holdscreenlock;
     loopv(envmaps) glDeleteTextures(1, &envmaps[i].tex);
     envmaps.shrink(0);
 }
@@ -2384,12 +2393,13 @@ VAR(aaenvmap, 0, 2, 4);
 
 GLuint genenvmap(const vec &o, int envmapsize, int blur)
 {
-    int rendersize = 1<<(envmapsize+aaenvmap), sizelimit = min(hwcubetexsize, min(screen->w, screen->h));
+    int rendersize = 1<<(envmapsize+aaenvmap), sizelimit = min(hwcubetexsize, min(screenw, screenh));
     if(maxtexsize) sizelimit = min(sizelimit, maxtexsize);
     while(rendersize > sizelimit) rendersize /= 2;
     int texsize = min(rendersize, 1<<envmapsize);
     if(!aaenvmap) rendersize = texsize;
     GLuint tex;
+    holdscreenlock;
     glGenTextures(1, &tex);
     glViewport(0, 0, rendersize, rendersize);
     float yaw = 0, pitch = 0;
@@ -2430,8 +2440,8 @@ GLuint genenvmap(const vec &o, int envmapsize, int blur)
         createtexture(tex, texsize, texsize, src, 3, 2, GL_RGB5, side.target);
     }
     glFrontFace(GL_CW);
+    glViewport(0, 0, screenw, screenh);
     delete[] pixels;
-    glViewport(0, 0, screen->w, screen->h);
     clientkeepalive();
     forcecubemapload(tex);
     return tex;
@@ -2520,7 +2530,7 @@ GLuint lookupenvmap(ushort emid)
 void cleanuptexture(Texture *t)
 {
     DELETEA(t->alphamask);
-    if(t->id) { glDeleteTextures(1, &t->id); t->id = 0; }
+    if(t->id) { holdscreenlock; glDeleteTextures(1, &t->id); t->id = 0; }
     if(t->type&Texture::TRANSIENT) textures.remove(t->name); 
 }
 
@@ -2570,7 +2580,7 @@ void reloadtex(char *name)
     t->id = 0;
     if(!reloadtexture(*t))
     {
-        if(t->id) glDeleteTextures(1, &t->id);
+        if(t->id){ holdscreenlock; glDeleteTextures(1, &t->id); }
         *t = oldtex;
         conoutf(CON_ERROR, "failed to reload texture %s", name);
     }
@@ -2694,6 +2704,7 @@ void gendds(char *infile, char *outfile)
 {
     if(!hasS3TC || usetexcompress <= 1) { conoutf(CON_ERROR, "OpenGL driver does not support S3TC texture compression"); return; }
 
+    holdscreenlock;
     glHint(GL_TEXTURE_COMPRESSION_HINT_ARB, GL_NICEST);
 
     defformatstring(cfile)("<compress>%s", infile);
@@ -3068,9 +3079,10 @@ void screenshot(char *filename)
         concatstring(buf, imageexts[format]);         
     }
 
-    ImageData image(screen->w, screen->h, 3);
-    glPixelStorei(GL_PACK_ALIGNMENT, texalign(image.data, screen->w, 3));
-    glReadPixels(0, 0, screen->w, screen->h, GL_RGB, GL_UNSIGNED_BYTE, image.data);
+    ImageData image(screenw, screenh, 3);
+    holdscreenlock;
+    glPixelStorei(GL_PACK_ALIGNMENT, texalign(image.data, screenw, 3));
+    glReadPixels(0, 0, screenw, screenh, GL_RGB, GL_UNSIGNED_BYTE, image.data);
     saveimage(path(buf), format, image, true);
 }
 

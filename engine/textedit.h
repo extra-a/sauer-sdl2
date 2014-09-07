@@ -20,7 +20,7 @@ struct editline
         len = maxlen = 0;
     }
 
-    bool grow(int total, const char *fmt = "", ...)
+    bool grow(int total, const char *fmt = NULL, ...) PRINTFARGS(3, 4)
     {
         if(total + 1 <= maxlen) return false;
         maxlen = (total + CHUNKSIZE) - total%CHUNKSIZE;
@@ -31,7 +31,7 @@ struct editline
             va_start(args, fmt);
             vformatstring(newtext, fmt, args, maxlen);
             va_end(args);
-        }
+        } else newtext[0] = '\0';
         DELETEA(text);
         text = newtext;
         return true;
@@ -428,7 +428,7 @@ struct editor
         }
     }
 
-    void key(int code, int cooked)
+    void key(int code)
     {
         switch(code) 
         {
@@ -507,12 +507,14 @@ struct editor
             case SDLK_RSHIFT:
                 break;
             case SDLK_RETURN:    
-                cooked = '\n';
-                // fall through
-            default:
-                insert(cooked);
+                insert('\n');
                 break;
         }
+    }
+
+    void input(const char *str, int len)
+    {
+        loopi(len) insert(str[i]);
     }
 
     void hit(int hitx, int hity, bool dragged)
@@ -572,6 +574,7 @@ struct editor
             }
         }
         
+        holdscreenlock;
         if(selection)
         {
             // convert from cursor coords into pixel coords

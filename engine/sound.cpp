@@ -92,9 +92,6 @@ soundchannel &newchannel(int n, soundslot *slot, const vec *loc = NULL, extentit
 
 void freechannel(int n)
 {
-    // Note that this can potentially be called from the SDL_mixer audio thread.
-    // Be careful of race conditions when checking chan.inuse without locking audio.
-    // Can't use Mix_Playing() checks due to bug with looping sounds in SDL_mixer.
     if(!channels.inrange(n) || !channels[n].inuse) return;
     soundchannel &chan = channels[n];
     chan.inuse = false;
@@ -163,8 +160,7 @@ void initsound()
         conoutf(CON_ERROR, "sound init failed (SDL_mixer): %s", Mix_GetError());
         return;
     }
-	Mix_AllocateChannels(soundchans);	
-    Mix_ChannelFinished(freechannel);
+    Mix_AllocateChannels(soundchans);
     maxchannels = soundchans;
     nosound = false;
 }
@@ -190,7 +186,7 @@ Mix_Music *loadmusic(const char *name)
         if(!musicrw) musicrw = musicstream->rwops();
         if(!musicrw) DELETEP(musicstream);
     }
-    if(musicrw) music = Mix_LoadMUS_RW(musicrw);
+    if(musicrw) music = Mix_LoadMUSType_RW(musicrw, MUS_NONE, 0);
     else music = Mix_LoadMUS(findfile(name, "rb")); 
     if(!music)
     {
@@ -406,28 +402,35 @@ bool updatechannel(soundchannel &chan)
     return true;
 }  
 
+void reclaimchannels()
+{
+    loopv(channels)
+    {
+        soundchannel &chan = channels[i];
+        if(chan.inuse && !Mix_Playing(i)) freechannel(i);
+    }
+}
+
+void syncchannels()
+{
+    loopv(channels)
+    {
+        soundchannel &chan = channels[i];
+        if(chan.inuse && chan.hasloc() && updatechannel(chan)) syncchannel(chan);
+    }
+}
+
 void updatesounds()
 {
     updatemumble();
     if(nosound) return;
     if(minimized) stopsounds();
-    else if(mainmenu) stopmapsounds();
-    else checkmapsounds();
-    int dirty = 0;
-    loopv(channels)
+    else 
     {
-        soundchannel &chan = channels[i];
-        if(chan.inuse && chan.hasloc() && updatechannel(chan)) dirty++;
-    }
-    if(dirty)
-    {
-        SDL_LockAudio(); // workaround for race conditions inside Mix_SetPanning
-        loopv(channels) 
-        {
-            soundchannel &chan = channels[i];
-            if(chan.inuse && chan.dirty) syncchannel(chan);
-        }
-        SDL_UnlockAudio();
+        reclaimchannels();
+        if(mainmenu) stopmapsounds();
+        else checkmapsounds();
+        syncchannels();
     }
     if(music)
     {
@@ -564,15 +567,9 @@ int playsound(int n, const vec *loc, extentity *ent, int flags, int loops, int f
     chanid = -1;
     loopv(channels) if(!channels[i].inuse) { chanid = i; break; }
     if(chanid < 0 && channels.length() < maxchannels) chanid = channels.length();
-    if(chanid < 0) loopv(channels) if(!channels[i].volume) { chanid = i; break; }
+    if(chanid < 0) loopv(channels) if(!channels[i].volume) { Mix_HaltChannel(i); freechannel(i); chanid = i; break; }
     if(chanid < 0) return -1;
 
-    SDL_LockAudio(); // must lock here to prevent freechannel/Mix_SetPanning race conditions
-    if(channels.inrange(chanid) && channels[chanid].inuse)
-    {
-        Mix_HaltChannel(chanid);
-        freechannel(chanid);
-    }
     soundchannel &chan = newchannel(chanid, &slot, loc, ent, flags, radius);
     updatechannel(chan);
     int playing = -1;
@@ -584,7 +581,6 @@ int playsound(int n, const vec *loc, extentity *ent, int flags, int loops, int f
     else playing = expire >= 0 ? Mix_PlayChannelTimed(chanid, slot.sample->chunk, loops, expire) : Mix_PlayChannel(chanid, slot.sample->chunk, loops);
     if(playing >= 0) syncchannel(chan); 
     else freechannel(chanid);
-    SDL_UnlockAudio();
     return playing;
 }
 
@@ -622,14 +618,8 @@ COMMAND(sound, "i");
 
 void resetsound()
 {
-    const SDL_version *v = Mix_Linked_Version();
-    if(SDL_VERSIONNUM(v->major, v->minor, v->patch) <= SDL_VERSIONNUM(1, 2, 8))
-    {
-        conoutf(CON_ERROR, "Sound reset not available in-game due to SDL_mixer-1.2.8 bug. Please restart for changes to take effect.");
-        return;
-    }
     clearchanges(CHANGE_SOUND);
-    if(!nosound) 
+    if(!nosound)
     {
         enumerate(samples, soundsample, s, s.cleanup());
         if(music)

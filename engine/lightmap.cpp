@@ -247,6 +247,7 @@ void check_calclight_canceled()
 
 void show_calclight_progress()
 {
+    holdscreenlock;
     float bar1 = float(progress) / float(allocnodes);
     defformatstring(text1)("%d%% using %d textures", int(bar1 * 100), lightmaps.length());
 
@@ -471,6 +472,7 @@ static void updatelightmap(const layoutinfo &surface)
     if(max(LM_PACKW, LM_PACKH) > hwtexsize) return;
 
     LightMap &lm = lightmaps[surface.lmid-LMID_RESERVED];
+    holdscreenlock;
     if(lm.tex < 0)
     {
         lm.offsetx = lm.offsety = 0;
@@ -594,9 +596,9 @@ static uint generatelumel(lightmapworker *w, const float tolerance, uint lightma
             if(avgray.iszero()) break;
             // transform to tangent space
             extern vec orientation_tangent[6][3];
-            extern vec orientation_bitangent[6][3];            
+            extern vec orientation_binormal[6][3];            
             vec S(orientation_tangent[w->rotate][dimension(w->orient)]),
-                T(orientation_bitangent[w->rotate][dimension(w->orient)]);
+                T(orientation_binormal[w->rotate][dimension(w->orient)]);
             normal.orthonormalize(S, T);
             avgray.normalize();
             w->raydata[y*w->w+x].add(vec(S.dot(avgray)/S.magnitude(), T.dot(avgray)/T.magnitude(), normal.dot(avgray)));
@@ -1967,6 +1969,7 @@ void cleanuplightmaps()
         LightMap &lm = lightmaps[i];
         lm.tex = lm.offsetx = lm.offsety = -1;
     }
+    holdscreenlock;
     loopv(lightmaptexs) glDeleteTextures(1, &lightmaptexs[i].id);
     lightmaptexs.shrink(0);
     if(progresstex) { glDeleteTextures(1, &progresstex); progresstex = 0; }
@@ -2027,7 +2030,7 @@ bool lightmapworker::setupthread()
 {
     if(!spacecond) spacecond = SDL_CreateCond();
     if(!spacecond) return false;
-    thread = SDL_CreateThread(work, this);
+    thread = SDL_CreateThread(work, "lightmap worker", this);
     return thread!=NULL;
 }
 
@@ -2414,6 +2417,7 @@ VARF(convertlms, 0, 1, 1, { cleanuplightmaps(); initlights(); allchanged(); });
 
 void genreservedlightmaptexs()
 {
+    holdscreenlock;
     while(lightmaptexs.length() < LMID_RESERVED)
     {
         LightMapTexture &tex = lightmaptexs.add();
@@ -2555,6 +2559,7 @@ void genlightmaptexs(int flagmask, int flagval)
             if(offsety >= tex.h) break;
         }
         
+        holdscreenlock;
         glGenTextures(1, &tex.id);
         createtexture(tex.id, tex.w, tex.h, data ? data : firstlm->data, 3, 1, bpp==4 ? GL_RGBA : GL_RGB);
         if(data) delete[] data;

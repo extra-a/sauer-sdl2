@@ -1139,7 +1139,7 @@ void genpvs(int *viewcellsize)
     numviewcells = 0;
     genpvs_canceled = false;
     check_genpvs_progress = false;
-    SDL_TimerID timer = NULL;
+    SDL_TimerID timer = 0;
     int numthreads = pvsthreads > 0 ? pvsthreads : numcpus;
     if(numthreads<=1) 
     {
@@ -1160,7 +1160,7 @@ void genpvs(int *viewcellsize)
         loopi(numthreads)
         {
             pvsworker *w = pvsworkers.add(new pvsworker);
-            w->thread = SDL_CreateThread(pvsworker::run, w);
+            w->thread = SDL_CreateThread(pvsworker::run, "pvs worker", w);
         }
         show_genpvs_progress(0, 0);
         while(!genpvs_canceled)

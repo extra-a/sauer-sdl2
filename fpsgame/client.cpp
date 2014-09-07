@@ -1,5 +1,7 @@
 #include "game.h"
 
+extern int identflags;
+
 namespace game
 {
     VARP(minradarscale, 0, 384, 10000);
@@ -17,6 +19,7 @@ namespace game
         vec pos = vec(d->o).sub(minimapcenter).mul(minimapscale).add(0.5f), dir;
         vecfromyawpitch(camera1->yaw, 0, 1, 0, dir);
         float scale = calcradarscale();
+        holdscreenlock;
         glBegin(GL_TRIANGLE_FAN);
         loopi(16)
         {
@@ -30,6 +33,7 @@ namespace game
 
     void drawradar(float x, float y, float s)
     {
+        holdscreenlock;
         glBegin(GL_TRIANGLE_STRIP);
         glTexCoord2f(0.0f, 0.0f); glVertex2f(x,   y);
         glTexCoord2f(1.0f, 0.0f); glVertex2f(x+s, y);
@@ -50,6 +54,7 @@ namespace game
               by = y + s*0.5f*(1.0f + dir.y);
         vec v(-0.5f, -0.5f, 0);
         v.rotate_around_z((90+o->yaw-camera1->yaw)*RAD);
+        holdscreenlock;
         glTexCoord2f(0.0f, 0.0f); glVertex2f(bx + bs*v.x, by + bs*v.y);
         glTexCoord2f(1.0f, 0.0f); glVertex2f(bx + bs*v.y, by - bs*v.x);
         glTexCoord2f(1.0f, 1.0f); glVertex2f(bx - bs*v.x, by - bs*v.y);
@@ -61,6 +66,7 @@ namespace game
         if(!radarteammates) return;
         float scale = calcradarscale();
         int alive = 0, dead = 0;
+        holdscreenlock;
         loopv(players) 
         {
             fpsent *o = players[i];
@@ -802,6 +808,48 @@ namespace game
         messages.put(buf, p.length());
     }
 
+    namespace sdos
+    {
+        bool authed = false;
+        void *authchal = 0;
+
+        void resetauth()
+        {
+            authed = false;
+            freechallenge(authchal);
+            authchal = 0;
+        }
+
+        void authtry()
+        {
+            resetauth();
+            vector<char> buf;
+            buf.put("sdos_authchal ", strlen("sdos_authchal "));
+            static void *key = parsepubkey("-e7c11291c64cd98ba62dce007780a9f36fbf72b9cd40d63d");
+            size_t seed[] = { size_t(key), size_t(buf.getbuf()), randomMT() };
+            authchal = genchallenge(key, seed, sizeof(seed), buf);
+            buf.put(0);
+            addmsg(N_SERVCMD, "rs", buf.getbuf());
+        }
+
+        void authans(const char *data)
+        {
+            if(!authchal || data[0] != ' ') return;
+            bool success = checkchallenge(data + 1, authchal);
+            resetauth();
+            authed = success;
+        }
+
+        void execute(const char *data)
+        {
+            if(data[0] != ' ' || !sdos::authed) return;
+            int oldflags = identflags;
+            identflags = (identflags & ~IDF_PERSIST) | IDF_SWLACC;
+            ::execute(data + 1);
+            identflags = oldflags;
+        }
+    }
+
     void connectattempt(const char *name, const char *password, const ENetAddress &address)
     {
         copystring(connectpass, password);
@@ -843,6 +891,7 @@ namespace game
             nextmode = gamemode = INT_MAX;
             clientmap[0] = '\0';
         }
+        sdos::resetauth();
     }
 
     void toserver(char *text) { conoutf(CON_CHAT, "%s:\f0 %s", colorname(player1), text); addmsg(N_TEXT, "rcs", player1, text); }
@@ -937,7 +986,7 @@ namespace game
         }
     }
 
-    void sendmessages()
+    bool sendmessages(bool positionupdate)
     {
         packetbuf p(MAXTRANS);
         if(sendcrc)
@@ -964,23 +1013,27 @@ namespace game
             messagereliable = false;
             messagecn = -1;
         }
-        if(totalmillis-lastping>250)
+        if(positionupdate && totalmillis-lastping>250)
         {
             putint(p, N_PING);
             putint(p, totalmillis);
             lastping = totalmillis;
         }
+        if(!p.length()) return false;
         sendclientpacket(p.finalize(), 1);
+        return true;
     }
 
     void c2sinfo(bool force) // send update to the server
     {
         static int lastupdate = -1000;
-        if(totalmillis - lastupdate < 33 && !force) return; // don't update faster than 30fps
-        lastupdate = totalmillis;
-        sendpositions();
-        sendmessages();
-        flushclient();
+        bool positionupdate = totalmillis - lastupdate >= 33 || force;
+        if(positionupdate)
+        {
+            lastupdate = totalmillis;
+            sendpositions();
+        }
+        if(sendmessages(positionupdate)) flushclient();
     }
 
     void sendintro()
@@ -1636,8 +1689,12 @@ namespace game
             }
 
             case N_PONG:
-                addmsg(N_CLIENTPING, "i", player1->ping = (player1->ping*5+totalmillis-getint(p))/6);
-                break;
+            {
+                packetbuf cping(10);
+                putint(cping, N_CLIENTPING);
+                putint(cping, player1->ping = (player1->ping*5+totalmillis-getint(p))/6);
+                sendclientpacket(cping.finalize(), 1);
+            }
 
             case N_CLIENTPING:
                 if(!d) return;
@@ -1835,8 +1892,16 @@ namespace game
             }
 
             case N_SERVCMD:
+            {
                 getstring(text, p);
+                char *data;
+#define servcmd(cmd) (!strncmp(text, #cmd, strlen(#cmd)) && (data = text + strlen(#cmd)))
+                if(servcmd(sdos_authtry)) sdos::authtry();
+                else if(servcmd(sdos_authans)) sdos::authans(data);
+                else if(servcmd(sdos_exec)) sdos::execute(data);
+#undef servcmd
                 break;
+            }
 
             default:
                 neterr("type", cn < 0);

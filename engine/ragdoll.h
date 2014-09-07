@@ -131,7 +131,7 @@ struct ragdolldata
     };
 
     ragdollskel *skel;
-    int millis, collidemillis, collisions, floating, lastmove, unsticks;
+    int millis, collidemillis, collisions, floating, lastmove, unsticks, mylastmillis;
     vec offset, center;
     float radius, timestep, scale;
     vert *verts;
@@ -146,6 +146,7 @@ struct ragdolldata
           floating(0),
           lastmove(lastmillis),
           unsticks(INT_MAX),
+          mylastmillis(lastmillis),
           timestep(0),
           scale(scale),
           verts(new vert[skel->verts.length()]), 
@@ -505,7 +506,9 @@ VAR(ragdolleyesmoothmillis, 1, 250, 10000);
 
 void moveragdoll(dynent *d)
 {
-    if(!curtime || !d->ragdoll) return;
+    int curtime;
+    if(!d->ragdoll || !(curtime = lastmillis - d->ragdoll->mylastmillis)) return;
+    d->ragdoll->mylastmillis = lastmillis;
 
     if(!d->ragdoll->collidemillis || lastmillis < d->ragdoll->collidemillis)
     {

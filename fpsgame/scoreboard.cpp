@@ -11,6 +11,8 @@ namespace game
     VARP(showspectators, 0, 1, 1);
     VARP(highlightscore, 0, 1, 1);
     VARP(showconnecting, 0, 0, 1);
+    XIDENT(IDF_SWLACC, VARP, showfrags, 0, 1, 1);
+    XIDENT(IDF_SWLACC, VARP, showflags, 0, 1, 1);
 
     static hashset<teaminfo> teaminfos;
 
@@ -226,10 +228,19 @@ namespace game
                 g.pushlist(); // horizontal
             }
 
-            if(!cmode || !cmode->hidefrags())
+            if((m_ctf || m_collect) && showflags)
+            {
+               g.pushlist();
+               g.strut(m_ctf?4:5);
+               g.text(m_ctf?"flags":"skulls", fgcolor);
+               loopscoregroup(o, g.textf("%d", 0xFFFFDD, NULL, o->flags));
+               g.poplist();
+            }
+
+            if(!cmode || !cmode->hidefrags() || showfrags)
             { 
                 g.pushlist();
-                g.strut(6);
+                g.strut(5);
                 g.text("frags", fgcolor);
                 loopscoregroup(o, g.textf("%d", 0xFFFFDD, NULL, o->frags));
                 g.poplist();
@@ -255,7 +266,7 @@ namespace game
                 if(showpj)
                 {
                     g.pushlist();
-                    g.strut(6);
+                    g.strut(5);
                     g.text("pj", fgcolor);
                     loopscoregroup(o,
                     {
@@ -331,6 +342,19 @@ namespace game
                 g.text("cn", 0xFFFF80);
                 loopv(spectators) g.textf("%d", 0xFFFFDD, NULL, spectators[i]->clientnum);
                 g.poplist();
+
+                if(showping){
+                       g.space(1);
+                       g.pushlist();
+                       g.text("ping", 0xFFFF80);
+                       loopv(spectators){
+                               fpsent *p = spectators[i]->ownernum >= 0 ? getclient(spectators[i]->ownernum) : spectators[i];
+                               if(!p) p = spectators[i];
+                               if(!showpj && p->state==CS_LAGGED) g.text("LAG", 0xFFFFDD);
+                               else g.textf("%d", 0xFFFFDD, NULL, p->ping);
+                       }
+                       g.poplist();
+                }
 
                 g.poplist();
             }

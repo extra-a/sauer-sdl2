@@ -312,6 +312,7 @@ struct gui : g3d_gui
         int size = (int)(sizescale*2*FONTH)-SHADOW;
         if(visible())
         {
+            holdscreenlock;
             bool hit = ishit(size+SHADOW, size+SHADOW);
             float xs = size, ys = size, xi = curx, yi = cury;
             if(overlaid && hit && actionon)
@@ -323,8 +324,8 @@ struct gui : g3d_gui
                 glEnable(GL_TEXTURE_2D);
                 defaultshader->set();
             }
-            int x1 = int(floor(screen->w*(xi*scale.x+origin.x))), y1 = int(floor(screen->h*(1 - ((yi+ys)*scale.y+origin.y)))),
-                x2 = int(ceil(screen->w*((xi+xs)*scale.x+origin.x))), y2 = int(ceil(screen->h*(1 - (yi*scale.y+origin.y))));
+            int x1 = int(floor(screenw*(xi*scale.x+origin.x))), y1 = int(floor(screenh*(1 - ((yi+ys)*scale.y+origin.y)))),
+                x2 = int(ceil(screenw*((xi+xs)*scale.x+origin.x))), y2 = int(ceil(screenh*(1 - (yi*scale.y+origin.y))));
             glViewport(x1, y1, x2-x1, y2-y1);
             glScissor(x1, y1, x2-x1, y2-y1);
             glEnable(GL_SCISSOR_TEST);
@@ -335,7 +336,7 @@ struct gui : g3d_gui
             glEnable(GL_BLEND);
             modelpreview::end();
             glDisable(GL_SCISSOR_TEST);
-            glViewport(0, 0, screen->w, screen->h);
+            glViewport(0, 0, screenw, screenh);
             if(overlaid)
             {
                 if(hit)
@@ -365,6 +366,7 @@ struct gui : g3d_gui
         int size = (int)(sizescale*2*FONTH)-SHADOW;
         if(visible())
         {
+            holdscreenlock;
             bool hit = ishit(size+SHADOW, size+SHADOW);
             float xs = size, ys = size, xi = curx, yi = cury;
             if(overlaid && hit && actionon)
@@ -376,8 +378,8 @@ struct gui : g3d_gui
                 glEnable(GL_TEXTURE_2D);
                 defaultshader->set();
             }
-            int x1 = int(floor(screen->w*(xi*scale.x+origin.x))), y1 = int(floor(screen->h*(1 - ((yi+ys)*scale.y+origin.y)))),
-                x2 = int(ceil(screen->w*((xi+xs)*scale.x+origin.x))), y2 = int(ceil(screen->h*(1 - (yi*scale.y+origin.y))));
+            int x1 = int(floor(screenw*(xi*scale.x+origin.x))), y1 = int(floor(screenh*(1 - ((yi+ys)*scale.y+origin.y)))),
+                x2 = int(ceil(screenw*((xi+xs)*scale.x+origin.x))), y2 = int(ceil(screenh*(1 - (yi*scale.y+origin.y))));
             glViewport(x1, y1, x2-x1, y2-y1);
             glScissor(x1, y1, x2-x1, y2-y1);
             glEnable(GL_SCISSOR_TEST);
@@ -400,7 +402,7 @@ struct gui : g3d_gui
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
             glEnable(GL_BLEND);
             glDisable(GL_SCISSOR_TEST);
-            glViewport(0, 0, screen->w, screen->h);
+            glViewport(0, 0, screenw, screenh);
             if(overlaid)
             {
                 if(hit)
@@ -529,6 +531,7 @@ struct gui : g3d_gui
             e->draw(curx+FONTW/2, cury, color, hit && editing);
             
             lineshader->set();
+            holdscreenlock;
             glDisable(GL_TEXTURE_2D);
             glDisable(GL_BLEND);
             if(editing) glColor3f(1, 0, 0);
@@ -557,6 +560,7 @@ struct gui : g3d_gui
 
     void rect_(float x, float y, float w, float h, bool lines = false)
     {
+        holdscreenlock;
         glBegin(lines ? GL_LINE_LOOP : GL_TRIANGLE_STRIP);
         glVertex2f(x, y);
         glVertex2f(x + w, y);
@@ -569,6 +573,7 @@ struct gui : g3d_gui
 
     void rect_(float x, float y, float w, float h, int usetc)
     {
+        holdscreenlock;
         glBegin(GL_TRIANGLE_STRIP);
         static const GLfloat tc[5][2] = {{0, 0}, {1, 0}, {1, 1}, {0, 1}, {0, 0}};
         glTexCoord2fv(tc[usetc]); glVertex2f(x, y);
@@ -588,6 +593,7 @@ struct gui : g3d_gui
     void background(int color, int inheritw, int inherith)
     {
         if(layoutpass) return;
+        holdscreenlock;
         glDisable(GL_TEXTURE_2D);
         notextureshader->set();
         glColor4ub(color>>16, (color>>8)&0xFF, color&0xFF, 0x80);
@@ -620,6 +626,7 @@ struct gui : g3d_gui
         x += int((size-xs)/2);
         y += int((size-ys)/2);
         const vec &color = hit ? vec(1, 0.5f, 0.5f) : (overlaid ? vec(1, 1, 1) : light);
+        holdscreenlock;
         glBindTexture(GL_TEXTURE_2D, t->id);
         if(hit && actionon)
         {
@@ -640,6 +647,7 @@ struct gui : g3d_gui
 
     void previewslot(VSlot &vslot, bool overlaid, int x, int y, int size, bool hit)
     {
+        holdscreenlock;
         Slot &slot = *vslot.slot;
         if(slot.sts.empty()) return;
         VSlot *layer = NULL;
@@ -729,6 +737,7 @@ struct gui : g3d_gui
         if(visible())
         {
             if(!slidertex) slidertex = textureload("data/guislider.png", 3);
+            holdscreenlock;
             glBindTexture(GL_TEXTURE_2D, slidertex->id);
             if(percent < 0.99f) 
             {
@@ -796,6 +805,7 @@ struct gui : g3d_gui
     static void drawskin(int x, int y, int gapw, int gaph, int start, int n, int passes = 1, const vec &light = vec(1, 1, 1), float alpha = 0.80f)//int vleft, int vright, int vtop, int vbottom, int start, int n) 
     {
         if(!skintex) skintex = textureload("data/guiskin.png", 3);
+        holdscreenlock;
         glBindTexture(GL_TEXTURE_2D, skintex->id);
         int gapx1 = INT_MAX, gapy1 = INT_MAX, gapx2 = INT_MAX, gapy2 = INT_MAX;
         float wscale = 1.0f/(SKIN_W*SKIN_SCALE), hscale = 1.0f/(SKIN_H*SKIN_SCALE);
@@ -889,7 +899,7 @@ struct gui : g3d_gui
         if(tcurrent) h += ((skiny[5]-skiny[1])-(skiny[3]-skiny[2]))*SKIN_SCALE + FONTH-2*INSERT;
         else h += (skiny[6]-skiny[3])*SKIN_SCALE;
 
-        float aspect = forceaspect ? 1.0f/forceaspect : float(screen->h)/float(screen->w), fit = 1.0f;
+        float aspect = forceaspect ? 1.0f/forceaspect : float(screenh)/float(screenw), fit = 1.0f;
         if(w*aspect*basescale>1.0f) fit = 1.0f/(w*aspect*basescale);
         if(h*basescale*fit>maxscale) fit *= maxscale/(h*basescale*fit);
         origin = vec(0.5f-((w-xsize)/2 - (skinx[2]-skinx[1])*SKIN_SCALE)*aspect*scale.x*fit, 0.5f + (0.5f*h-(skiny[9]-skiny[7])*SKIN_SCALE)*scale.y*fit, 0);
@@ -926,6 +936,7 @@ struct gui : g3d_gui
             cury = -ysize; 
             curx = -xsize/2;
             
+            holdscreenlock;
             glPushMatrix();
             if(gui2d)
             {
@@ -1040,6 +1051,7 @@ struct gui : g3d_gui
         else
         {
             if(tcurrent && tx<xsize) drawskin(curx+tx-skinx[5]*SKIN_SCALE, -ysize-skiny[6]*SKIN_SCALE, xsize-tx, FONTH, 9, 1, gui2d ? 1 : 2, light, alpha);
+            holdscreenlock;
             glPopMatrix();
         }
         poplist();
@@ -1105,7 +1117,16 @@ static vector<gui> guis2d, guis3d;
 
 VARP(guipushdist, 1, 4, 64);
 
-bool menukey(int code, bool isdown, int cooked)
+bool g3d_input(const char *str, int len)
+{
+    editor *e = currentfocus();
+    if(fieldmode == FIELDKEY || fieldmode == FIELDSHOW || !e) return false;
+    
+    e->input(str, len);
+    return true;
+}
+
+bool g3d_key(int code, bool isdown)
 {
     editor *e = currentfocus();
     if(fieldmode == FIELDKEY)
@@ -1178,31 +1199,12 @@ bool menukey(int code, bool isdown, int cooked)
             return true;
         case SDLK_RETURN:
         case SDLK_TAB:
-            if(cooked && (e->maxy != 1)) break;
+            if(e->maxy != 1) break;
         case SDLK_KP_ENTER:
             if(isdown) fieldmode = FIELDCOMMIT; //signal field commit (handled when drawing field)
             return true;
-        case SDLK_HOME:
-        case SDLK_END:
-        case SDLK_PAGEUP:
-        case SDLK_PAGEDOWN:
-        case SDLK_DELETE:
-        case SDLK_BACKSPACE:
-        case SDLK_UP:
-        case SDLK_DOWN:
-        case SDLK_LEFT:
-        case SDLK_RIGHT:
-        case SDLK_LSHIFT:
-        case SDLK_RSHIFT:
-        case -4:
-        case -5:
-            break;
-        default:
-            if(!cooked || (code<32)) return false;
-            break;
     }
-    if(!isdown) return true;
-    e->key(code, cooked);
+    if(isdown) e->key(code);
     return true;
 }
 
@@ -1218,13 +1220,14 @@ void g3d_resetcursor()
 }
 
 FVARP(guisens, 1e-3f, 1, 1e3f);
+extern float sdl2_sensitivity_adjust;
 
 bool g3d_movecursor(int dx, int dy)
 {
     if(!guis2d.length() || !hascursor) return false;
     const float CURSORSCALE = 500.0f;
-    cursorx = max(0.0f, min(1.0f, cursorx+guisens*dx*(screen->h/(screen->w*CURSORSCALE))));
-    cursory = max(0.0f, min(1.0f, cursory+guisens*dy/CURSORSCALE));
+    cursorx = max(0.0f, min(1.0f, cursorx+guisens*sdl2_sensitivity_adjust*dx*(screenh/(screenw*CURSORSCALE))));
+    cursory = max(0.0f, min(1.0f, cursory+guisens*sdl2_sensitivity_adjust*dy/CURSORSCALE));
     return true;
 }
 
@@ -1294,6 +1297,7 @@ void g3d_render()
     loopv(guis3d) guis3d[i].draw();
     layoutpass = false;
 
+    holdscreenlock;
     if(guis2d.length() || guis3d.length())
     {
         glEnable(GL_BLEND);
@@ -1341,8 +1345,8 @@ void g3d_render()
     if(!fieldsactive) fieldmode = FIELDSHOW; //didn't draw any fields, so loose focus - mainly for menu closed
     if((fieldmode!=FIELDSHOW) != wasfocused) 
     {
-        SDL_EnableUNICODE(fieldmode!=FIELDSHOW);
-        keyrepeat(fieldmode!=FIELDSHOW || editmode);
+        textinput(fieldmode!=FIELDSHOW, TI_GUI);
+        keyrepeat(fieldmode!=FIELDSHOW, KR_GUI);
     }
     
     mousebuttons = 0;
@@ -1350,6 +1354,7 @@ void g3d_render()
 
 void consolebox(int x1, int y1, int x2, int y2)
 {
+    holdscreenlock;
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glPushMatrix();
     glTranslatef(x1, y1, 0);

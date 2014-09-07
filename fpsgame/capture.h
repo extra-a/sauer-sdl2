@@ -414,6 +414,7 @@ struct captureclientmode : clientmode
     {
         float scale = calcradarscale();
         int blips = 0;
+        holdscreenlock;
         loopv(bases)
         {
             baseinfo &b = bases[i];
@@ -466,6 +467,7 @@ struct captureclientmode : clientmode
 
     void drawhud(fpsent *d, int w, int h)
     {
+        holdscreenlock;
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         int s = 1800/4, x = 1800*w/h - s - s/10, y = s/10;
         glColor4f(1, 1, 1, minimapalpha);
@@ -916,6 +918,7 @@ ICOMMAND(insidebases, "", (),
     {
         if(gamemillis>=gamelimit) return;
         endcheck();
+        emulatecurtime;
         int t = gamemillis/1000 - (gamemillis-curtime)/1000;
         if(t<1) return;
         loopv(bases)
@@ -1043,7 +1046,7 @@ ICOMMAND(insidebases, "", (),
 
     bool canspawn(clientinfo *ci, bool connecting)
     {
-        return m_regencapture || connecting || !ci->state.lastdeath || gamemillis+curtime-ci->state.lastdeath >= RESPAWNSECS*1000;
+        return m_regencapture || connecting || !ci->state.lastdeath || gamemillis-ci->state.lastdeath >= RESPAWNSECS*1000;
     }
 
     void moved(clientinfo *ci, const vec &oldpos, bool oldclip, const vec &newpos, bool newclip)

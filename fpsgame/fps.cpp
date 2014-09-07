@@ -1,5 +1,7 @@
 #include "game.h"
 
+extern int multipoll;
+
 namespace game
 {
     bool intermission = false;
@@ -232,6 +234,7 @@ namespace game
 
     void updateworld()        // main game update loop
     {
+        emulatecurtime;
         if(!maptime) { maptime = lastmillis; maprealtime = totalmillis; return; }
         if(!curtime) { gets2c(); if(player1->clientnum>=0) c2sinfo(); return; }
 
@@ -243,7 +246,7 @@ namespace game
         }
         updateweapons(curtime);
         otherplayers(curtime);
-        ai::update();
+        ai::update(curtime);
         moveragdolls();
         gets2c();
         updatemovables(curtime);
@@ -719,13 +722,14 @@ namespace game
         else if(d->type==ENT_AI) suicidemonster((monster *)d);
         else if(d->type==ENT_INANIMATE) suicidemovable((movable *)d);
     }
-    ICOMMAND(suicide, "", (), suicide(player1));
+    ICOMMAND(kill, "", (), suicide(player1));
 
     bool needminimap() { return m_ctf || m_protect || m_hold || m_capture || m_collect; }
 
     void drawicon(int icon, float x, float y, float sz)
     {
         settexture("packages/hud/items.png");
+        holdscreenlock;
         glBegin(GL_TRIANGLE_STRIP);
         float tsz = 0.25f, tx = tsz*(icon%4), ty = tsz*(icon/4);
         glTexCoord2f(tx,     ty);     glVertex2f(x,    y);
@@ -771,6 +775,7 @@ namespace game
     void drawammohud(fpsent *d)
     {
         float x = HICON_X + 2*HICON_STEP, y = HICON_Y, sz = HICON_SIZE;
+        holdscreenlock;
         glPushMatrix();
         glScalef(1/3.2f, 1/3.2f, 1);
         float xup = (x+sz)*3.2f, yup = y*3.2f + 0.1f*sz;
@@ -810,6 +815,7 @@ namespace game
 
     void drawhudicons(fpsent *d)
     {
+        holdscreenlock;
         glPushMatrix();
         glScalef(2, 2, 1);
 
@@ -832,8 +838,25 @@ namespace game
         }
     }
 
+    /* Game Clock */
+    XIDENT(IDF_SWLACC, VARP, gameclock, 0, 1, 1);
+    //XIDENT(IDF_SWLACC, VARP, gameclockcountup, 0, 0, 1);  // TODO: fix the up-counting mode
+    XIDENT(IDF_SWLACC, VARP, gameclocksize, 1, 5, 30);
+    XIDENT(IDF_SWLACC, VARP, gameclockturnredonlowtime, 0, 1, 1);
+    XIDENT(IDF_SWLACC, VARP, gameclockcolor_r, 0, 255, 255);
+    XIDENT(IDF_SWLACC, VARP, gameclockcolor_g, 0, 255, 255);
+    XIDENT(IDF_SWLACC, VARP, gameclockcolor_b, 0, 255, 255);
+    XIDENT(IDF_SWLACC, VARP, gameclockcolor_a, 0, 255, 255);
+    XIDENT(IDF_SWLACC, VARP, gameclockoffset_x, 0, 900, 1000);
+    XIDENT(IDF_SWLACC, VARP, gameclockoffset_y, 0, 5, 1000);
+    XIDENT(IDF_SWLACC, VARP, gameclockoffset_x_withradar, 0, 765, 1000);
+    XIDENT(IDF_SWLACC, VARP, gameclockoffset_y_withradar, 0, 15, 1000);
+    ICOMMAND(managegameclock, "", (), executestr("showgui gameclock_settings"));
+    /* ---------- */
+
     void gameplayhud(int w, int h)
     {
+        holdscreenlock;
         glPushMatrix();
         glScalef(h/1800.0f, h/1800.0f, 1);
 
@@ -867,6 +890,45 @@ namespace game
         }
 
         glPopMatrix();
+
+        const int gamemode = game::gamemode;
+        if(gameclock && !m_edit)
+        {
+            static char buf[16];
+            const int millis = max(game::maplimit-lastmillis, 0);
+            int secs = millis/1000;
+            int mins = secs/60;
+            secs %= 60;
+            sprintf(buf, "%d:%02d", mins, secs);
+            
+            const float conscale = 0.33f;
+            const int conw = int(w/conscale), conh = int(h/conscale);
+            
+            int r = gameclockcolor_r,
+                g = gameclockcolor_g,
+                b = gameclockcolor_b,
+                a = gameclockcolor_a;
+            
+            if (mins < 1 && gameclockturnredonlowtime) {
+                r = 255;
+                g = 0;
+                b = 0;
+                a = 255;
+            }
+            
+            const float gameclockscale = 1 + gameclocksize/10.0;
+            const bool radar = (m_ctf || m_capture);
+            const float xoff = ((radar ? gameclockoffset_x_withradar : gameclockoffset_x)*conw/1000);
+            const float yoff = ((radar ? gameclockoffset_y_withradar : gameclockoffset_y)*conh/1000);
+            
+            glPushMatrix();
+            glScalef(conscale*gameclockscale, conscale*gameclockscale, 1);
+            draw_text(buf,
+                      xoff/gameclockscale,
+                      yoff/gameclockscale,
+                      r, g, b, a);
+            glPopMatrix();
+        }
     }
 
     int clipconsole(int w, int h)

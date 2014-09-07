@@ -71,7 +71,7 @@ void resolverinit()
         resolverthread &rt = resolverthreads.add();
         rt.query = NULL;
         rt.starttime = 0;
-        rt.thread = SDL_CreateThread(resolverloop, &rt);
+        rt.thread = SDL_CreateThread(resolverloop, "resolver", &rt);
     }
     SDL_UnlockMutex(resolvermutex);
 }
@@ -81,10 +81,7 @@ void resolverstop(resolverthread &rt)
     SDL_LockMutex(resolvermutex);
     if(rt.query)
     {
-#ifndef __APPLE__
-        SDL_KillThread(rt.thread);
-#endif
-        rt.thread = SDL_CreateThread(resolverloop, &rt);
+        rt.thread = SDL_CreateThread(resolverloop, "resolver", &rt);
     }
     rt.query = NULL;
     rt.starttime = 0;
@@ -215,6 +212,8 @@ int connectwithtimeout(ENetSocket sock, const char *hostname, const ENetAddress 
     return -1;
 }
  
+XIDENT(IDF_SWLACC, VAR, pingcoloring, 0, 1, 1);
+
 struct pingattempts
 {
     enum { MAXATTEMPTS = 2 };
@@ -253,12 +252,14 @@ struct pingattempts
             if(del) attempts[k] = 0;
             return true;
         }
-        return false;
+        return !pingcoloring;
     }
 
 };
 
 enum { UNRESOLVED = 0, RESOLVING, RESOLVED };
+
+XIDENT(IDF_SWLACC, VARP, keepserverprio, 0, 1, 1);
 
 struct serverinfo : pingattempts
 {
@@ -339,8 +340,11 @@ struct serverinfo : pingattempts
              bc = server::servercompatible(b->name, b->sdesc, b->map, b->ping, b->attr, b->numplayers);
         if(ac > bc) return true;
         if(bc > ac) return false;
-        if(a->keep > b->keep) return true;
-        if(a->keep < b->keep) return false;
+        if(keepserverprio)
+        {
+                if(a->keep > b->keep) return true;
+                if(a->keep < b->keep) return false;
+        }
         if(a->numplayers < b->numplayers) return false;
         if(a->numplayers > b->numplayers) return true;
         if(a->ping > b->ping) return false;

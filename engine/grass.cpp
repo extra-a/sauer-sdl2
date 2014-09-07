@@ -259,6 +259,7 @@ void rendergrass()
 {
     if(!grass || !grassdist || grassgroups.empty() || dbggrass) return;
 
+    holdscreenlock;
     glDisable(GL_CULL_FACE);
     glEnable(GL_BLEND);
     glBlendFunc(renderpath==R_FIXEDFUNCTION ? GL_SRC_ALPHA : GL_ONE, GL_ONE_MINUS_SRC_ALPHA);

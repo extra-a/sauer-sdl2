@@ -34,7 +34,7 @@ void destroyvbo(GLuint vbo)
     vbi.uses--;
     if(!vbi.uses) 
     {
-        if(hasVBO) glDeleteBuffers_(1, &vbo);
+        if(hasVBO) { holdscreenlock; glDeleteBuffers_(1, &vbo); }
         else if(vbi.data) delete[] vbi.data;
         vbos.remove(vbo);
     }
@@ -46,6 +46,7 @@ void genvbo(int type, void *buf, int len, vtxarray **vas, int numva)
     uchar *data = NULL;
     if(hasVBO)
     {
+        holdscreenlock;
         glGenBuffers_(1, &vbo);
         GLenum target = type==VBO_VBUF ? GL_ARRAY_BUFFER_ARB : GL_ELEMENT_ARRAY_BUFFER_ARB;
         glBindBuffer_(target, vbo);
@@ -96,6 +97,7 @@ bool readva(vtxarray *va, ushort *&edata, uchar *&vdata)
 
     if(hasVBO)
     {
+        holdscreenlock;
         glBindBuffer_(GL_ELEMENT_ARRAY_BUFFER_ARB, va->ebuf);
         glGetBufferSubData_(GL_ELEMENT_ARRAY_BUFFER_ARB, (size_t)va->edata, 3*va->tris*sizeof(ushort), edata);
         glBindBuffer_(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
@@ -605,7 +607,7 @@ void reduceslope(ivec &n)
 }
 
 // [rotation][dimension]
-vec orientation_tangent[6][3] =
+vec orientation_tangent [6][3] =
 {
     { vec(0,  1,  0), vec( 1, 0,  0), vec( 1,  0, 0) },
     { vec(0,  0, -1), vec( 0, 0, -1), vec( 0,  1, 0) },
@@ -614,7 +616,7 @@ vec orientation_tangent[6][3] =
     { vec(0, -1,  0), vec(-1, 0,  0), vec(-1,  0, 0) },
     { vec(0,  1,  0), vec( 1, 0,  0), vec( 1,  0, 0) },
 };
-vec orientation_bitangent[6][3] =
+vec orientation_binormal[6][3] =
 {
     { vec(0,  0, -1), vec( 0, 0, -1), vec( 0,  1, 0) },
     { vec(0, -1,  0), vec(-1, 0,  0), vec(-1,  0, 0) },
@@ -856,7 +858,7 @@ void addcubeverts(VSlot &vslot, int orient, int size, vec *pos, int convex, usho
             vec n = decodenormal(vinfo[k].norm), t = orientation_tangent[vslot.rotation][dim];
             t.project(n).normalize();
             v.norm = bvec(n);
-            v.tangent = bvec4(bvec(t), orientation_bitangent[vslot.rotation][dim].scalartriple(n, t) < 0 ? 0 : 255);
+            v.tangent = bvec4(bvec(t), orientation_binormal[vslot.rotation][dim].scalartriple(n, t) < 0 ? 0 : 255);
         }
         else
         {

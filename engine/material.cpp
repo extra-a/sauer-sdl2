@@ -551,6 +551,7 @@ void sortmaterials(vector<materialsurface *> &vismats)
 
 void rendermatgrid(vector<materialsurface *> &vismats)
 {
+    holdscreenlock;
     enablepolygonoffset(GL_POLYGON_OFFSET_LINE);
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     int lastmat = -1;
@@ -641,6 +642,7 @@ void rendermaterials()
     sortmaterials(vismats);
     if(vismats.empty()) return;
 
+    holdscreenlock;
     glDisable(GL_CULL_FACE);
 
     varray::enable();

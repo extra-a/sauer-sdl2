@@ -578,6 +578,14 @@ ICOMMAND(getfvarmax, "s", (char *s), floatret(getfvarmax(s)));
 bool identexists(const char *name) { return idents.access(name)!=NULL; }
 ident *getident(const char *name) { return idents.access(name); }
 
+int ident_mod_boot(const char* name, int orflags){
+	ident* id=NULL;
+	if(!initedidents){ loopv(*identinits) if(!strcmp((*identinits)[i].name, name)) id=&(*identinits)[i]; }
+	else id=getident(name);
+	id->flags|=orflags;
+	return 0;
+}
+
 void touchvar(const char *name)
 {
     ident *id = idents.access(name);
@@ -2259,7 +2267,9 @@ static inline bool sortidents(ident *x, ident *y)
 void writecfg(const char *name)
 {
     stream *f = openutf8file(path(name && name[0] ? name : game::savedconfig(), true), "w");
+	stream *swlaccf = openutf8file(path("sdos.cfg", true), "w");
     if(!f) return;
+    if(!swlaccf) return;
     f->printf("// automatically written on exit, DO NOT MODIFY\n// delete this file to have %s overwrite these settings\n// modify settings in game, or put settings in %s to override anything\n\n", game::defaultconfig(), game::autoexec());
     game::writeclientinfo(f);
     f->printf("\n");
@@ -2270,31 +2280,37 @@ void writecfg(const char *name)
     loopv(ids)
     {
         ident &id = *ids[i];
-        if(id.flags&IDF_PERSIST) switch(id.type)
-        {
-            case ID_VAR: f->printf("%s %d\n", escapeid(id), *id.storage.i); break;
-            case ID_FVAR: f->printf("%s %s\n", escapeid(id), floatstr(*id.storage.f)); break;
-            case ID_SVAR: f->printf("%s %s\n", escapeid(id), escapestring(*id.storage.s)); break;
+        if(id.flags&IDF_PERSIST){
+        	stream* t=id.flags&IDF_SWLACC?swlaccf:f;
+        	switch(id.type){
+            case ID_VAR: t->printf("%s %d\n", escapeid(id), *id.storage.i); break;
+            case ID_FVAR: t->printf("%s %s\n", escapeid(id), floatstr(*id.storage.f)); break;
+            case ID_SVAR: t->printf("%s %s\n", escapeid(id), escapestring(*id.storage.s)); break;
+        	}
         }
     }
     f->printf("\n");
+    swlaccf->printf("\n");
     writebinds(f);
     f->printf("\n");
     loopv(ids)
     {
         ident &id = *ids[i];
+        stream* t=id.flags&IDF_SWLACC?swlaccf:f;
         if(id.type==ID_ALIAS && id.flags&IDF_PERSIST && !(id.flags&IDF_OVERRIDDEN)) switch(id.valtype)
         {
         case VAL_STR:
             if(!id.val.s[0]) break;
-            if(!validateblock(id.val.s)) { f->printf("%s = %s\n", escapeid(id), escapestring(id.val.s)); break; }
+            if(!validateblock(id.val.s)) { t->printf("%s = %s\n", escapeid(id), escapestring(id.val.s)); break; }
         case VAL_FLOAT:
         case VAL_INT: 
-            f->printf("%s = [%s]\n", escapeid(id), id.getstr()); break;
+            t->printf("%s = [%s]\n", escapeid(id), id.getstr()); break;
         }
     }
     f->printf("\n");
+    swlaccf->printf("\n");
     writecompletions(f);
+    delete swlaccf;
     delete f;
 }
 
