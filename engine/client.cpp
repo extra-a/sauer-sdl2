@@ -72,7 +72,6 @@ void abortconnect()
 
 SVARP(connectname, "");
 VARP(connectport, 0, 0, 0xFFFF);
-VARF(enetnotimeout, 0, 0, 1, if(clienthost) clienthost->noTimeouts = enetnotimeout);
 
 void connectserv(const char *servername, int serverport, const char *serverpassword)
 {   
@@ -112,7 +111,6 @@ void connectserv(const char *servername, int serverport, const char *serverpassw
 
     if(clienthost)
     {
-        clienthost->noTimeouts = enetnotimeout;
         connpeer = enet_host_connect(clienthost, &address, server::numchannels(), 0); 
         enet_host_flush(clienthost);
         connmillis = totalmillis;
