@@ -1006,14 +1006,12 @@ static inline ullong tick() {
     GetSystemTimeAsFileTime(&ft);
     ullong currenttick = (ullong)ft.dwLowDateTime + ((ullong)(ft.dwHighDateTime) << 32);
     currenttick *= 100ULL;
-    logoutf("tick %llu ns", currenttick);
     return currenttick;
 }
 
 static inline void sleepwrapper(llong sec, llong nsec) {
     LARGE_INTEGER time;
     time.QuadPart = (LONGLONG)(sec * 10000000LL + nsec/100LL);
-    logoutf("sleep %lld ns", time.QuadPart * 100);
     NtDelayExecution(false, &time);
 }
 
@@ -1386,7 +1384,7 @@ int main(int argc, char **argv)
     inputgrab(grabinput = true);
     ignoremousemotion();
 
-    conoutf(stringify_macro(\f0Sauerbraten SDL2 Client\f2 v0.0));
+    conoutf(stringify_macro(\f0Sauerbraten SDL2 Client\f2 v0.1));
 
     ullong tick_last = tick();
     double finelastmillis = lastmillis, finetotalmillis = totalmillis;
