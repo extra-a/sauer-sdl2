@@ -918,7 +918,6 @@ ICOMMAND(insidebases, "", (),
     {
         if(gamemillis>=gamelimit) return;
         endcheck();
-        emulatecurtime;
         int t = gamemillis/1000 - (gamemillis-curtime)/1000;
         if(t<1) return;
         loopv(bases)

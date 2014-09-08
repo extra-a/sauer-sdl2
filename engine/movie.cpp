@@ -906,7 +906,8 @@ namespace recorder
         useshaderbyname("movieu");
         useshaderbyname("moviev");
  
-        int fps = getfps();
+        int fps, fps2, fps3;
+        getfps(fps, fps2, fps3);
         if(videofps > fps) conoutf(CON_WARN, "frame rate may be too low to capture at %d fps", videofps);
         
         if(videow%2) videow += 1;

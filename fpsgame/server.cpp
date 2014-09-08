@@ -2344,7 +2344,6 @@ namespace server
 
     void serverupdate()
     {
-        emulatecurtime;
         if(shouldstep && !gamepaused)
         {
             gamemillis += curtime;

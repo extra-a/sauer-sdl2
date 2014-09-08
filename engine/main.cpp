@@ -69,7 +69,7 @@ SDL_Window *screen = NULL;
 int screenw = 0, screenh = 0, desktopw = 0, desktoph = 0;
 SDL_GLContext glcontext = NULL;
 
-int lastmillis = 1, totalmillis = 1;
+int curtime = 0, lastmillis = 1, elapsedtime = 0, totalmillis = 1;
 
 dynent *player = NULL;
 
@@ -329,7 +329,6 @@ void renderbackground(const char *caption, Texture *mapshot, const char *mapname
 }
 
 float loadprogress = 0;
-static ullong tick();
 
 void renderprogress(float bar, const char *text, GLuint tex, bool background)   // also used during loading
 {
@@ -342,8 +341,8 @@ void renderprogress(float bar, const char *text, GLuint tex, bool background)   
     #endif
 
     static ullong lastprogress = 0;
-    ullong now = tick();
-    if(now - lastprogress <= 1000000000/59) return;
+    ullong now = SDL_GetTicks();
+    if(now - lastprogress <= 1000/59) return;
     lastprogress = now;
 
     extern int sdl_backingstore_bug;
@@ -969,115 +968,38 @@ void swapbuffers(bool overlay)
  
 VAR(menufps, 0, 60, 1000);
 VARP(maxfps, 0, 200, 1000);
-VARFP(multipoll, -1, 0, 1,
-    drawer::keepgl(multipoll == 1);
-    if(initing == NOT_INITING && multipoll < 0 && (vsync || !maxfps)) conoutf(CON_WARN, "/multipoll -1 makes sense only with /vsync 0 and /maxfps non-zero. Make sure you really understand what /multipoll does.");
-);
+VARP(multipoll, -1, 0, 1);
 XIDENTHOOK(multipoll, IDF_SWLACC);
-VAR(targetifps, 60, 1000, 10000);
 
 
 #ifdef __APPLE__
-
-#include <mach/mach_time.h>
-static inline ullong tick(){
-        static mach_timebase_info_data_t tb;
-        if(!tb.denom) mach_timebase_info(&tb);
-        return (mach_absolute_time()*ullong(tb.numer))/tb.denom;
-}
-
-static inline void sleepwrapper(llong sec, llong nsec) {
-    timespec t, _;
-    t.tv_sec = (time_t)sec;
-    t.tv_nsec = (long)nsec;
-    nanosleep(&t, &_);
-}
-
 #define main SDL_main
-
-#elif WIN32
-
-typedef long (__stdcall *FPNtDelayExecution)(BOOLEAN arg1, PLARGE_INTEGER arg2);
-
-FPNtDelayExecution NtDelayExecution;
-
-static inline ullong tick() {
-    FILETIME ft;
-    GetSystemTimeAsFileTime(&ft);
-    ullong currenttick = (ullong)ft.dwLowDateTime + ((ullong)(ft.dwHighDateTime) << 32);
-    currenttick *= 100ULL;
-    return currenttick;
-}
-
-static inline void sleepwrapper(llong sec, llong nsec) {
-    LARGE_INTEGER time;
-    time.QuadPart = (LONGLONG)(sec * 10000000LL + nsec/100LL);
-    NtDelayExecution(false, &time);
-}
-
-static void initntdllprocs() {
-    HMODULE hModule=GetModuleHandle(TEXT("ntdll.dll"));
-    if(!hModule) fatal("Can't open ntdll.dll");
-    NtDelayExecution = (FPNtDelayExecution)GetProcAddress(hModule, "NtDelayExecution");
-    if(!NtDelayExecution) fatal("Can't load function NtDelayExecution");
-}
-
-#else
-
-static inline ullong tick(){
-    timespec t;
-    clock_gettime(CLOCK_MONOTONIC, &t);
-    return t.tv_sec * 1000000000ULL + t.tv_nsec;
-}
-
-static inline void sleepwrapper(llong sec, llong nsec) {
-    timespec t, _;
-    t.tv_sec = (time_t)sec;
-    t.tv_nsec = (long)nsec;
-    nanosleep(&t, &_);
-}
-
 #endif
 
 
-bool limitfps(ullong &tick_now)
+void limitfps(int &millis, int curmillis)
 {
-    static ullong lastdraw = 0, lastrefresh = 0;
-    int fpslimit = (mainmenu || minimized) && menufps ? (maxfps ? min(maxfps, menufps) : menufps) : maxfps;
-    ullong nextdraw = (fpslimit ? 1000000000ULL / fpslimit : 0) + lastdraw;
-    bool dodraw;
-    llong sec = 0;
-    if(multipoll){
-        if(fpslimit && nextdraw <= tick_now){
-            dodraw = true;
-            goto frame;
+    int limit = (mainmenu || minimized) && menufps ? (maxfps ? min(maxfps, menufps) : menufps) : maxfps;
+    if(!limit) return;
+    static int fpserror = 0;
+    int delay = 1000/limit - (millis-curmillis);
+    if(delay < 0) fpserror = 0;
+    else
+    {
+        fpserror += 1000%limit;
+        if(fpserror >= limit)
+        {
+            ++delay;
+            fpserror -= limit;
         }
-        dodraw = fpslimit == 0;
-        ullong nextrefresh = 1000000000ULL / targetifps + lastrefresh;
-        llong nsec = 0;
-        if(nextrefresh <= tick_now) goto frame;
-        if(nextrefresh >= nextdraw && !vsync){
-            nsec = nextdraw - tick_now;
-        } else {
-            nsec = nextrefresh - tick_now;
+        if(delay > 0)
+        {
+            SDL_Delay(delay);
+            millis += delay;
         }
-        sleepwrapper(sec, nsec);
-        return limitfps(tick_now = tick());
     }
-    else{
-        if(nextdraw <= tick_now){
-            dodraw = true;
-            goto frame;
-        }
-        long nsec = nextdraw - tick_now;
-        sleepwrapper(sec, nsec);
-        return limitfps(tick_now = tick());
-    }
-frame:
-    lastrefresh = tick_now;
-    if(dodraw) lastdraw = tick_now;
-    return dodraw;
 }
+
 
 #if defined(WIN32) && !defined(_DEBUG) && !defined(__GNUC__)
 void stackdumper(unsigned int type, EXCEPTION_POINTERS *ep)
@@ -1122,35 +1044,47 @@ void stackdumper(unsigned int type, EXCEPTION_POINTERS *ep)
 }
 #endif
 
-int currentfps[3] = {0, 0, 0};
+#define MAXFPSHISTORY 60
 
-void updatefps(int which, int value = 1){
-	static int fpsaccumulator[3] = {0, 0, 0};
-	static int fpsbasemillis = 0, drawmillistot = 0;
-	if(totalmillis - fpsbasemillis >= 1000){
-		loopi(3){
-			currentfps[i] = fpsaccumulator[i];
-			fpsaccumulator[i] = 0;
-		}
-		if(drawmillistot) currentfps[2]/=drawmillistot;
-		drawmillistot = 0;
-		fpsbasemillis = totalmillis;
-	}
-	fpsaccumulator[which]+=value;
-	if(which==2) drawmillistot++;
-}
+int fpspos = 0, fpshistory[MAXFPSHISTORY];
 
-int getfps(int which)
+void resetfpshistory()
 {
-    return currentfps[which];
+    loopi(MAXFPSHISTORY) fpshistory[i] = 1;
+    fpspos = 0;
 }
 
-void getfps_(int *raw, int *which)
+void updatefpshistory(int millis)
 {
-    intret(getfps(clamp(*which, 0, 2)));
+    fpshistory[fpspos++] = max(1, min(1000, millis));
+    if(fpspos>=MAXFPSHISTORY) fpspos = 0;
 }
 
-COMMANDN(getfps, getfps_, "ii");
+void getfps(int &fps, int &bestdiff, int &worstdiff)
+{
+    int total = fpshistory[MAXFPSHISTORY-1], best = total, worst = total;
+    loopi(MAXFPSHISTORY-1)
+    {
+        int millis = fpshistory[i];
+        total += millis;
+        if(millis < best) best = millis;
+        if(millis > worst) worst = millis;
+    }
+    fps = (1000*MAXFPSHISTORY)/total;
+    bestdiff = 1000/best-fps;
+    worstdiff = fps-1000/worst;
+}
+
+void getfps_(int *raw)
+{
+    int fps, bestdiff, worstdiff;
+    if(*raw) fps = 1000/fpshistory[(fpspos+MAXFPSHISTORY-1)%MAXFPSHISTORY];
+    else getfps(fps, bestdiff, worstdiff);
+    intret(fps);
+}
+
+COMMANDN(getfps, getfps_, "i");
+
 
 bool inbetweenframes = false, renderedframe = true;
 
@@ -1182,7 +1116,6 @@ VAR(numcpus, 1, 1, 16);
 int main(int argc, char **argv)
 {
     #ifdef WIN32
-    initntdllprocs();
     //atexit((void (__cdecl *)(void))_CrtDumpMemoryLeaks);
     #ifndef _DEBUG
     #ifndef __GNUC__
@@ -1278,6 +1211,15 @@ int main(int argc, char **argv)
         #endif
 
         if(SDL_Init(SDL_INIT_TIMER|SDL_INIT_VIDEO|SDL_INIT_AUDIO|par)<0) fatal("Unable to initialize SDL: %s", SDL_GetError());
+
+        SDL_version compiled;
+        SDL_version linked;
+        SDL_VERSION(&compiled);
+        SDL_GetVersion(&linked);
+        logoutf("Compiled against SDL version %d.%d.%d ...\n",
+                compiled.major, compiled.minor, compiled.patch);
+        logoutf("Linking against SDL version %d.%d.%d.\n",
+                linked.major, linked.minor, linked.patch);
     }
     
     logoutf("init: net");
@@ -1384,41 +1326,36 @@ int main(int argc, char **argv)
     inputgrab(grabinput = true);
     ignoremousemotion();
 
-    conoutf(stringify_macro(\f0Sauerbraten SDL2 Client\f2 v0.1));
+    conoutf(stringify_macro(\f0Sauerbraten SDL2 Client\f2 v0.2));
 
-    ullong tick_last = tick();
-    double finelastmillis = lastmillis, finetotalmillis = totalmillis;
-    bool drawrequested = false;
     for(;;)
     {
-        ullong tick_now = tick();
-        drawrequested |= limitfps(tick_now);
-        double elapsedmillis = double(tick_now - tick_last)/1000000;
-        tick_last = tick_now;
-        totalmillis = (finetotalmillis += elapsedmillis);
-        lastmillis = (finelastmillis += game::ispaused() ? 0 : game::scaletime(1) * elapsedmillis / 100);
+        static int frames = 0;
+        int millis = getclockmillis();
+        limitfps(millis, totalmillis);
+        elapsedtime = millis - totalmillis;
+        static int timeerr = 0;
+        int scaledtime = game::scaletime(elapsedtime) + timeerr;
+        curtime = scaledtime/100;
+        timeerr = scaledtime%100;
+        if(!multiplayer(false) && curtime>200) curtime = 200;
+        if(game::ispaused()) curtime = 0;
+        lastmillis += curtime;
+        totalmillis = millis;
         updatetime();
  
         checkinput();
         menuprocess();
         tryedit();
 
-        game::updateworld();
+        if(lastmillis) game::updateworld();
 
         checksleep(lastmillis);
 
         serverslice(false, 0);
 
-        updatefps(1);
-
-        if(!drawrequested || drawer::swapping()){
-            continue;
-        }
-        drawrequested = false;
-
-        ullong start = tick();
-
-        updatefps(0);
+        if(frames) updatefpshistory(elapsedtime);
+        frames++;
 
         // miscellaneous general game effects
         recomputecamera();
@@ -1427,10 +1364,11 @@ int main(int argc, char **argv)
 
         if(minimized) continue;
 
-        if(!mainmenu && multipoll > 0) drawer::letdraw();
-        else drawer::draw();
-        updatefps(2, (tick() - start)/1000);
-
+        inbetweenframes = false;
+        if(mainmenu) gl_drawmainmenu();
+        else gl_drawframe();
+        swapbuffers();
+        renderedframe = inbetweenframes = true;
     }
     
     ASSERT(0);   

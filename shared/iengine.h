@@ -1,21 +1,11 @@
 // the interface the game uses to access the engine
 
+extern int curtime;                     // current frame time
 extern int lastmillis;                  // last time
+extern int elapsedtime;                 // elapsed frame time
 extern int totalmillis;                 // total elapsed time
 extern uint totalsecs;
 extern int gamespeed, paused;
-
-#define emulatecurtime\
-    static int mylastmillis = -1;\
-    if(mylastmillis < 0) mylastmillis = lastmillis;\
-    int curtime = lastmillis - mylastmillis;\
-    mylastmillis = lastmillis;
-
-#define emulateelapsedtime\
-    static int mytotalmillis = -1;\
-    if(mytotalmillis < 0) mytotalmillis = totalmillis;\
-    int elapsedtime = totalmillis - mytotalmillis;\
-    mytotalmillis = totalmillis;
 
 enum
 {
@@ -293,16 +283,8 @@ extern void damagecompass(int n, const vec &loc);
 extern vec minimapcenter, minimapradius, minimapscale;
 extern void bindminimap();
 
-struct drawer
-{
-    drawer();
-    ~drawer();
-    static void draw();
-    static void letdraw();
-    static bool swapping();
-    static void keepgl(bool on);
-};
-#define holdscreenlock drawer __screenlock
+inline void __screenlock() {}
+#define holdscreenlock __screenlock();
 
 // renderparticles
 enum

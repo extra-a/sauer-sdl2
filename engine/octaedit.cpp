@@ -2261,7 +2261,6 @@ COMMAND(showtexgui, "i");
 
 void rendertexturepanel(int w, int h)
 {
-    emulatecurtime;
     if((texpaneltimer -= curtime)>0 && editmode)
     {
         holdscreenlock;
