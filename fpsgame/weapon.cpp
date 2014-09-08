@@ -17,7 +17,8 @@ namespace game
     VARP(maxdebris, 10, 25, 1000);
     VARP(maxbarreldebris, 5, 10, 1000);
 
-    XIDENT(IDF_SWLACC, VARP, reducesparks, 0, 0, 1);
+    VARP(reducesparks, 0, 0, 1);
+    XIDENTHOOK(reducesparks, IDF_SWLACC);
 
     ICOMMAND(getweapon, "", (), intret(player1->gunselect));
 
@@ -207,7 +208,8 @@ namespace game
         adddecal(DECAL_BLOOD, vec(b->o).sub(vec(surface).mul(b->radius)), surface, 2.96f/b->bounces, bvec(0x60, 0xFF, 0xFF), rnd(4));
     }
         
-XIDENT(IDF_SWLACC, VARP, smokefps, 0, 80, 200);
+    VARP(smokefps, 0, 80, 200);
+    XIDENTHOOK(smokefps, IDF_SWLACC);
     void updatebouncers(int time)
     {
         static int lastbouncersmoke = -1000;
@@ -409,7 +411,8 @@ XIDENT(IDF_SWLACC, VARP, smokefps, 0, 80, 200);
         }
     }
 
-    XIDENT(IDF_SWLACC, VARP, explosions, 0, 1, 1);
+    VARP(explosions, 0, 1, 1);
+    XIDENTHOOK(explosions, IDF_SWLACC);
     void explode(bool local, fpsent *owner, const vec &v, dynent *safe, int damage, int gun)
     {
         particle_splash(PART_SPARK, 200, 300, v, 0xB49B4B, 0.24f);

@@ -7,9 +7,6 @@
     <ClCompile Include="..\shared\geom.cpp">
       <Filter>shared</Filter>
     </ClCompile>
-    <ClCompile Include="..\shared\pch.cpp">
-      <Filter>shared</Filter>
-    </ClCompile>
     <ClCompile Include="..\shared\stream.cpp">
       <Filter>shared</Filter>
     </ClCompile>
@@ -85,9 +82,6 @@
     <ClCompile Include="..\engine\octarender.cpp">
       <Filter>engine</Filter>
     </ClCompile>
-    <ClCompile Include="..\engine\pch.cpp">
-      <Filter>engine</Filter>
-    </ClCompile>
     <ClCompile Include="..\engine\physics.cpp">
       <Filter>engine</Filter>
     </ClCompile>
@@ -155,9 +149,6 @@
       <Filter>fpsgame</Filter>
     </ClCompile>
     <ClCompile Include="..\fpsgame\movable.cpp">
-      <Filter>fpsgame</Filter>
-    </ClCompile>
-    <ClCompile Include="..\fpsgame\pch.cpp">
       <Filter>fpsgame</Filter>
     </ClCompile>
     <ClCompile Include="..\fpsgame\render.cpp">
@@ -253,6 +244,12 @@
       <Filter>engine</Filter>
     </ClInclude>
     <ClInclude Include="..\engine\scale.h">
+      <Filter>engine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\engine\sdl2_keymap_extrakeys.h">
+      <Filter>engine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\engine\sdosscripts.h">
       <Filter>engine</Filter>
     </ClInclude>
     <ClInclude Include="..\engine\skelmodel.h">

@@ -332,7 +332,9 @@ inline void ident::getval(tagval &v) const
 //add flag at time of ident creation. Avoiding *VAR* macro proliferation.
 extern int ident_mod_boot(const char* name, int orflags);
 
-#define XIDENT(orflags, macro, name, ...)\
-		macro(name, ##__VA_ARGS__);\
-		static int name ## Xhook = ident_mod_boot(#name, orflags);
+/* #define XIDENT(orflags, macro, name, ...)     \ */
+/* 		macro(name, ##__VA_ARGS__);                             \ */
+/* 		static int name ## Xhook = ident_mod_boot(#name, orflags); */
 
+#define XIDENTHOOK(name, orflags)\
+	static int name ## Xhook = ident_mod_boot(#name, orflags);

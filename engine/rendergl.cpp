@@ -908,7 +908,8 @@ FVARP(zoomaccel, 0, 0, 1000);
 VARP(zoomautosens, 0, 1, 1);
 FVARP(sensitivity, 1e-3f, 3, 1000);
 FVARP(sensitivityscale, 1e-3f, 1, 1000);
-XIDENT(IDF_SWLACC, FVARP, sdl2_sensitivity_adjust, 1e-3f, 1, 1000);
+FVARP(sdl2_sensitivity_adjust, 1e-3f, 1, 1000);
+XIDENTHOOK(sdl2_sensitivity_adjust, IDF_SWLACC);
 VARP(invmouse, 0, 0, 1);
 FVARP(mouseaccel, 0, 0, 1000);
  

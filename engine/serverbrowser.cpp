@@ -212,7 +212,8 @@ int connectwithtimeout(ENetSocket sock, const char *hostname, const ENetAddress 
     return -1;
 }
  
-XIDENT(IDF_SWLACC, VAR, pingcoloring, 0, 1, 1);
+VAR(pingcoloring, 0, 1, 1);
+XIDENTHOOK(pingcoloring, IDF_SWLACC);
 
 struct pingattempts
 {
@@ -259,7 +260,8 @@ struct pingattempts
 
 enum { UNRESOLVED = 0, RESOLVING, RESOLVED };
 
-XIDENT(IDF_SWLACC, VARP, keepserverprio, 0, 1, 1);
+VARP(keepserverprio, 0, 1, 1);
+XIDENTHOOK(keepserverprio, IDF_SWLACC);
 
 struct serverinfo : pingattempts
 {

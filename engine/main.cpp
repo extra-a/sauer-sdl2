@@ -2,7 +2,6 @@
 
 #include "engine.h"
 #include "sdosscripts.h"
-#include <sched.h>
 
 extern void cleargamma();
 
@@ -100,7 +99,8 @@ VARF(stencilbits, 0, 0, 32, initwarning("stencil-buffer precision"));
 VARF(fsaa, -1, -1, 16, initwarning("anti-aliasing"));
 extern void updatevsync();
 VARF(vsync, 0, 0, 1, updatevsync());
-XIDENT(IDF_SWLACC, VARFP, vsynctear, 0, 0, 1, if(vsync) updatevsync());
+VARFP(vsynctear, 0, 0, 1, if(vsync) updatevsync());
+XIDENTHOOK(vsynctear, IDF_SWLACC);
 
 void writeinitcfg()
 {
@@ -457,7 +457,8 @@ void renderprogress(float bar, const char *text, GLuint tex, bool background)   
     swapbuffers(false);
 }
 
-XIDENT(IDF_SWLACC, VARNP, relativemouse, userelativemouse, 0, 1, 1);
+VARNP(relativemouse, userelativemouse, 0, 1, 1);
+XIDENTHOOK(relativemouse, IDF_SWLACC);
 
 bool shouldgrab = false, grabinput = false, minimized = false, canrelativemouse = true, relativemouse = false;
 int keyrepeatmask = 0, textinputmask = 0;
@@ -968,11 +969,13 @@ void swapbuffers(bool overlay)
  
 VAR(menufps, 0, 60, 1000);
 VARP(maxfps, 0, 200, 1000);
-XIDENT(IDF_SWLACC, VARFP, multipoll, -1, 0, 1,
+VARFP(multipoll, -1, 0, 1,
     drawer::keepgl(multipoll == 1);
     if(initing == NOT_INITING && multipoll < 0 && (vsync || !maxfps)) conoutf(CON_WARN, "/multipoll -1 makes sense only with /vsync 0 and /maxfps non-zero. Make sure you really understand what /multipoll does.");
 );
-XIDENT(IDF_SWLACC, VAR, nanodelay, 0, 50000, 999999);
+XIDENTHOOK(multipoll, IDF_SWLACC);
+VAR(targetifps, 60, 1000, 10000);
+
 
 #ifdef __APPLE__
 
@@ -983,7 +986,43 @@ static inline ullong tick(){
         return (mach_absolute_time()*ullong(tb.numer))/tb.denom;
 }
 
+static inline void sleepwrapper(llong sec, llong nsec) {
+    timespec t, _;
+    t.tv_sec = (time_t)sec;
+    t.tv_nsec = (long)nsec;
+    nanosleep(&t, &_);
+}
+
 #define main SDL_main
+
+#elif WIN32
+
+typedef long (__stdcall *FPNtDelayExecution)(BOOLEAN arg1, PLARGE_INTEGER arg2);
+
+FPNtDelayExecution NtDelayExecution;
+
+static inline ullong tick() {
+    FILETIME ft;
+    GetSystemTimeAsFileTime(&ft);
+    ullong currenttick = (ullong)ft.dwLowDateTime + ((ullong)(ft.dwHighDateTime) << 32);
+    currenttick *= 100ULL;
+    logoutf("tick %llu ns", currenttick);
+    return currenttick;
+}
+
+static inline void sleepwrapper(llong sec, llong nsec) {
+    LARGE_INTEGER time;
+    time.QuadPart = (LONGLONG)(sec * 10000000LL + nsec/100LL);
+    logoutf("sleep %lld ns", time.QuadPart * 100);
+    NtDelayExecution(false, &time);
+}
+
+static void initntdllprocs() {
+    HMODULE hModule=GetModuleHandle(TEXT("ntdll.dll"));
+    if(!hModule) fatal("Can't open ntdll.dll");
+    NtDelayExecution = (FPNtDelayExecution)GetProcAddress(hModule, "NtDelayExecution");
+    if(!NtDelayExecution) fatal("Can't load function NtDelayExecution");
+}
 
 #else
 
@@ -993,7 +1032,15 @@ static inline ullong tick(){
     return t.tv_sec * 1000000000ULL + t.tv_nsec;
 }
 
+static inline void sleepwrapper(llong sec, llong nsec) {
+    timespec t, _;
+    t.tv_sec = (time_t)sec;
+    t.tv_nsec = (long)nsec;
+    nanosleep(&t, &_);
+}
+
 #endif
+
 
 bool limitfps(ullong &tick_now)
 {
@@ -1001,18 +1048,22 @@ bool limitfps(ullong &tick_now)
     int fpslimit = (mainmenu || minimized) && menufps ? (maxfps ? min(maxfps, menufps) : menufps) : maxfps;
     ullong nextdraw = (fpslimit ? 1000000000ULL / fpslimit : 0) + lastdraw;
     bool dodraw;
-    timespec t, _;
-    t.tv_sec = 0;
+    llong sec = 0;
     if(multipoll){
         if(fpslimit && nextdraw <= tick_now){
             dodraw = true;
             goto frame;
         }
         dodraw = fpslimit == 0;
-        ullong nextrefresh = lastrefresh + nanodelay;
+        ullong nextrefresh = 1000000000ULL / targetifps + lastrefresh;
+        llong nsec = 0;
         if(nextrefresh <= tick_now) goto frame;
-        t.tv_nsec = nextrefresh - tick_now;
-        nanosleep(&t, &_);
+        if(nextrefresh >= nextdraw && !vsync){
+            nsec = nextdraw - tick_now;
+        } else {
+            nsec = nextrefresh - tick_now;
+        }
+        sleepwrapper(sec, nsec);
         return limitfps(tick_now = tick());
     }
     else{
@@ -1020,8 +1071,8 @@ bool limitfps(ullong &tick_now)
             dodraw = true;
             goto frame;
         }
-        t.tv_nsec = nextdraw - tick_now;
-        nanosleep(&t, &_);
+        long nsec = nextdraw - tick_now;
+        sleepwrapper(sec, nsec);
         return limitfps(tick_now = tick());
     }
 frame:
@@ -1133,6 +1184,7 @@ VAR(numcpus, 1, 1, 16);
 int main(int argc, char **argv)
 {
     #ifdef WIN32
+    initntdllprocs();
     //atexit((void (__cdecl *)(void))_CrtDumpMemoryLeaks);
     #ifndef _DEBUG
     #ifndef __GNUC__
@@ -1334,7 +1386,7 @@ int main(int argc, char **argv)
     inputgrab(grabinput = true);
     ignoremousemotion();
 
-    conoutf(stringify_macro(\f0Sauerbraten Day of Sobriety Test Client\f2 v1.5.0));
+    conoutf(stringify_macro(\f0Sauerbraten SDL2 Client\f2 v0.0));
 
     ullong tick_last = tick();
     double finelastmillis = lastmillis, finetotalmillis = totalmillis;
@@ -1346,9 +1398,7 @@ int main(int argc, char **argv)
         double elapsedmillis = double(tick_now - tick_last)/1000000;
         tick_last = tick_now;
         totalmillis = (finetotalmillis += elapsedmillis);
-        int oldlastmillis = lastmillis;
         lastmillis = (finelastmillis += game::ispaused() ? 0 : game::scaletime(1) * elapsedmillis / 100);
-        bool lightupdate = oldlastmillis == lastmillis;
         updatetime();
  
         checkinput();
@@ -1361,10 +1411,9 @@ int main(int argc, char **argv)
 
         serverslice(false, 0);
 
-        if(!lightupdate) updatefps(1);
+        updatefps(1);
 
         if(!drawrequested || drawer::swapping()){
-            if(lightupdate && !nanodelay) sched_yield();
             continue;
         }
         drawrequested = false;
