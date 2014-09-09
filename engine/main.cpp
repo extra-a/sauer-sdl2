@@ -1216,9 +1216,9 @@ int main(int argc, char **argv)
         SDL_version linked;
         SDL_VERSION(&compiled);
         SDL_GetVersion(&linked);
-        logoutf("Compiled against SDL version %d.%d.%d ...\n",
+        logoutf("Compiled against SDL version %d.%d.%d",
                 compiled.major, compiled.minor, compiled.patch);
-        logoutf("Linking against SDL version %d.%d.%d.\n",
+        logoutf("Linking against SDL version %d.%d.%d",
                 linked.major, linked.minor, linked.patch);
     }
     
