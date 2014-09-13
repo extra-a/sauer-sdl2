@@ -459,7 +459,7 @@ void renderprogress(float bar, const char *text, GLuint tex, bool background)   
 VARNP(relativemouse, userelativemouse, 0, 1, 1);
 XIDENTHOOK(relativemouse, IDF_SWLACC);
 
-bool shouldgrab = false, grabinput = false, minimized = false, canrelativemouse = true, relativemouse = false;
+bool grabinput = false, minimized = false, canrelativemouse = true, relativemouse = false, isentered = false, isfocused = false;
 int keyrepeatmask = 0, textinputmask = 0;
 
 void keyrepeat(bool on, int mask)
@@ -496,23 +496,39 @@ void inputgrab(bool on)
             }
             else 
             {
-                SDL_SetWindowGrab(screen, SDL_FALSE);
+                SDL_SetWindowGrab(screen, SDL_TRUE);
                 canrelativemouse = false;
                 relativemouse = false;
+                conoutf(CON_WARN, "Unable to use SDL2 relative mouse input");
             }
         }
     }
-    else 
+    else
     {
         SDL_ShowCursor(SDL_TRUE);
         if(relativemouse)
         {
             SDL_SetRelativeMouseMode(SDL_FALSE);
-            SDL_SetWindowGrab(screen, SDL_FALSE);
             relativemouse = false;
         }
+        SDL_SetWindowGrab(screen, SDL_FALSE);
     }
-    shouldgrab = false;
+}
+
+void inputhandling(bool on) {
+    if(on) {
+        SDL_EventState(SDL_MOUSEMOTION, SDL_ENABLE);
+        SDL_EventState(SDL_MOUSEWHEEL, SDL_ENABLE);
+        SDL_EventState(SDL_MOUSEBUTTONDOWN, SDL_ENABLE);
+        SDL_EventState(SDL_MOUSEBUTTONUP, SDL_ENABLE);
+        inputgrab(grabinput = true);
+    } else {
+        SDL_EventState(SDL_MOUSEMOTION, SDL_IGNORE);
+        SDL_EventState(SDL_MOUSEWHEEL, SDL_IGNORE);
+        SDL_EventState(SDL_MOUSEBUTTONDOWN, SDL_IGNORE);
+        SDL_EventState(SDL_MOUSEBUTTONUP, SDL_IGNORE);
+        inputgrab(grabinput = false);
+    }
 }
 
 bool initwindowpos = false;
@@ -888,16 +904,23 @@ void checkinput()
                         quit();
                         break;
 
-                    case SDL_WINDOWEVENT_FOCUS_GAINED:
-                        shouldgrab = true;
-                        break;
                     case SDL_WINDOWEVENT_ENTER:
-                        inputgrab(grabinput = true);
+                        isentered = true;
+                        if(isentered && isfocused) inputhandling(true);
                         break;
 
                     case SDL_WINDOWEVENT_LEAVE:
+                        isentered = false;
+                        break;
+
+                    case SDL_WINDOWEVENT_FOCUS_GAINED:
+                        isfocused = true;
+                        if(isentered && isfocused) inputhandling(true);
+                        break;
+
                     case SDL_WINDOWEVENT_FOCUS_LOST:
-                        inputgrab(grabinput = false);
+                        isfocused = false;
+                        inputhandling(false);
                         break;
 
                     case SDL_WINDOWEVENT_MINIMIZED:
@@ -935,7 +958,6 @@ void checkinput()
                     if(!g3d_movecursor(dx, dy)) mousemove(dx, dy);
                     mousemoved = true;
                 }
-                else if(shouldgrab) inputgrab(grabinput = true);
                 break;
 
             case SDL_MOUSEBUTTONDOWN:
@@ -1326,7 +1348,7 @@ int main(int argc, char **argv)
     inputgrab(grabinput = true);
     ignoremousemotion();
 
-    conoutf(stringify_macro(\f0Sauerbraten SDL2 Client\f2 v0.2));
+    conoutf(stringify_macro(\f0Sauerbraten SDL2 Client\f2 v0.3));
 
     for(;;)
     {
