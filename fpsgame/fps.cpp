@@ -1,6 +1,5 @@
 #include "game.h"
-
-extern int multipoll;
+#include "extendedscripts.h"
 
 namespace game
 {
@@ -32,7 +31,7 @@ namespace game
         intret(f ? f->clientnum : -1);
     });
 
-	void follow(char *arg)
+    void follow(char *arg)
     {
         if(arg[0] ? player1->state==CS_SPECTATOR : following>=0)
         {
@@ -41,7 +40,7 @@ namespace game
             followdir = 0;
             conoutf("follow %s", following>=0 ? "on" : "off");
         }
-	}
+    }
     COMMAND(follow, "s");
 
     void nextfollow(int dir)
@@ -1130,6 +1129,8 @@ namespace game
     const char *autoexec() { return "autoexec.cfg"; }
     const char *savedservers() { return "servers.cfg"; }
     const char *ignoredservers() { return "ignoredservers.cfg"; }
+
+    const char **getgamescripts() { return game_scripts; }
 
     void loadconfigs()
     {

@@ -1,5 +1,6 @@
-#ifndef sauerbraten_sdosscripts_h
-#define sauerbraten_sdosscripts_h
+#ifndef __EXTENDEDSCRIPTS_H__
+#define __EXTENDEDSCRIPTS_H__
+
 
 const char *gameclock_gui_code =
 "newgui gameclock_settings [\n"
@@ -34,6 +35,7 @@ const char *gameclock_gui_code =
                            
 "] \"General\"\n";
 
-const char *sdos_scripts[] = { gameclock_gui_code, 0 };
+const char *game_scripts[] = { gameclock_gui_code, 0 };
 
-#endif /* sauerbraten_sdosscripts_h */
+
+#endif

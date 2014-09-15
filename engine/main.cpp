@@ -1,7 +1,6 @@
 // main.cpp: initialisation & main loop
 
 #include "engine.h"
-#include "sdosscripts.h"
 
 extern void cleargamma();
 
@@ -1308,10 +1307,14 @@ int main(int argc, char **argv)
     }
     execfile(game::autoexec(), false);
 
-    logoutf("init: extended scripts");
-    for (int i = 0; sdos_scripts[i] != 0; i++)
-    {
-        executestr(sdos_scripts[i]);
+    if(game::getgamescripts()) {
+        const char **gamescripts = game::getgamescripts();
+        if(gamescripts) {
+            logoutf("init: extended game scripts");
+            for (int i = 0; gamescripts[i] != 0; i++)  {
+                executestr(gamescripts[i]);
+            }
+        }
     }
 
     initing = NOT_INITING;
