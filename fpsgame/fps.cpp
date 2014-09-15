@@ -36,6 +36,25 @@ namespace game
     VARP(hudscoresoffset_y_withradar, 0, 55, 1000);
     XIDENTHOOK(hudscoresoffset_y_withradar, IDF_EXTENDED);
 
+    VARP(hudscoresplayercolor_r, 0, 0, 255);
+    XIDENTHOOK(hudscoresplayercolor_r, IDF_EXTENDED);
+    VARP(hudscoresplayercolor_g, 0, 255, 255);
+    XIDENTHOOK(hudscoresplayercolor_g, IDF_EXTENDED);
+    VARP(hudscoresplayercolor_b, 0, 255, 255);
+    XIDENTHOOK(hudscoresplayercolor_b, IDF_EXTENDED);
+    VARP(hudscoresplayercolor_a, 0, 255, 255);
+    XIDENTHOOK(hudscoresplayercolor_a, IDF_EXTENDED);
+
+    VARP(hudscoresenemycolor_r, 0, 255, 255);
+    XIDENTHOOK(hudscoresenemycolor_r, IDF_EXTENDED);
+    VARP(hudscoresenemycolor_g, 0, 0, 255);
+    XIDENTHOOK(hudscoresenemycolor_g, IDF_EXTENDED);
+    VARP(hudscoresenemycolor_b, 0, 0, 255);
+    XIDENTHOOK(hudscoresenemycolor_b, IDF_EXTENDED);
+    VARP(hudscoresenemycolor_a, 0, 255, 255);
+    XIDENTHOOK(hudscoresenemycolor_a, IDF_EXTENDED);
+
+
     static inline int limitscore(int s) {
         return s >= 0 ? min(999, s) : max(-99, s);
     }
@@ -873,6 +892,14 @@ namespace game
     XIDENTHOOK(gameclockoffset_x_withradar, IDF_EXTENDED);
     VARP(gameclockoffset_y_withradar, 0, 5, 1000);
     XIDENTHOOK(gameclockoffset_y_withradar, IDF_EXTENDED);
+    VARP(gameclockcolor_r, 0, 255, 255);
+    XIDENTHOOK(gameclockcolor_r, IDF_EXTENDED);
+    VARP(gameclockcolor_g, 0, 255, 255);
+    XIDENTHOOK(gameclockcolor_g, IDF_EXTENDED);
+    VARP(gameclockcolor_b, 0, 255, 255);
+    XIDENTHOOK(gameclockcolor_b, IDF_EXTENDED);
+    VARP(gameclockcolor_a, 0, 255, 255);
+    XIDENTHOOK(gameclockcolor_a, IDF_EXTENDED);
 
     /* Config GUI */
     ICOMMAND(extendedsettings, "", (), executestr("showgui extended_settings"));
@@ -926,7 +953,10 @@ namespace game
             secs %= 60;
             sprintf(buf, "%d:%02d", mins, secs);
 
-            int r = 255, g = 255, b = 255, a = 255;
+            int r = gameclockcolor_r,
+                g = gameclockcolor_g,
+                b = gameclockcolor_b,
+                a = gameclockcolor_a;
 
             const float gameclockscale = 1 + gameclocksize/10.0;
             const bool radar = (m_ctf || m_capture);
@@ -955,14 +985,22 @@ namespace game
             const bool radar = (m_ctf || m_capture);
             const float xoff = ((radar ? hudscoresoffset_x_withradar : hudscoresoffset_x)*conw/1000);
             const float yoff = ((radar ? hudscoresoffset_y_withradar : hudscoresoffset_y)*conh/1000);
-            int r1 = 0, g1 = 255, b1 = 255, a1 = 255, r2 = 255, g2 = 0, b2 = 0, a2 = 255;
+            int r1 = hudscoresplayercolor_r,
+                g1 = hudscoresplayercolor_g,
+                b1 = hudscoresplayercolor_b,
+                a1 = hudscoresplayercolor_a;
+
+            int r2 = hudscoresenemycolor_r,
+                g2 = hudscoresenemycolor_g,
+                b2 = hudscoresenemycolor_b,
+                a2 = hudscoresenemycolor_a;
+
             int scoresep = 30*scorescale*conscale;
 
             if(grsz) {
                 char buff[10];
                 int isbest=1, tw=0, th=0;
                 fpsent* currentplayer = (player1->state == CS_SPECTATOR) ? followingplayer() : player1;
-                currentplayer = currentplayer ? currentplayer : player1;
                 if(!currentplayer) return;
 
                 if(m_teammode) isbest = ! strcmp(currentplayer->team, bestgroups[0]->team);
