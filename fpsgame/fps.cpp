@@ -839,19 +839,8 @@ namespace game
     /* Game Clock */
     VARP(gameclock, 0, 1, 1);
     XIDENTHOOK(gameclock, IDF_EXTENDED);
-    //XIDENT(IDF_EXTENDED, VARP, gameclockcountup, 0, 0, 1);  // TODO: fix the up-counting mode
     VARP(gameclocksize, 1, 5, 30);
     XIDENTHOOK(gameclocksize, IDF_EXTENDED);
-    VARP(gameclockturnredonlowtime, 0, 1, 1);
-    XIDENTHOOK(gameclockturnredonlowtime, IDF_EXTENDED);
-    VARP(gameclockcolor_r, 0, 255, 255);
-    XIDENTHOOK(gameclockcolor_r, IDF_EXTENDED);
-    VARP(gameclockcolor_g, 0, 255, 255);
-    XIDENTHOOK(gameclockcolor_g, IDF_EXTENDED);
-    VARP(gameclockcolor_b, 0, 255, 255);
-    XIDENTHOOK(gameclockcolor_b, IDF_EXTENDED);
-    VARP(gameclockcolor_a, 0, 255, 255);
-    XIDENTHOOK(gameclockcolor_a, IDF_EXTENDED);
     VARP(gameclockoffset_x, 0, 900, 1000);
     XIDENTHOOK(gameclockoffset_x, IDF_EXTENDED);
     VARP(gameclockoffset_y, 0, 5, 1000);
@@ -860,8 +849,7 @@ namespace game
     XIDENTHOOK(gameclockoffset_x_withradar, IDF_EXTENDED);
     VARP(gameclockoffset_y_withradar, 0, 15, 1000);
     XIDENTHOOK(gameclockoffset_y_withradar, IDF_EXTENDED);
-    ICOMMAND(managegameclock, "", (), executestr("showgui gameclock_settings"));
-    /* ---------- */
+    ICOMMAND(extendedsettings, "", (), executestr("showgui extended_settings"));
 
     void gameplayhud(int w, int h)
     {
@@ -909,27 +897,20 @@ namespace game
             int mins = secs/60;
             secs %= 60;
             sprintf(buf, "%d:%02d", mins, secs);
-            
+
             const float conscale = 0.33f;
             const int conw = int(w/conscale), conh = int(h/conscale);
-            
-            int r = gameclockcolor_r,
-                g = gameclockcolor_g,
-                b = gameclockcolor_b,
-                a = gameclockcolor_a;
-            
-            if (mins < 1 && gameclockturnredonlowtime) {
-                r = 255;
-                g = 0;
-                b = 0;
+
+            int r = 255,
+                g = 255,
+                b = 255,
                 a = 255;
-            }
-            
+
             const float gameclockscale = 1 + gameclocksize/10.0;
             const bool radar = (m_ctf || m_capture);
             const float xoff = ((radar ? gameclockoffset_x_withradar : gameclockoffset_x)*conw/1000);
             const float yoff = ((radar ? gameclockoffset_y_withradar : gameclockoffset_y)*conh/1000);
-            
+
             glPushMatrix();
             glScalef(conscale*gameclockscale, conscale*gameclockscale, 1);
             draw_text(buf,
