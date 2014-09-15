@@ -1214,7 +1214,7 @@ int main(int argc, char **argv)
         else gameargs.add(argv[i]);
     }
 
-    execfile("sdos.cfg", false);
+    execfile("extendedconfig.cfg", false);
 
     initing = NOT_INITING;
 
@@ -1308,7 +1308,7 @@ int main(int argc, char **argv)
     }
     execfile(game::autoexec(), false);
 
-    logoutf("init: sdos");
+    logoutf("init: extended scripts");
     for (int i = 0; sdos_scripts[i] != 0; i++)
     {
         executestr(sdos_scripts[i]);
