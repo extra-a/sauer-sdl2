@@ -100,7 +100,7 @@ VARF(fsaa, -1, -1, 16, initwarning("anti-aliasing"));
 extern void updatevsync();
 VARF(vsync, 0, 0, 1, updatevsync());
 VARFP(vsynctear, 0, 0, 1, if(vsync) updatevsync());
-XIDENTHOOK(vsynctear, IDF_SWLACC);
+XIDENTHOOK(vsynctear, IDF_EXTENDED);
 
 void writeinitcfg()
 {
@@ -457,7 +457,7 @@ void renderprogress(float bar, const char *text, GLuint tex, bool background)   
 }
 
 VARNP(relativemouse, userelativemouse, 0, 1, 1);
-XIDENTHOOK(relativemouse, IDF_SWLACC);
+XIDENTHOOK(relativemouse, IDF_EXTENDED);
 
 bool grabinput = false, minimized = false, canrelativemouse = true, relativemouse = false, isentered = false, isfocused = false;
 int keyrepeatmask = 0, textinputmask = 0;
@@ -990,9 +990,6 @@ void swapbuffers(bool overlay)
  
 VAR(menufps, 0, 60, 1000);
 VARP(maxfps, 0, 200, 1000);
-VARP(multipoll, -1, 0, 1);
-XIDENTHOOK(multipoll, IDF_SWLACC);
-
 
 #ifdef __APPLE__
 #define main SDL_main

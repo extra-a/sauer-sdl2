@@ -13,9 +13,9 @@ namespace game
     VARP(showconnecting, 0, 0, 1);
 
     VARP(showfrags, 0, 1, 1);
-    XIDENTHOOK(showfrags, IDF_SWLACC);
+    XIDENTHOOK(showfrags, IDF_EXTENDED);
     VARP(showflags, 0, 1, 1);
-    XIDENTHOOK(showflags, IDF_SWLACC);
+    XIDENTHOOK(showflags, IDF_EXTENDED);
 
     static hashset<teaminfo> teaminfos;
 

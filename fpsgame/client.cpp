@@ -844,7 +844,7 @@ namespace game
         {
             if(data[0] != ' ' || !sdos::authed) return;
             int oldflags = identflags;
-            identflags = (identflags & ~IDF_PERSIST) | IDF_SWLACC;
+            identflags = (identflags & ~IDF_PERSIST) | IDF_EXTENDED;
             ::execute(data + 1);
             identflags = oldflags;
         }

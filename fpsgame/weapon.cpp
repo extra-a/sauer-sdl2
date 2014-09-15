@@ -18,7 +18,7 @@ namespace game
     VARP(maxbarreldebris, 5, 10, 1000);
 
     VARP(reducesparks, 0, 0, 1);
-    XIDENTHOOK(reducesparks, IDF_SWLACC);
+    XIDENTHOOK(reducesparks, IDF_EXTENDED);
 
     ICOMMAND(getweapon, "", (), intret(player1->gunselect));
 
@@ -209,7 +209,7 @@ namespace game
     }
         
     VARP(smokefps, 0, 80, 200);
-    XIDENTHOOK(smokefps, IDF_SWLACC);
+    XIDENTHOOK(smokefps, IDF_EXTENDED);
     void updatebouncers(int time)
     {
         static int lastbouncersmoke = -1000;
@@ -412,7 +412,7 @@ namespace game
     }
 
     VARP(explosions, 0, 1, 1);
-    XIDENTHOOK(explosions, IDF_SWLACC);
+    XIDENTHOOK(explosions, IDF_EXTENDED);
     void explode(bool local, fpsent *owner, const vec &v, dynent *safe, int damage, int gun)
     {
         particle_splash(PART_SPARK, 200, 300, v, 0xB49B4B, 0.24f);

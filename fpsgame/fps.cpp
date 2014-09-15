@@ -839,28 +839,28 @@ namespace game
 
     /* Game Clock */
     VARP(gameclock, 0, 1, 1);
-    XIDENTHOOK(gameclock, IDF_SWLACC);
-    //XIDENT(IDF_SWLACC, VARP, gameclockcountup, 0, 0, 1);  // TODO: fix the up-counting mode
+    XIDENTHOOK(gameclock, IDF_EXTENDED);
+    //XIDENT(IDF_EXTENDED, VARP, gameclockcountup, 0, 0, 1);  // TODO: fix the up-counting mode
     VARP(gameclocksize, 1, 5, 30);
-    XIDENTHOOK(gameclocksize, IDF_SWLACC);
+    XIDENTHOOK(gameclocksize, IDF_EXTENDED);
     VARP(gameclockturnredonlowtime, 0, 1, 1);
-    XIDENTHOOK(gameclockturnredonlowtime, IDF_SWLACC);
+    XIDENTHOOK(gameclockturnredonlowtime, IDF_EXTENDED);
     VARP(gameclockcolor_r, 0, 255, 255);
-    XIDENTHOOK(gameclockcolor_r, IDF_SWLACC);
+    XIDENTHOOK(gameclockcolor_r, IDF_EXTENDED);
     VARP(gameclockcolor_g, 0, 255, 255);
-    XIDENTHOOK(gameclockcolor_g, IDF_SWLACC);
+    XIDENTHOOK(gameclockcolor_g, IDF_EXTENDED);
     VARP(gameclockcolor_b, 0, 255, 255);
-    XIDENTHOOK(gameclockcolor_b, IDF_SWLACC);
+    XIDENTHOOK(gameclockcolor_b, IDF_EXTENDED);
     VARP(gameclockcolor_a, 0, 255, 255);
-    XIDENTHOOK(gameclockcolor_a, IDF_SWLACC);
+    XIDENTHOOK(gameclockcolor_a, IDF_EXTENDED);
     VARP(gameclockoffset_x, 0, 900, 1000);
-    XIDENTHOOK(gameclockoffset_x, IDF_SWLACC);
+    XIDENTHOOK(gameclockoffset_x, IDF_EXTENDED);
     VARP(gameclockoffset_y, 0, 5, 1000);
-    XIDENTHOOK(gameclockoffset_y, IDF_SWLACC);
+    XIDENTHOOK(gameclockoffset_y, IDF_EXTENDED);
     VARP(gameclockoffset_x_withradar, 0, 765, 1000);
-    XIDENTHOOK(gameclockoffset_x_withradar, IDF_SWLACC);
+    XIDENTHOOK(gameclockoffset_x_withradar, IDF_EXTENDED);
     VARP(gameclockoffset_y_withradar, 0, 15, 1000);
-    XIDENTHOOK(gameclockoffset_y_withradar, IDF_SWLACC);
+    XIDENTHOOK(gameclockoffset_y_withradar, IDF_EXTENDED);
     ICOMMAND(managegameclock, "", (), executestr("showgui gameclock_settings"));
     /* ---------- */
 
