@@ -430,13 +430,15 @@ void ignoreserver(const char *name, int port)
     if(port < 0) port = ENET_PORT_ANY;
     si->port = port;
     if(enet_address_set_host(&si->address, name) < 0 || enet_address_get_host_ip(&si->address, si->name, sizeof(si->name)) < 0 || isignoredserver(si)) {
+        if(!isignoredserver(si)) {
+            if(si->port != ENET_PORT_ANY)
+                conoutf(CON_WARN, "failed to add %s to ignored servers" , si->name);
+            else
+                conoutf(CON_WARN, "failed to add %s:%d to ignored servers" , si->name, si->port);
+        }
         delete si;
         return;
     }
-    if(si->port != ENET_PORT_ANY)
-        conoutf("adding %s:%d to ignored servers" , si->name, si->port);
-    else
-        conoutf("adding %s to ignored servers" , si->name);
     ignoredservers.add(si);
     updatefrommaster();
 }
