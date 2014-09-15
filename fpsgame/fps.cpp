@@ -27,13 +27,13 @@ namespace game
     VARP(hudscoresoffset_x, 0, 900, 1000);
     XIDENTHOOK(hudscoresoffset_x, IDF_EXTENDED);
 
-    VARP(hudscoresoffset_y, 0, 100, 1000);
+    VARP(hudscoresoffset_y, 0, 55, 1000);
     XIDENTHOOK(hudscoresoffset_y, IDF_EXTENDED);
 
     VARP(hudscoresoffset_x_withradar, 0, 765, 1000);
     XIDENTHOOK(hudscoresoffset_x_withradar, IDF_EXTENDED);
 
-    VARP(hudscoresoffset_y_withradar, 0, 115, 1000);
+    VARP(hudscoresoffset_y_withradar, 0, 55, 1000);
     XIDENTHOOK(hudscoresoffset_y_withradar, IDF_EXTENDED);
 
     static inline int limitscore(int s) {
@@ -871,7 +871,7 @@ namespace game
     XIDENTHOOK(gameclockoffset_y, IDF_EXTENDED);
     VARP(gameclockoffset_x_withradar, 0, 765, 1000);
     XIDENTHOOK(gameclockoffset_x_withradar, IDF_EXTENDED);
-    VARP(gameclockoffset_y_withradar, 0, 15, 1000);
+    VARP(gameclockoffset_y_withradar, 0, 5, 1000);
     XIDENTHOOK(gameclockoffset_y_withradar, IDF_EXTENDED);
 
     /* Config GUI */
@@ -979,7 +979,7 @@ namespace game
 
                     snprintf(buff, 10, "%d", frags);
                     text_bounds(buff, tw, th);
-                    draw_text(buff, xoff/scorescale - tw - scoresep, yoff/scorescale, r1, g1, b1, a1);
+                    draw_text(buff, xoff/scorescale, yoff/scorescale, r1, g1, b1, a1);
 
                     if(grsz > 1) {
                         int frags2=0;
@@ -988,8 +988,7 @@ namespace game
                         frags2 = limitscore(frags2);
 
                         snprintf(buff, 10, "%d", frags2);
-                        text_bounds(buff, tw, th);
-                        draw_text(buff, xoff/scorescale, yoff/scorescale, r2, g2, b2, a2);
+                        draw_text(buff, xoff/scorescale + tw + scoresep, yoff/scorescale, r2, g2, b2, a2);
                     }
                 } else {
                     int frags=0, frags2=0;
@@ -999,7 +998,7 @@ namespace game
 
                     snprintf(buff, 10, "%d", frags);
                     text_bounds(buff, tw, th);
-                    draw_text(buff, xoff/scorescale - tw - scoresep, yoff/scorescale, r2, g2, b2, a2);
+                    draw_text(buff, xoff/scorescale, yoff/scorescale, r2, g2, b2, a2);
 
                     if(m_teammode) {
                         loopk(grsz) {
@@ -1012,8 +1011,7 @@ namespace game
                     frags2 = limitscore(frags2);
 
                     snprintf(buff, 10, "%d", frags2);
-                    text_bounds(buff, tw, th);
-                    draw_text(buff, xoff/scorescale, yoff/scorescale, r1, g1, b1, a1);
+                    draw_text(buff, xoff/scorescale + tw + scoresep, yoff/scorescale, r1, g1, b1, a1);
                 }
 
                 glPopMatrix();
