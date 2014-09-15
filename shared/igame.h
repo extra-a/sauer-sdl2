@@ -47,6 +47,7 @@ namespace game
     extern const char *defaultconfig();
     extern const char *autoexec();
     extern const char *savedservers();
+    extern const char *ignoredservers();
     extern void loadconfigs();
 
     extern void updateworld();

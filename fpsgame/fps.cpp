@@ -1129,6 +1129,7 @@ namespace game
     const char *defaultconfig() { return "data/defaults.cfg"; }
     const char *autoexec() { return "autoexec.cfg"; }
     const char *savedservers() { return "servers.cfg"; }
+    const char *ignoredservers() { return "ignoredservers.cfg"; }
 
     void loadconfigs()
     {

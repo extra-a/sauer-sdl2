@@ -360,11 +360,22 @@ struct serverinfo : pingattempts
 };
 
 vector<serverinfo *> servers;
+vector<serverinfo *> ignoredservers;
 ENetSocket pingsock = ENET_SOCKET_NULL;
 int lastinfo = 0;
 
+static bool isignoredserver(serverinfo *si) {
+    loopv(ignoredservers) {
+        serverinfo *s = ignoredservers[i];
+        if(!strcmp(s->name, si->name) && (s->port == ENET_PORT_ANY || s->port == si->port))
+            return true;
+    }
+    return false;
+}
+
 static serverinfo *newserver(const char *name, int port, uint ip = ENET_HOST_ANY)
 {
+
     serverinfo *si = new serverinfo;
     si->address.host = ip;
     si->address.port = server::serverinfoport(port);
@@ -376,7 +387,12 @@ static serverinfo *newserver(const char *name, int port, uint ip = ENET_HOST_ANY
     {
         delete si;
         return NULL;
+    }
 
+    if(isignoredserver(si))
+    {
+        delete si;
+        return NULL;
     }
 
     servers.add(si);
@@ -403,6 +419,50 @@ void addserver(const char *name, int port, const char *password, bool keep)
     if(!s) return;
     if(password) s->password = newstring(password);
     s->keep = keep;
+}
+
+void updatefrommaster();
+
+void ignoreserver(const char *name, int port)
+{
+    if(!name) return;
+    serverinfo *si = new serverinfo;
+    if(port < 0) port = ENET_PORT_ANY;
+    si->port = port;
+    if(enet_address_set_host(&si->address, name) < 0 || enet_address_get_host_ip(&si->address, si->name, sizeof(si->name)) < 0 || isignoredserver(si)) {
+        delete si;
+        return;
+    }
+    if(si->port != ENET_PORT_ANY)
+        conoutf("adding %s:%d to ignored servers" , si->name, si->port);
+    else
+        conoutf("adding %s to ignored servers" , si->name);
+    ignoredservers.add(si);
+    updatefrommaster();
+}
+
+void unignoreserver(const char *name, int port)
+{
+    if(!name) return;
+    serverinfo *si = new serverinfo;
+    if(port < 0) port = ENET_PORT_ANY;
+    si->port = port;
+    if(enet_address_set_host(&si->address, name) < 0 || enet_address_get_host_ip(&si->address, si->name, sizeof(si->name)) < 0) {
+        delete si;
+        return;
+    }
+    loopv(ignoredservers) {
+        serverinfo *s = ignoredservers[i];
+        if(!strcmp(s->name, si->name) && (si->port == ENET_PORT_ANY || s->port == si->port)) {
+            if(s->port != ENET_PORT_ANY)
+                conoutf("removing %s:%d from ignored servers" , s->name, s->port);
+            else
+                conoutf("removing %s from ignored servers" , s->name);
+            delete ignoredservers.remove(i);
+            continue;
+        }
+    }
+    updatefrommaster();
 }
 
 VARP(searchlan, 0, 0, 1);
@@ -702,38 +762,61 @@ void initservers()
 
 ICOMMAND(addserver, "sis", (const char *name, int *port, const char *password), addserver(name, *port, password[0] ? password : NULL));
 ICOMMAND(keepserver, "sis", (const char *name, int *port, const char *password), addserver(name, *port, password[0] ? password : NULL, true));
+ICOMMAND(ignoreserver, "si", (const char *name, int *port), ignoreserver(name, port ? *port : ENET_PORT_ANY));
+ICOMMAND(unignoreserver, "si", (const char *name, int *port), unignoreserver(name, port ? *port : ENET_PORT_ANY));
 ICOMMAND(clearservers, "i", (int *full), clearservers(*full!=0));
 COMMAND(updatefrommaster, "");
 COMMAND(initservers, "");
 
 void writeservercfg()
 {
-    if(!game::savedservers()) return;
-    stream *f = openutf8file(path(game::savedservers(), true), "w");
-    if(!f) return;
-    int kept = 0;
-    loopv(servers)
+    stream *f;
+    if(game::savedservers())
     {
-        serverinfo *s = servers[i];
-        if(s->keep)
+        f = openutf8file(path(game::savedservers(), true), "w");
+        if(!f) return;
+        int kept = 0;
+        loopv(servers)
         {
-            if(!kept) f->printf("// servers that should never be cleared from the server list\n\n");
-            if(s->password) f->printf("keepserver %s %d %s\n", escapeid(s->name), s->port, escapestring(s->password));
-            else f->printf("keepserver %s %d\n", escapeid(s->name), s->port);
-            kept++;
+            serverinfo *s = servers[i];
+            if(s->keep)
+                {
+                    if(!kept) f->printf("// servers that should never be cleared from the server list\n\n");
+                    if(s->password) f->printf("keepserver %s %d %s\n", escapeid(s->name), s->port, escapestring(s->password));
+                    else f->printf("keepserver %s %d\n", escapeid(s->name), s->port);
+                    kept++;
+                }
         }
+        if(kept) f->printf("\n");
+        f->printf("// servers connected to are added here automatically\n\n");
+        loopv(servers)
+        {
+            serverinfo *s = servers[i];
+            if(!s->keep)
+                {
+                    if(s->password) f->printf("addserver %s %d %s\n", escapeid(s->name), s->port, escapestring(s->password));
+                    else f->printf("addserver %s %d\n", escapeid(s->name), s->port);
+                }
+        }
+        delete f;
     }
-    if(kept) f->printf("\n");
-    f->printf("// servers connected to are added here automatically\n\n");
-    loopv(servers) 
+
+    if(game::ignoredservers())
     {
-        serverinfo *s = servers[i];
-        if(!s->keep) 
+        f = openutf8file(path(game::ignoredservers(), true), "w");
+        if(!f) return;
+
+        f->printf("// servers that should never be on the server list\n\n");
+        loopv(ignoredservers)
         {
-            if(s->password) f->printf("addserver %s %d %s\n", escapeid(s->name), s->port, escapestring(s->password));
-            else f->printf("addserver %s %d\n", escapeid(s->name), s->port);
+            serverinfo *s = ignoredservers[i];
+            if(s->port)
+                f->printf("ignoreserver %s %u\n", escapeid(s->name), s->port);
+            else
+                f->printf("ignoreserver %s\n", escapeid(s->name));
+
         }
+        delete f;
     }
-    delete f;
 }
 

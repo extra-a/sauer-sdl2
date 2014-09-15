@@ -1299,6 +1299,7 @@ int main(int argc, char **argv)
     execfile("data/brush.cfg");
     execfile("mybrushes.cfg", false);
     if(game::savedservers()) execfile(game::savedservers(), false);
+    if(game::ignoredservers()) execfile(game::ignoredservers(), false);
     
     identflags |= IDF_PERSIST;
     
