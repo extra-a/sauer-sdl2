@@ -49,7 +49,7 @@ namespace game
         return strcmp(a->name, b->name) < 0;
     }
 
-    void getbestplayers(vector<fpsent *> &best)
+    void getbestplayers(vector<fpsent *> &best, bool fulllist)
     {
         loopv(players)
         {
@@ -57,7 +57,9 @@ namespace game
             if(o->state!=CS_SPECTATOR) best.add(o);
         }
         best.sort(playersort);
-        while(best.length() > 1 && best.last()->frags < best[0]->frags) best.drop();
+        if(!fulllist)
+            while(best.length() > 1 && best.last()->frags < best[0]->frags)
+                best.drop();
     }
 
     void getbestteams(vector<const char *> &best)
@@ -83,12 +85,12 @@ namespace game
         }
     }
 
-    struct scoregroup : teamscore
-    {
-        vector<fpsent *> players;
-    };
     static vector<scoregroup *> groups;
     static vector<fpsent *> spectators;
+
+    vector<scoregroup *> getscoregroups() {
+        return groups;
+    }
 
     static inline bool scoregroupcmp(const scoregroup *x, const scoregroup *y)
     {
@@ -104,7 +106,7 @@ namespace game
         return x->team && y->team && strcmp(x->team, y->team) < 0;
     }
 
-    static int groupplayers()
+    int groupplayers()
     {
         int numgroups = 0;
         spectators.setsize(0);

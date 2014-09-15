@@ -1,6 +1,8 @@
 #include "game.h"
 #include "extendedscripts.h"
 
+extern float conscale;
+
 namespace game
 {
     bool intermission = false;
@@ -15,6 +17,28 @@ namespace game
     int savedammo[NUMGUNS];
 
     bool clientoption(const char *arg) { return false; }
+
+    VARP(hudscores, 0, 0, 1);
+    XIDENTHOOK(hudscores, IDF_EXTENDED);
+
+    VARP(hudscoressize, 1, 5, 30);
+    XIDENTHOOK(hudscoressize, IDF_EXTENDED);
+
+    VARP(hudscoresoffset_x, 0, 900, 1000);
+    XIDENTHOOK(hudscoresoffset_x, IDF_EXTENDED);
+
+    VARP(hudscoresoffset_y, 0, 100, 1000);
+    XIDENTHOOK(hudscoresoffset_y, IDF_EXTENDED);
+
+    VARP(hudscoresoffset_x_withradar, 0, 765, 1000);
+    XIDENTHOOK(hudscoresoffset_x_withradar, IDF_EXTENDED);
+
+    VARP(hudscoresoffset_y_withradar, 0, 115, 1000);
+    XIDENTHOOK(hudscoresoffset_y_withradar, IDF_EXTENDED);
+
+    static inline int limitscore(int s) {
+        return s >= 0 ? min(999, s) : max(-99, s);
+    }
 
     void taunt()
     {
@@ -849,6 +873,8 @@ namespace game
     XIDENTHOOK(gameclockoffset_x_withradar, IDF_EXTENDED);
     VARP(gameclockoffset_y_withradar, 0, 15, 1000);
     XIDENTHOOK(gameclockoffset_y_withradar, IDF_EXTENDED);
+
+    /* Config GUI */
     ICOMMAND(extendedsettings, "", (), executestr("showgui extended_settings"));
 
     void gameplayhud(int w, int h)
@@ -889,6 +915,8 @@ namespace game
         glPopMatrix();
 
         const int gamemode = game::gamemode;
+        const int conw = int(w/conscale), conh = int(h/conscale);
+
         if(gameclock && !m_edit)
         {
             static char buf[16];
@@ -898,13 +926,7 @@ namespace game
             secs %= 60;
             sprintf(buf, "%d:%02d", mins, secs);
 
-            const float conscale = 0.33f;
-            const int conw = int(w/conscale), conh = int(h/conscale);
-
-            int r = 255,
-                g = 255,
-                b = 255,
-                a = 255;
+            int r = 255, g = 255, b = 255, a = 255;
 
             const float gameclockscale = 1 + gameclocksize/10.0;
             const bool radar = (m_ctf || m_capture);
@@ -918,6 +940,84 @@ namespace game
                       yoff/gameclockscale,
                       r, g, b, a);
             glPopMatrix();
+        }
+
+        if(hudscores) {
+
+            vector<fpsent *> bestplayers;
+            vector<scoregroup *> bestgroups;
+            int grsz = 0;
+
+            if(m_teammode) { grsz = groupplayers(); bestgroups = getscoregroups(); }
+            else { getbestplayers(bestplayers,1); grsz = bestplayers.length(); }
+
+            const float scorescale = 1 + hudscoressize/10.0;
+            const bool radar = (m_ctf || m_capture);
+            const float xoff = ((radar ? hudscoresoffset_x_withradar : hudscoresoffset_x)*conw/1000);
+            const float yoff = ((radar ? hudscoresoffset_y_withradar : hudscoresoffset_y)*conh/1000);
+            int r1 = 0, g1 = 255, b1 = 255, a1 = 255, r2 = 255, g2 = 0, b2 = 0, a2 = 255;
+            int scoresep = 30*scorescale*conscale;
+
+            if(grsz) {
+                char buff[10];
+                int isbest=1, tw=0, th=0;
+                fpsent* currentplayer = (player1->state == CS_SPECTATOR) ? followingplayer() : player1;
+                currentplayer = currentplayer ? currentplayer : player1;
+                if(!currentplayer) return;
+
+                if(m_teammode) isbest = ! strcmp(currentplayer->team, bestgroups[0]->team);
+                else isbest = currentplayer == bestplayers[0];
+
+                glPushMatrix();
+                glScalef(conscale*scorescale, conscale*scorescale, 1);
+
+                if(isbest) {
+                    int frags=0;
+                    if(m_teammode) frags = bestgroups[0]->score;
+                    else frags = bestplayers[0]->frags;
+                    frags = limitscore(frags);
+
+                    snprintf(buff, 10, "%d", frags);
+                    text_bounds(buff, tw, th);
+                    draw_text(buff, xoff/scorescale - tw - scoresep, yoff/scorescale, r1, g1, b1, a1);
+
+                    if(grsz > 1) {
+                        int frags2=0;
+                        if(m_teammode) frags2 = bestgroups[1]->score;
+                        else frags2 = bestplayers[1]->frags;
+                        frags2 = limitscore(frags2);
+
+                        snprintf(buff, 10, "%d", frags2);
+                        text_bounds(buff, tw, th);
+                        draw_text(buff, xoff/scorescale, yoff/scorescale, r2, g2, b2, a2);
+                    }
+                } else {
+                    int frags=0, frags2=0;
+                    if(m_teammode) frags = bestgroups[0]->score;
+                    else frags = bestplayers[0]->frags;
+                    frags = limitscore(frags);
+
+                    snprintf(buff, 10, "%d", frags);
+                    text_bounds(buff, tw, th);
+                    draw_text(buff, xoff/scorescale - tw - scoresep, yoff/scorescale, r2, g2, b2, a2);
+
+                    if(m_teammode) {
+                        loopk(grsz) {
+                            if( ! strcmp(bestgroups[k]->team, currentplayer->team))
+                                frags2 = bestgroups[k]->score;
+                        }
+                    } else {
+                        frags2 = currentplayer->frags;
+                    }
+                    frags2 = limitscore(frags2);
+
+                    snprintf(buff, 10, "%d", frags2);
+                    text_bounds(buff, tw, th);
+                    draw_text(buff, xoff/scorescale, yoff/scorescale, r1, g1, b1, a1);
+                }
+
+                glPopMatrix();
+            }
         }
     }
 

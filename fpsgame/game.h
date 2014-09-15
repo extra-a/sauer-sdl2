@@ -799,8 +799,14 @@ namespace game
     extern void avoidweapons(ai::avoidset &obstacles, float radius);
 
     // scoreboard
+    struct scoregroup : teamscore
+    {
+        vector<fpsent *> players;
+    };
+    extern int groupplayers();
+    extern vector<scoregroup *> getscoregroups();
     extern void showscores(bool on);
-    extern void getbestplayers(vector<fpsent *> &best);
+    extern void getbestplayers(vector<fpsent *> &best, bool fulllist = false);
     extern void getbestteams(vector<const char *> &best);
     extern void clearteaminfo();
     extern void setteaminfo(const char *team, int frags);

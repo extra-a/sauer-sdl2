@@ -33,6 +33,24 @@ const char *extended_settings_gui =
     "guislider gameclockoffset_x_withradar\n"
     "guislider gameclockoffset_y_withradar\n"
 
+    "guitab \"Hud Scores\"\n"
+
+    "guicheckbox \"Show hud scores\" hudscores\n"
+    "guistrut 1\n"
+
+    "guitext \"Size:\" 0\n"
+    "guislider hudscoressize\n"
+    "guistrut 1\n"
+
+    "guitext \"Offset (X/Y) ^f4(radar absent)^f~:\" 0\n"
+    "guislider hudscoresoffset_x\n"
+    "guislider hudscoresoffset_y\n"
+    "guistrut 1\n"
+
+    "guitext \"Offset (X/Y) ^f4(radar present)^f~:\" 0\n"
+    "guislider hudscoresoffset_x_withradar\n"
+    "guislider hudscoresoffset_y_withradar\n"
+
 "] \"Extended settings\"\n";
 
 const char *game_scripts[] = { extended_settings_gui, 0 };
