@@ -3,6 +3,10 @@
 
 extern float conscale;
 
+#ifdef WIN32
+#define snprintf _snprintf
+#endif
+
 namespace game
 {
     bool intermission = false;
