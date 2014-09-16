@@ -811,6 +811,53 @@ namespace game
         loopi(7) ammohudcycle[i] = i < numargs ? getweapon(args[i].getstr()) : -1;
     });
 
+    VARP(ammobar, 0, 0, 1);
+    XIDENTHOOK(ammobar, IDF_EXTENDED);
+    VARP(ammobarsize, 1, 5, 30);
+    XIDENTHOOK(ammobarsize, IDF_EXTENDED);
+    VARP(ammobarkoffset_x, 0, 5, 1000);
+    XIDENTHOOK(ammobarkoffset_x, IDF_EXTENDED);
+    VARP(ammobarkoffset_y, 0, 240, 1000);
+    XIDENTHOOK(ammobarkoffset_y, IDF_EXTENDED);
+    VARP(ammobarhorizontal, 0, 0, 1);
+    XIDENTHOOK(ammobarhorizontal, IDF_EXTENDED);
+
+    void drawammobar(fpsent *d, int w, int h) {
+        if(!d) return;
+        #define NWEAPONS 6
+        int conw = int(w/conscale), conh = int(h/conscale);
+
+        int icons[NWEAPONS] = {GUN_SG, GUN_CG, GUN_RL, GUN_RIFLE, GUN_GL, GUN_PISTOL};
+
+        int r = 255, g = 255, b = 255, a = 255;
+        char buff[10];
+        float ammobarscale = 1 + ammobarsize/10.0;
+        float xoff = ammobarkoffset_x*conw/1000;
+        float yoff = ammobarkoffset_y*conh/1000;
+        int vsep = 10*ammobarscale*conscale;
+        int hsep = 60*ammobarscale*conscale;
+        int textsep = 20*ammobarscale*conscale;
+        int tw, th;
+
+        glPushMatrix();
+        glScalef(conscale*ammobarscale, conscale*ammobarscale, 1);
+
+        for(int i = 0, xpos = 0, ypos = 0; i < NWEAPONS; i++) {
+            snprintf(buff, 10, "%d", d->ammo[i+1]);
+            text_bounds(buff, tw, th);
+            drawicon(HICON_FIST+icons[i], xoff/ammobarscale + xpos, yoff/ammobarscale + ypos, th);
+            if(ammobarhorizontal) {
+                draw_text(buff, xoff/ammobarscale + xpos + th + textsep, yoff/ammobarscale + ypos, r, g, b, a);
+                xpos += th + tw + textsep + hsep;
+            } else {
+                draw_text(buff, xoff/ammobarscale + xpos + th + textsep, yoff/ammobarscale + ypos, r, g, b, a);
+                ypos += th + vsep;
+            }
+        }
+        glPopMatrix();
+        #undef NWEAPONS
+    }
+
     VARP(ammohud, 0, 1, 1);
 
     void drawammohud(fpsent *d)
@@ -989,6 +1036,10 @@ namespace game
 
         const int gamemode = game::gamemode;
         const int conw = int(w/conscale), conh = int(h/conscale);
+
+        if(ammobar && !m_edit && d->state!=CS_DEAD) {
+            drawammobar(d, w, h);
+        }
 
         if(gameclock && !m_edit)
         {

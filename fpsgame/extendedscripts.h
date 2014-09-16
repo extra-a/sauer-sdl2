@@ -14,7 +14,7 @@ const char *extended_settings_gui =
     "guislider smokefps\n"
 
 
-    "guitab \"Game Clock\"\n"
+    "guitab \"Clock\"\n"
 
     "guicheckbox \"Show clock\" gameclock\n"
     "guitext \"Size:\" 0\n"
@@ -37,7 +37,7 @@ const char *extended_settings_gui =
     "guislider gameclockcolor_b\n"
     "guislider gameclockcolor_a\n"
 
-    "guitab \"Hud Scores\"\n"
+    "guitab \"HudScores\"\n"
 
     "guicheckbox \"Show hud scores\" hudscores\n"
     "guitext \"Size:\" 0\n"
@@ -54,7 +54,7 @@ const char *extended_settings_gui =
     "guislider hudscoresoffset_y_withradar\n"
     "guistrut 1\n"
 
-    "guitab \"Hud Scores Coloring\"\n"
+    "guitab \"Scores Colors\"\n"
 
     "guitext \"Player color (^f3R^f~/^f0G^f~/^f1B^f~/^f4A^f~):\" 0\n"
     "guislider hudscoresplayercolor_r\n"
@@ -69,7 +69,22 @@ const char *extended_settings_gui =
     "guislider hudscoresenemycolor_b\n"
     "guislider hudscoresenemycolor_a\n"
 
-"] \"Extended settings\"\n";
+    "guitab \"Ammobar\"\n"
+
+    "guicheckbox \"Show ammobar\" ammobar\n"
+    "guicheckbox \"Horizontal ammobar\" ammobarhorizontal\n"
+    "guistrut 1\n"
+
+    "guitext \"Size:\" 0\n"
+    "guislider ammobarsize\n"
+    "guistrut 1\n"
+    
+    "guitext \"Offset (X/Y):\" 0\n"
+    "guislider ammobarkoffset_x\n"
+    "guislider ammobarkoffset_y\n"
+    "guistrut 1\n"
+
+"] \"Settings\"\n";
 
 const char *game_scripts[] = { extended_settings_gui, 0 };
 
