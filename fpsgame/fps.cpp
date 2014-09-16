@@ -871,7 +871,7 @@ namespace game
             text_bounds(buff, tw, th);
             draw_text("", 0, 0, 255, 255, 255, 255);
             drawicon(HICON_FIST+icons[i], xoff/ammobarscale + xpos, yoff/ammobarscale + ypos, th);
-            if(coloredammo) getammocolor(d, i+1, r, g, b, a);
+            if(coloredammo && !m_insta) getammocolor(d, i+1, r, g, b, a);
             if(ammobarhorizontal) {
                 draw_text(buff, xoff/ammobarscale + xpos + th + textsep, yoff/ammobarscale + ypos, r, g, b, a);
                 xpos += th + tw + textsep + hsep;
@@ -975,7 +975,7 @@ namespace game
 
         char buff[10];
         int r = 255, g = 255, b = 255, a = 255;
-        if(coloredhealth) getchpcolors(d, r, g, b, a);
+        if(coloredhealth && !m_insta) getchpcolors(d, r, g, b, a);
         snprintf(buff, 10, "%d", d->state==CS_DEAD ? 0 : d->health);
         draw_text(buff, (HICON_X + HICON_SIZE + HICON_SPACE)/2, HICON_TEXTY/2, r, g, b, a);
         if(d->state!=CS_DEAD)
@@ -986,7 +986,7 @@ namespace game
             }
             r = 255, g = 255, b = 255, a = 255;
             snprintf(buff, 10, "%d", d->ammo[d->gunselect]);
-            if(coloredammo) getammocolor(d, d->gunselect, r, g, b, a);
+            if(coloredammo && !m_insta) getammocolor(d, d->gunselect, r, g, b, a);
             draw_text(buff, (HICON_X + 2*HICON_STEP + HICON_SIZE + HICON_SPACE)/2, HICON_TEXTY/2, r, g, b, a);
         }
         draw_text("", 0, 0, 255, 255, 255, 255);
@@ -1067,7 +1067,7 @@ namespace game
         const int gamemode = game::gamemode;
         const int conw = int(w/conscale), conh = int(h/conscale);
 
-        if(ammobar && !m_edit && d->state!=CS_DEAD) {
+        if(ammobar && !m_edit && !m_insta && d->state!=CS_DEAD) {
             drawammobar(d, w, h);
         }
 
