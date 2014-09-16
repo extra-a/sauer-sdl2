@@ -815,10 +815,10 @@ namespace game
     XIDENTHOOK(ammobar, IDF_EXTENDED);
     VARP(ammobarsize, 1, 5, 30);
     XIDENTHOOK(ammobarsize, IDF_EXTENDED);
-    VARP(ammobarkoffset_x, 0, 5, 1000);
-    XIDENTHOOK(ammobarkoffset_x, IDF_EXTENDED);
-    VARP(ammobarkoffset_y, 0, 240, 1000);
-    XIDENTHOOK(ammobarkoffset_y, IDF_EXTENDED);
+    VARP(ammobaroffset_x, 0, 955, 1000);
+    XIDENTHOOK(ammobaroffset_x, IDF_EXTENDED);
+    VARP(ammobaroffset_y, 0, 500, 1000);
+    XIDENTHOOK(ammobaroffset_y, IDF_EXTENDED);
     VARP(ammobarhorizontal, 0, 0, 1);
     XIDENTHOOK(ammobarhorizontal, IDF_EXTENDED);
 
@@ -856,8 +856,8 @@ namespace game
         int r = 255, g = 255, b = 255, a = 255;
         char buff[10];
         float ammobarscale = 1 + ammobarsize/10.0;
-        float xoff = ammobarkoffset_x*conw/1000;
-        float yoff = ammobarkoffset_y*conh/1000;
+        float xoff = ammobaroffset_x*conw/1000;
+        float yoff = ammobaroffset_y*conh/1000;
         int vsep = 10*ammobarscale*conscale;
         int hsep = 60*ammobarscale*conscale;
         int textsep = 20*ammobarscale*conscale;
