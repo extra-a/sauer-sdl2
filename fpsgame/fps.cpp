@@ -854,22 +854,68 @@ namespace game
         glPopMatrix();
     }
 
+    int composedhealth(fpsent *d) {
+        if(d->armour) {
+            double absorbk = (d->armourtype+1)*0.25;
+            int d1 = d->health/(1.0 - absorbk);
+            int d2 = d->health + d->armour;
+            if(d1 < d->armour/absorbk) {
+                return d1; // more armor than health
+            } else {
+                return d2; // more health than armor
+            }
+        } else {
+            return d->health;
+        }
+    }
+
+    VARP(coloredhealth, 0, 0, 1);
+    XIDENTHOOK(coloredhealth, IDF_EXTENDED);
+
+    void getchpcolors(fpsent *d, int& r, int& g, int& b, int& a) {
+        int chp = composedhealth(d);
+        if(chp > 250) {
+            r = 0, g = 127, b = 255, a = 255;
+        } else if(chp > 200) {
+            r = 0, g = 255, b = 255, a = 255;
+        } else if(chp > 150) {
+            r = 0, g = 255, b = 127, a = 255;
+        } else if(chp > 100) {
+            r = 127, g = 255, b = 0, a = 255;
+        } else if(chp > 60) {
+            r = 255, g = 255, b = 0, a = 255;
+        } else if(chp > 30) {
+            r = 255, g = 127, b = 0, a = 255;
+        }  else {
+            r = 255, g = 0, b = 0, a = 255;
+        }
+    }
+
     void drawhudicons(fpsent *d)
     {
         holdscreenlock;
+
+        drawicon(HICON_HEALTH, HICON_X, HICON_Y);
+
         glPushMatrix();
         glScalef(2, 2, 1);
 
-        draw_textf("%d", (HICON_X + HICON_SIZE + HICON_SPACE)/2, HICON_TEXTY/2, d->state==CS_DEAD ? 0 : d->health);
+        char buff[10];
+        int r = 255, g = 255, b = 255, a = 255;
+        if(coloredhealth) getchpcolors(d, r, g, b, a);
+        snprintf(buff, 10, "%d", d->state==CS_DEAD ? 0 : d->health);
+        draw_text(buff, (HICON_X + HICON_SIZE + HICON_SPACE)/2, HICON_TEXTY/2, r, g, b, a);
         if(d->state!=CS_DEAD)
         {
-            if(d->armour) draw_textf("%d", (HICON_X + HICON_STEP + HICON_SIZE + HICON_SPACE)/2, HICON_TEXTY/2, d->armour);
+            if(d->armour) {
+                snprintf(buff, 10, "%d", d->armour);
+                draw_text(buff, (HICON_X + HICON_STEP + HICON_SIZE + HICON_SPACE)/2, HICON_TEXTY/2, r, g, b, a);
+            }
             draw_textf("%d", (HICON_X + 2*HICON_STEP + HICON_SIZE + HICON_SPACE)/2, HICON_TEXTY/2, d->ammo[d->gunselect]);
         }
 
         glPopMatrix();
 
-        drawicon(HICON_HEALTH, HICON_X, HICON_Y);
         if(d->state!=CS_DEAD)
         {
             if(d->armour) drawicon(HICON_BLUE_ARMOUR+d->armourtype, HICON_X + HICON_STEP, HICON_Y);

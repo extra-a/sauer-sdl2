@@ -7,6 +7,7 @@ const char *extended_settings_gui =
 
     "guicheckbox \"Reduce sparks\" reducesparks\n"
     "guicheckbox \"Reduce explosions\" reduceexplosions\n"
+    "guicheckbox \"Colored health\" coloredhealth\n"
     "guistrut 1\n"
 
     "guitext \"Smoke density:\" 0\n"
