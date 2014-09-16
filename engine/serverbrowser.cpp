@@ -440,7 +440,6 @@ void ignoreserver(const char *name, int port)
         return;
     }
     ignoredservers.add(si);
-    updatefrommaster();
 }
 
 void unignoreserver(const char *name, int port)
