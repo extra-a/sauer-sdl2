@@ -20,7 +20,7 @@ namespace game
     VARP(reducesparks, 0, 0, 1);
     XIDENTHOOK(reducesparks, IDF_EXTENDED);
 
-    ICOMMAND(getweapon, "", (), intret(player1->gunselect));
+    ICOMMAND(getweapon, "", (), intret(player1->state==CS_SPECTATOR ? 6 : player1->gunselect));
 
     void gunselect(int gun, fpsent *d)
     {
