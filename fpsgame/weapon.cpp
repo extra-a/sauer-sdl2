@@ -29,8 +29,8 @@ namespace game
         return player1;
     }
 
-    int getgundamagetotal(int gun) {
-        fpsent* d = getcurrentplayer();
+    int getgundamagetotal(int gun, fpsent* f) {
+        fpsent* d = f ? f : getcurrentplayer();
         if(gun < 0) {
             int dmg = 0;
             loopi(MAXWEAPONS) {
@@ -43,8 +43,8 @@ namespace game
         return 0;
     }
 
-    int getgundamagedealt(int gun) {
-        fpsent* d = getcurrentplayer();
+    int getgundamagedealt(int gun, fpsent* f) {
+        fpsent* d = f ? f : getcurrentplayer();
         if(gun < 0) {
             int dmg = 0;
             loopi(MAXWEAPONS) {
@@ -57,8 +57,8 @@ namespace game
         return 0;
     }
 
-    int getgundamagereceived(int gun) {
-        fpsent* d = getcurrentplayer();
+    int getgundamagereceived(int gun, fpsent* f) {
+        fpsent* d = f ? f : getcurrentplayer();
         if(gun < 0) {
             int dmg = 0;
             loopi(MAXWEAPONS) {
@@ -71,17 +71,17 @@ namespace game
         return 0;
     }
 
-    int getgundamagewasted(int gun) {
-        return getgundamagetotal(gun) - getgundamagedealt(gun);
+    int getgundamagewasted(int gun, fpsent* f) {
+        return getgundamagetotal(gun, f) - getgundamagedealt(gun, f);
     }
 
-    int getgunnetdamage(int gun) {
-        return getgundamagedealt(gun) - getgundamagereceived(gun);
+    int getgunnetdamage(int gun, fpsent* f) {
+        return getgundamagedealt(gun, f) - getgundamagereceived(gun, f);
     }
 
-    double getweaponaccuracy(int gun) {
-        double total = getgundamagetotal(gun);
-        return (getgundamagedealt(gun) / (total ? total : 1.0)) * 100;
+    double getweaponaccuracy(int gun, fpsent* f) {
+        double total = getgundamagetotal(gun, f);
+        return (getgundamagedealt(gun, f) / (total ? total : 1.0)) * 100;
     }
 
 

@@ -6,12 +6,12 @@ namespace game
 {
     extern const char* getcurrentteam();
     extern fpsent* getcurrentplayer();
-    extern int getgundamagetotal(int gun);
-    extern int getgundamagedealt(int gun);
-    extern int getgundamagereceived(int gun);
-    extern int getgundamagewasted(int gun);
-    extern int getgunnetdamage(int gun);
-    extern double getweaponaccuracy(int gun);
+    extern int getgundamagetotal(int gun, fpsent* f = NULL);
+    extern int getgundamagedealt(int gun, fpsent* f = NULL);
+    extern int getgundamagereceived(int gun, fpsent* f = NULL);
+    extern int getgundamagewasted(int gun, fpsent* f = NULL);
+    extern int getgunnetdamage(int gun, fpsent* f = NULL);
+    extern double getweaponaccuracy(int gun, fpsent* f = NULL);
 
     VARP(scoreboard2d, 0, 1, 1);
     VARP(showservinfo, 0, 1, 1);
@@ -26,6 +26,14 @@ namespace game
     XIDENTHOOK(showfrags, IDF_EXTENDED);
     VARP(showflags, 0, 1, 1);
     XIDENTHOOK(showflags, IDF_EXTENDED);
+
+    VARP(showdamagedealt, 0, 1, 1);
+    XIDENTHOOK(showdamagedealt, IDF_EXTENDED);
+    VARP(shownetdamage, 0, 1, 1);
+    XIDENTHOOK(shownetdamage, IDF_EXTENDED);
+    VARP(showacc, 0, 1, 1);
+    XIDENTHOOK(showacc, IDF_EXTENDED);
+
 
     static hashset<teaminfo> teaminfos;
 
@@ -246,7 +254,7 @@ namespace game
             if((m_ctf || m_collect) && showflags)
             {
                g.pushlist();
-               g.strut(m_ctf?4:5);
+               g.strut(m_ctf?5:6);
                g.text(m_ctf?"flags":"skulls", fgcolor);
                loopscoregroup(o, g.textf("%d", 0xFFFFDD, NULL, o->flags));
                g.poplist();
@@ -263,7 +271,7 @@ namespace game
 
             g.pushlist();
             g.text("name", fgcolor);
-            g.strut(13);
+            g.strut(15);
             loopscoregroup(o, 
             {
                 int status = o->state!=CS_DEAD ? 0xFFFFDD : 0x606060;
@@ -305,6 +313,33 @@ namespace game
                     });
                     g.poplist();
                 }
+            }
+
+            if(showdamagedealt)
+            {
+                g.pushlist();
+                g.strut(5);
+                g.text("dmg", fgcolor);
+                loopscoregroup(o, g.textf("%d", 0xFFFFDD, NULL, getgundamagedealt(-1,o)));
+                g.poplist();
+            }
+
+            if(shownetdamage)
+            {
+                g.pushlist();
+                g.strut(5);
+                g.text("netd", fgcolor);
+                loopscoregroup(o, g.textf("%d", 0xFFFFDD, NULL, getgunnetdamage(-1,o)));
+                g.poplist();
+            }
+
+            if(showacc)
+            {
+                g.pushlist();
+                g.strut(5);
+                g.text("acc", fgcolor);
+                loopscoregroup(o, g.textf("%.2lf", 0xFFFFDD, NULL, getweaponaccuracy(-1,o)));
+                g.poplist();
             }
 
             if(showclientnum || player1->privilege>=PRIV_MASTER)
