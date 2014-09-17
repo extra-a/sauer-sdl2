@@ -174,6 +174,14 @@ namespace game
         return NULL;
     }
 
+    VARP(usefollowingplayerteam, 0, 0, 1);
+    XIDENTHOOK(usefollowingplayerteam, IDF_EXTENDED);
+    
+    const char* getcurrentteam() {
+        if(!usefollowingplayerteam) return player1->team;
+        return (player1->state==CS_SPECTATOR && followingplayer()) ? followingplayer()->team : player1->team;
+    }
+
     fpsent *hudplayer()
     {
         if(thirdperson) return player1;
@@ -735,7 +743,7 @@ namespace game
     const char *teamcolorname(fpsent *d, const char *alt)
     {
         if(!teamcolortext || !m_teammode) return colorname(d, NULL, "", "", alt);
-        return colorname(d, NULL, isteam(d->team, player1->team) ? "\fs\f1" : "\fs\f3", "\fr", alt); 
+        return colorname(d, NULL, isteam(d->team, getcurrentteam()) ? "\fs\f1" : "\fs\f3", "\fr", alt); 
     }
 
     const char *teamcolor(const char *name, bool sameteam, const char *alt)
@@ -748,7 +756,7 @@ namespace game
     
     const char *teamcolor(const char *name, const char *team, const char *alt)
     {
-        return teamcolor(name, team && isteam(team, player1->team), alt);
+        return teamcolor(name, team && isteam(team, getcurrentteam()), alt);
     }
 
     void suicide(physent *d)

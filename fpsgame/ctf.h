@@ -1,3 +1,6 @@
+
+extern const char* getcurrentteam();
+
 #ifndef PARSEMESSAGES
 
 #define ctfteamflag(s) (!strcmp(s, "good") ? 1 : (!strcmp(s, "evil") ? 2 : 0))
@@ -483,7 +486,7 @@ struct ctfclientmode : clientmode
     {
         flag &f = flags[i];
         settexture(m_hold && (!flagblip || !f.owner || lastmillis%1000 < 500) ? (flagblip ? "packages/hud/blip_neutral_flag.png" : "packages/hud/blip_neutral.png") :
-                    ((m_hold ? ctfteamflag(f.owner->team) : f.team)==ctfteamflag(player1->team) ?
+                    ((m_hold ? ctfteamflag(f.owner->team) : f.team)==ctfteamflag(getcurrentteam()) ?
                         (flagblip ? "packages/hud/blip_blue_flag.png" : "packages/hud/blip_blue.png") :
                         (flagblip ? "packages/hud/blip_red_flag.png" : "packages/hud/blip_red.png")), 3);
         drawblip(d, x, y, s, flagblip ? (f.owner ? f.owner->o : (f.droptime ? f.droploc : f.spawnloc)) : f.spawnloc, flagblip);
@@ -502,7 +505,7 @@ struct ctfclientmode : clientmode
             loopv(flags) if(flags[i].owner == d)
             {
                 int x = HICON_X + 3*HICON_STEP + (d->quadmillis ? HICON_SIZE + HICON_SPACE : 0);
-                drawicon(m_hold ? HICON_NEUTRAL_FLAG : (flags[i].team==ctfteamflag(player1->team) ? HICON_BLUE_FLAG : HICON_RED_FLAG), x, HICON_Y);
+                drawicon(m_hold ? HICON_NEUTRAL_FLAG : (flags[i].team==ctfteamflag(getcurrentteam()) ? HICON_BLUE_FLAG : HICON_RED_FLAG), x, HICON_Y);
                 if(m_hold)
                 {
                     glPushMatrix();
@@ -606,7 +609,7 @@ struct ctfclientmode : clientmode
             flag &f = flags[i];
             if(!f.owner && f.droptime && f.droploc.x < 0) continue;
             if(m_hold && f.spawnindex < 0) continue;
-            const char *flagname = m_hold && (!f.owner || lastmillis%1000 < 500) ? "flags/neutral" : (m_hold ? ctfteamflag(f.owner->team) : f.team)==ctfteamflag(player1->team) ? "flags/blue" : "flags/red";
+            const char *flagname = m_hold && (!f.owner || lastmillis%1000 < 500) ? "flags/neutral" : (m_hold ? ctfteamflag(f.owner->team) : f.team)==ctfteamflag(getcurrentteam()) ? "flags/blue" : "flags/red";
             float angle;
             vec pos = interpflagpos(f, angle);
             if(m_hold)
@@ -621,11 +624,11 @@ struct ctfclientmode : clientmode
 
             if(m_protect && canaddparticles() && f.owner && insidebase(f, f.owner->feetpos()))
             {
-                particle_flare(pos, f.spawnloc, 0, PART_LIGHTNING, strcmp(f.owner->team, player1->team) ? 0xFF2222 : 0x2222FF, 1.0f);
+                particle_flare(pos, f.spawnloc, 0, PART_LIGHTNING, strcmp(f.owner->team, getcurrentteam()) ? 0xFF2222 : 0x2222FF, 1.0f);
                 if(!flags.inrange(f.owner->lastbase))
                 {
-                    particle_fireball(pos, 4.8f, PART_EXPLOSION, 250, strcmp(f.owner->team, player1->team) ? 0x802020 : 0x2020FF, 4.8f);
-                    particle_splash(PART_SPARK, 50, 250, pos, strcmp(f.owner->team, player1->team) ? 0x802020 : 0x2020FF, 0.24f);
+                    particle_fireball(pos, 4.8f, PART_EXPLOSION, 250, strcmp(f.owner->team, getcurrentteam()) ? 0x802020 : 0x2020FF, 4.8f);
+                    particle_splash(PART_SPARK, 50, 250, pos, strcmp(f.owner->team, getcurrentteam()) ? 0x802020 : 0x2020FF, 0.24f);
                 }
                 f.owner->lastbase = i;
             }
@@ -639,8 +642,8 @@ struct ctfclientmode : clientmode
             d->lastbase = -1;
             float angle;
             vec pos = interpflagpos(f, angle);
-            particle_fireball(pos, 4.8f, PART_EXPLOSION, 250, strcmp(d->team, player1->team) ? 0x802020 : 0x2020FF, 4.8f);
-            particle_splash(PART_SPARK, 50, 250, pos, strcmp(d->team, player1->team) ? 0x802020 : 0x2020FF, 0.24f);
+            particle_fireball(pos, 4.8f, PART_EXPLOSION, 250, strcmp(d->team, getcurrentteam()) ? 0x802020 : 0x2020FF, 4.8f);
+            particle_splash(PART_SPARK, 50, 250, pos, strcmp(d->team, getcurrentteam()) ? 0x802020 : 0x2020FF, 0.24f);
         }
     }
 
@@ -776,7 +779,7 @@ struct ctfclientmode : clientmode
         int fcolor;
         vec color;
         if(!team) { fcolor = 0xFF8080; color = vec(1, 0.75f, 0.5f); }
-        else if(team==ctfteamflag(player1->team)) { fcolor = 0x2020FF; color = vec(0.25f, 0.25f, 1); }
+        else if(team==ctfteamflag(getcurrentteam())) { fcolor = 0x2020FF; color = vec(0.25f, 0.25f, 1); }
         else { fcolor = 0x802020; color = vec(1, 0.25f, 0.25f); }
         particle_fireball(loc, 30, PART_EXPLOSION, -1, fcolor, 4.8f);
         adddynlight(loc, 35, color, 900, 100);
@@ -798,7 +801,7 @@ struct ctfclientmode : clientmode
             flagexplosion(i, team, toexp);
         }
         if(from.x >= 0 && to.x >= 0)
-            particle_flare(fromexp, toexp, 600, PART_LIGHTNING, !team ? 0xFFC0A0 : (team==ctfteamflag(player1->team) ? 0x2222FF : 0xFF2222), 1.0f);
+            particle_flare(fromexp, toexp, 600, PART_LIGHTNING, !team ? 0xFFC0A0 : (team==ctfteamflag(getcurrentteam()) ? 0x2222FF : 0xFF2222), 1.0f);
     }
 
     void returnflag(fpsent *d, int i, int version)
@@ -868,7 +871,7 @@ struct ctfclientmode : clientmode
         }
         d->flags = dflags;
         conoutf(CON_GAMEINFO, "%s scored for %s", teamcolorname(d), teamcolor("your team", ctfflagteam(team), "the enemy team"));
-        playsound(team==ctfteamflag(player1->team) ? S_FLAGSCORE : S_FLAGFAIL);
+        playsound(team==ctfteamflag(getcurrentteam()) ? S_FLAGSCORE : S_FLAGFAIL);
 
         if(score >= FLAGLIMIT) conoutf(CON_GAMEINFO, "%s captured %d flags", teamcolor("your team", ctfflagteam(team), "the enemy team"), score);
     }

@@ -9,6 +9,7 @@ const char *extended_settings_gui =
     "guicheckbox \"Reduce explosions\" reduceexplosions\n"
     "guicheckbox \"Colored health\" coloredhealth\n"
     "guicheckbox \"Colored ammo\" coloredammo\n"
+    "guicheckbox \"Use following player team\" usefollowingplayerteam\n"
     "guistrut 1\n"
 
     "guitext \"Smoke density:\" 0\n"

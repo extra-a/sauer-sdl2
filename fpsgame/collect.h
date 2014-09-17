@@ -1,3 +1,6 @@
+
+extern const char* getcurrentteam();
+
 #ifndef PARSEMESSAGES
 
 #define collectteambase(s) (!strcmp(s, "good") ? 1 : (!strcmp(s, "evil") ? 2 : 0))
@@ -433,7 +436,7 @@ struct collectclientmode : clientmode
     void drawbaseblip(fpsent *d, float x, float y, float s, int i)
     {
         base &b = bases[i];
-        settexture(b.team==collectteambase(player1->team) ? "packages/hud/blip_blue.png" : "packages/hud/blip_red.png", 3);
+        settexture(b.team==collectteambase(getcurrentteam()) ? "packages/hud/blip_blue.png" : "packages/hud/blip_red.png", 3);
         drawblip(d, x, y, s, b.o);
     }
 
@@ -481,7 +484,7 @@ struct collectclientmode : clientmode
             drawbaseblip(d, x, y, s, i);
         }
         int team = collectteambase(d->team);
-        settexture(team == collectteambase(player1->team) ? "packages/hud/blip_red_skull.png" : "packages/hud/blip_blue_skull.png", 3);
+        settexture(team == collectteambase(getcurrentteam()) ? "packages/hud/blip_red_skull.png" : "packages/hud/blip_blue_skull.png", 3);
         loopv(players)
         {
             fpsent *o = players[i];
@@ -505,7 +508,7 @@ struct collectclientmode : clientmode
 
     void rendergame()
     {
-        int team = collectteambase(player1->team);
+        int team = collectteambase(getcurrentteam());
         vec theight(0, 0, 0);
         abovemodel(theight, "skull/red");
         loopv(bases)
@@ -631,7 +634,7 @@ struct collectclientmode : clientmode
     {
         int fcolor;
         vec color;
-        if(team==collectteambase(player1->team)) { fcolor = 0x2020FF; color = vec(0.25f, 0.25f, 1); }
+        if(team==collectteambase(getcurrentteam())) { fcolor = 0x2020FF; color = vec(0.25f, 0.25f, 1); }
         else { fcolor = 0x802020; color = vec(1, 0.25f, 0.25f); }
         particle_fireball(loc, 30, PART_EXPLOSION, -1, fcolor, 4.8f);
         adddynlight(loc, 35, color, 900, 100);
@@ -643,7 +646,7 @@ struct collectclientmode : clientmode
         if(showfrom) baseexplosion(i, team, from);
         if(from==to) return;
         if(showto) baseexplosion(i, team, to);
-        particle_flare(from, to, 600, PART_LIGHTNING, team==collectteambase(player1->team) ? 0x2222FF : 0xFF2222, 1.0f);
+        particle_flare(from, to, 600, PART_LIGHTNING, team==collectteambase(getcurrentteam()) ? 0x2222FF : 0xFF2222, 1.0f);
     }
 
     void expiretoken(int id)
@@ -677,10 +680,10 @@ struct collectclientmode : clientmode
         {
             if(!n)
             {
-                particle_fireball(d->o, 4.8f, PART_EXPLOSION, 500, team==collectteambase(player1->team) ? 0x2020FF : 0x802020, 4.8f);
-                particle_splash(PART_SPARK, 50, 250, d->o, team==collectteambase(player1->team) ? 0x2020FF : 0x802020, 0.24f);
+                particle_fireball(d->o, 4.8f, PART_EXPLOSION, 500, team==collectteambase(getcurrentteam()) ? 0x2020FF : 0x802020, 4.8f);
+                particle_splash(PART_SPARK, 50, 250, d->o, team==collectteambase(getcurrentteam()) ? 0x2020FF : 0x802020, 0.24f);
             }
-            particle_flare(d->o, vec(t.o.x, t.o.y, t.o.z + 0.5f*(TOKENHEIGHT + 1)), 500, PART_LIGHTNING, team==collectteambase(player1->team) ? 0x2222FF : 0xFF2222, 1.0f); 
+            particle_flare(d->o, vec(t.o.x, t.o.y, t.o.z + 0.5f*(TOKENHEIGHT + 1)), 500, PART_LIGHTNING, team==collectteambase(getcurrentteam()) ? 0x2222FF : 0xFF2222, 1.0f); 
         }
         return &t;
     }
@@ -698,7 +701,7 @@ struct collectclientmode : clientmode
                 conoutf(CON_GAMEINFO, "%s stole a skull from %s", teamcolorname(d), teamcolor("your team", collectbaseteam(enemyteam), "the enemy team"));
                 playsound(S_FLAGDROP, &b.tokenpos);
             }
-            if(t) particle_flare(b.tokenpos, vec(t->o.x, t->o.y, t->o.z + 0.5f*(TOKENHEIGHT + 1)), 500, PART_LIGHTNING, team==collectteambase(player1->team) ? 0x2222FF : 0xFF2222, 1.0f);
+            if(t) particle_flare(b.tokenpos, vec(t->o.x, t->o.y, t->o.z + 0.5f*(TOKENHEIGHT + 1)), 500, PART_LIGHTNING, team==collectteambase(getcurrentteam()) ? 0x2222FF : 0xFF2222, 1.0f);
         }
     }
 
@@ -721,7 +724,7 @@ struct collectclientmode : clientmode
         setscore(team, score);
         
         conoutf(CON_GAMEINFO, "%s collected %d %s for %s", teamcolorname(d), deposited, deposited==1 ? "skull" : "skulls", teamcolor("your team", collectbaseteam(team), "the enemy team"));
-        playsound(team==collectteambase(player1->team) ? S_FLAGSCORE : S_FLAGFAIL);
+        playsound(team==collectteambase(getcurrentteam()) ? S_FLAGSCORE : S_FLAGFAIL);
 
         if(score >= SCORELIMIT) conoutf(CON_GAMEINFO, "%s collected %d skulls", teamcolor("your team", collectbaseteam(team), "the enemy team"), score);
     }
