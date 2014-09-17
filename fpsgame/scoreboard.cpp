@@ -434,6 +434,7 @@ namespace game
 
 
     void renderplayerstats(g3d_gui &g, bool firstpass) {
+        const char* weaponnames[] = { "Saw" ,  "Shotgun" , "Chaingun" , "Rocket" , "Rifle" ,  "Grenade" , "Pistol"  };
         g.titlef("Stats for %s(%d)", 0xFFFFFF, NULL,
                  getcurrentplayer()->name, getcurrentplayer()->clientnum);
         g.separator();
@@ -442,15 +443,15 @@ namespace game
 
         g.pushlist();
         g.text("Weapon", 0xFFFF80);
-        g.strut(6);
+        g.strut(10);
         loopi(MAXWEAPONS) {
-            g.textf("%d", 0xFFFFFF, NULL, i);
+            g.textf("%s", 0xFFFFFF, NULL, weaponnames[i]);
         }
         g.space(1);
-        g.text("Total", 0x00C8FF);
+        g.text("Total", 0xFFFF80);
         g.poplist();
 
-        g.space(2);
+        g.separator();
 
         g.pushlist();
         g.text("Dealt", 0xFFFF80);
@@ -459,7 +460,7 @@ namespace game
             g.textf("%d", 0xFFFFFF, NULL, getgundamagedealt(i));
         }
         g.space(1);
-        g.textf("%d", 0x00C8FF, NULL, getgundamagedealt(-1));
+        g.textf("%d", 0xFFFFFF, NULL, getgundamagedealt(-1));
         g.poplist();
 
         g.space(2);
@@ -471,7 +472,7 @@ namespace game
             g.textf("%d", 0xFFFFFF, NULL, getgundamagewasted(i));
         }
         g.space(1);
-        g.textf("%d", 0x00C8FF, NULL, getgundamagewasted(-1));
+        g.textf("%d", 0xFFFFFF, NULL, getgundamagewasted(-1));
         g.poplist();
 
         g.space(2);
@@ -486,7 +487,6 @@ namespace game
         g.textf("%.2lf", 0x00C8FF, NULL, getweaponaccuracy(-1));
         g.poplist();
 
-
         g.separator();
 
         g.pushlist();
@@ -496,7 +496,7 @@ namespace game
             g.textf("%d", 0xFFFFFF, NULL, getgundamagereceived(i));
         }
         g.space(1);
-        g.textf("%d", 0x00C8FF, NULL, getgundamagereceived(-1));
+        g.textf("%d", 0xFFFFFF, NULL, getgundamagereceived(-1));
         g.poplist();
 
         g.space(2);
