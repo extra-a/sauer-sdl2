@@ -5,9 +5,9 @@
 const char *extended_settings_gui =
 "newgui extended_settings [\n"
 
-    "guicheckbox \"Reduce sparks\" reducesparks\n"
-    "guicheckbox \"Reduce explosions\" reduceexplosions\n"
-    "guicheckbox \"Remove explosions debris\" removeexplosionsdebris\n"
+    "guicheckbox \"No sparks for hitscan weapons\" reducesparks\n"
+    "guicheckbox \"No explosion animation\" reduceexplosions\n"
+    "guicheckbox \"No explosion debris\" removeexplosionsdebris\n"
     "guicheckbox \"Colored health\" coloredhealth\n"
     "guicheckbox \"Colored ammo\" coloredammo\n"
     "guicheckbox \"Use following player team\" usefollowingplayerteam\n"
