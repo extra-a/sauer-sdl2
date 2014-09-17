@@ -12,7 +12,7 @@ const char *extended_settings_gui =
     "guicheckbox \"Use following player team\" usefollowingplayerteam\n"
     "guistrut 1\n"
 
-    "guitext \"Smoke density:\" 0\n"
+    "guitext \"Smoke density (for rockets and grenades):\" 0\n"
     "guislider smokefps\n"
 
 
@@ -82,8 +82,8 @@ const char *extended_settings_gui =
     "guistrut 1\n"
     
     "guitext \"Offset (X/Y):\" 0\n"
-    "guislider ammobarkoffset_x\n"
-    "guislider ammobarkoffset_y\n"
+    "guislider ammobaroffset_x\n"
+    "guislider ammobaroffset_y\n"
     "guistrut 1\n"
 
 "] \"Settings\"\n";
