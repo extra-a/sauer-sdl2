@@ -358,7 +358,7 @@ namespace game
                        loopv(spectators){
                                fpsent *p = spectators[i]->ownernum >= 0 ? getclient(spectators[i]->ownernum) : spectators[i];
                                if(!p) p = spectators[i];
-                               if(!showpj && p->state==CS_LAGGED) g.text("LAG", 0xFFFFDD);
+                               if(p->state==CS_LAGGED) g.text("LAG", 0xFFFFDD);
                                else g.textf("%d", 0xFFFFDD, NULL, p->ping);
                        }
                        g.poplist();
