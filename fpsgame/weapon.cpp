@@ -413,6 +413,9 @@ namespace game
 
     VARP(reduceexplosions, 0, 0, 1);
     XIDENTHOOK(reduceexplosions, IDF_EXTENDED);
+    VARP(removeexplosionsdebris, 0, 0, 1);
+    XIDENTHOOK(removeexplosionsdebris, IDF_EXTENDED);
+
     void explode(bool local, fpsent *owner, const vec &v, dynent *safe, int damage, int gun)
     {
         particle_splash(PART_SPARK, 200, 300, v, 0xB49B4B, 0.24f);
@@ -421,15 +424,18 @@ namespace game
         if(gun==GUN_RL) adddynlight(v, 1.15f*guns[gun].exprad, vec(2, 1.5f, 1), 700, 100, 0, guns[gun].exprad/2, vec(1, 0.75f, 0.5f));
         else if(gun==GUN_GL) adddynlight(v, 1.15f*guns[gun].exprad, vec(0.5f, 1.5f, 2), 600, 100, 0, 8, vec(0.25f, 1, 1));
         else adddynlight(v, 1.15f*guns[gun].exprad, vec(2, 1.5f, 1), 700, 100);
-        int numdebris = gun==GUN_BARREL ? rnd(max(maxbarreldebris-5, 1))+5 : rnd(maxdebris-5)+5;
-        vec debrisvel = owner->o==v ? vec(0, 0, 0) : vec(owner->o).sub(v).normalize(), debrisorigin(v);
-        if(gun==GUN_RL) debrisorigin.add(vec(debrisvel).mul(8));
-        if(numdebris)
-        {
-            entitylight light;
-            lightreaching(debrisorigin, light.color, light.dir);
-            loopi(numdebris)
-                spawnbouncer(debrisorigin, debrisvel, owner, gun==GUN_BARREL ? BNC_BARRELDEBRIS : BNC_DEBRIS, &light);
+
+        if(!removeexplosionsdebris) {
+            int numdebris = gun==GUN_BARREL ? rnd(max(maxbarreldebris-5, 1))+5 : rnd(maxdebris-5)+5;
+            vec debrisvel = owner->o==v ? vec(0, 0, 0) : vec(owner->o).sub(v).normalize(), debrisorigin(v);
+            if(gun==GUN_RL) debrisorigin.add(vec(debrisvel).mul(8));
+            if(numdebris)
+                {
+                    entitylight light;
+                    lightreaching(debrisorigin, light.color, light.dir);
+                    loopi(numdebris)
+                        spawnbouncer(debrisorigin, debrisvel, owner, gun==GUN_BARREL ? BNC_BARRELDEBRIS : BNC_DEBRIS, &light);
+                }
         }
         if(!local) return;
         int numdyn = numdynents();
