@@ -3,6 +3,8 @@
 
 extern float conscale;
 extern bool framehasgui;
+extern void drawacoloredquad(float x, float y, float w, float h,
+                             GLubyte r, GLubyte g, GLubyte b, GLubyte a);
 
 #ifdef WIN32
 #define snprintf _snprintf
@@ -840,6 +842,17 @@ namespace game
     VARP(ammobarhorizontal, 0, 0, 1);
     XIDENTHOOK(ammobarhorizontal, IDF_EXTENDED);
 
+    VARP(ammobarselectedbg, 0, 1, 1);
+    XIDENTHOOK(ammobarselectedbg, IDF_EXTENDED);
+    VARP(ammobarselectedcolor_r, 0, 100, 255);
+    XIDENTHOOK(ammobarselectedcolor_r, IDF_EXTENDED);
+    VARP(ammobarselectedcolor_g, 0, 200, 255);
+    XIDENTHOOK(ammobarselectedcolor_g, IDF_EXTENDED);
+    VARP(ammobarselectedcolor_b, 0, 255, 255);
+    XIDENTHOOK(ammobarselectedcolor_b, IDF_EXTENDED);
+    VARP(ammobarselectedcolor_a, 0, 150, 255);
+    XIDENTHOOK(ammobarselectedcolor_a, IDF_EXTENDED);
+
     VARP(coloredammo, 0, 0, 1);
     XIDENTHOOK(coloredammo, IDF_EXTENDED);
 
@@ -864,6 +877,14 @@ namespace game
         }
     }
 
+    void drawselectedammobg(float x, float y, float w, float h) {
+        drawacoloredquad(x, y, w, h,
+                         (GLubyte)ammobarselectedcolor_r,
+                         (GLubyte)ammobarselectedcolor_g,
+                         (GLubyte)ammobarselectedcolor_b,
+                         (GLubyte)ammobarselectedcolor_a);
+    }
+
     void drawammobar(fpsent *d, int w, int h) {
         if(!d) return;
         #define NWEAPONS 6
@@ -879,20 +900,29 @@ namespace game
         int vsep = 10*ammobarscale*conscale;
         int hsep = 60*ammobarscale*conscale;
         int textsep = 20*ammobarscale*conscale;
-        int tw, th;
+        int tw, th, pw, ph, textw;
 
+        holdscreenlock;
         glPushMatrix();
         glScalef(conscale*ammobarscale, conscale*ammobarscale, 1);
 
         for(int i = 0, xpos = 0, ypos = 0; i < NWEAPONS; i++) {
             snprintf(buff, 10, "%d", d->ammo[i+1]);
             text_bounds(buff, tw, th);
+            text_bounds("00", pw, ph);
+            textw = tw > pw ? tw : pw;
             draw_text("", 0, 0, 255, 255, 255, 255);
+            if(ammobarselectedbg && i+1 == d->gunselect) {
+                drawselectedammobg(xoff/ammobarscale + xpos - textsep/2.0,
+                                   yoff/ammobarscale + ypos - vsep/2.0,
+                                   th + textw + textsep + textsep,
+                                   th + vsep);
+            }
             drawicon(HICON_FIST+icons[i], xoff/ammobarscale + xpos, yoff/ammobarscale + ypos, th);
-            if(coloredammo && !m_insta) getammocolor(d, i+1, r, g, b, a);
+            if(coloredammo) getammocolor(d, i+1, r, g, b, a);
             if(ammobarhorizontal) {
                 draw_text(buff, xoff/ammobarscale + xpos + th + textsep, yoff/ammobarscale + ypos, r, g, b, a);
-                xpos += th + tw + textsep + hsep;
+                xpos += th + textw + textsep + hsep;
             } else {
                 draw_text(buff, xoff/ammobarscale + xpos + th + textsep, yoff/ammobarscale + ypos, r, g, b, a);
                 ypos += th + vsep;

@@ -1372,3 +1372,23 @@ void consolebox(int x1, int y1, int x2, int y2)
     glPopMatrix();
 }
 
+
+void drawacoloredquad(float x, float y, float w, float h,
+                      GLubyte r, GLubyte g, GLubyte b, GLubyte a) {
+    holdscreenlock;
+
+    glDisable(GL_TEXTURE_2D);
+    notextureshader->set();
+    glColor4ub(r, g, b, a);
+
+    glBegin(GL_TRIANGLE_STRIP);
+    glVertex2f(x, y);
+    glVertex2f(x + w, y);
+    glVertex2f(x, y + h);
+    glVertex2f(x + w, y + h);
+    glEnd();
+
+    glColor4ub(255, 255, 255, 255);
+    glEnable(GL_TEXTURE_2D);
+    defaultshader->set();
+}

@@ -100,6 +100,13 @@ const char *extended_settings_gui =
     "guislider ammobaroffset_y\n"
     "guistrut 1\n"
 
+    "guicheckbox \"Draw selected gun background\" ammobarselectedbg\n"
+    "guitext \"Selected gun background (^f3R^f~/^f0G^f~/^f1B^f~/^f4A^f~):\" 0\n"
+    "guislider ammobarselectedcolor_r\n"
+    "guislider ammobarselectedcolor_g\n"
+    "guislider ammobarselectedcolor_b\n"
+    "guislider ammobarselectedcolor_a\n"
+
 "] \"Settings\"\n";
 
 const char *game_scripts[] = { extended_settings_gui, 0 };
