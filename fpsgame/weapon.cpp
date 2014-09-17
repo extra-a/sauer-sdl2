@@ -22,6 +22,69 @@ namespace game
 
     ICOMMAND(getweapon, "", (), intret(player1->state==CS_SPECTATOR ? 6 : player1->gunselect));
 
+    fpsent* getcurrentplayer() {
+        if(player1->state==CS_SPECTATOR && followingplayer()) {
+            return followingplayer();
+        }
+        return player1;
+    }
+
+    int getgundamagetotal(int gun) {
+        fpsent* d = getcurrentplayer();
+        if(gun < 0) {
+            int dmg = 0;
+            loopi(MAXWEAPONS) {
+                dmg += d->detaileddamagetotal[i];
+            }
+            return dmg;
+        } else if(gun < MAXWEAPONS) {
+            return d->detaileddamagetotal[gun];
+        }
+        return 0;
+    }
+
+    int getgundamagedealt(int gun) {
+        fpsent* d = getcurrentplayer();
+        if(gun < 0) {
+            int dmg = 0;
+            loopi(MAXWEAPONS) {
+                dmg += d->detaileddamagedealt[i];
+            }
+            return dmg;
+        } else if(gun < MAXWEAPONS) {
+            return d->detaileddamagedealt[gun];
+        }
+        return 0;
+    }
+
+    int getgundamagereceived(int gun) {
+        fpsent* d = getcurrentplayer();
+        if(gun < 0) {
+            int dmg = 0;
+            loopi(MAXWEAPONS) {
+                dmg += d->detaileddamagereceived[i];
+            }
+            return dmg;
+        } else if(gun < MAXWEAPONS) {
+            return d->detaileddamagereceived[gun];
+        }
+        return 0;
+    }
+
+    int getgundamagewasted(int gun) {
+        return getgundamagetotal(gun) - getgundamagedealt(gun);
+    }
+
+    int getgunnetdamage(int gun) {
+        return getgundamagedealt(gun) - getgundamagereceived(gun);
+    }
+
+    double getweaponaccuracy(int gun) {
+        double total = getgundamagetotal(gun);
+        return (getgundamagedealt(gun) / (total ? total : 1.0)) * 100;
+    }
+
+
     void gunselect(int gun, fpsent *d)
     {
         if(gun!=d->gunselect)
@@ -356,6 +419,14 @@ namespace game
 
         f->lastpain = lastmillis;
         if(at->type==ENT_PLAYER && !isteam(at->team, f->team)) at->totaldamage += damage;
+
+        if(at->type==ENT_PLAYER && !isteam(at->team, f->team) && gun >= 0 && gun < MAXWEAPONS) {
+            at->detaileddamagedealt[gun] += damage;
+        }
+
+        if(f->type==ENT_PLAYER && !isteam(at->team, f->team) && gun >= 0 && gun < MAXWEAPONS) {
+            f->detaileddamagereceived[gun] += damage;
+        }
 
         if(f->type==ENT_AI || !m_mp(gamemode) || f==at) f->hitpush(damage, vel, at, gun);
 
@@ -825,10 +896,13 @@ namespace game
                    (int)(to.x*DMF), (int)(to.y*DMF), (int)(to.z*DMF),
                    hits.length(), hits.length()*sizeof(hitmsg)/sizeof(int), hits.getbuf());
         }
-
-		d->gunwait = guns[d->gunselect].attackdelay;
-		if(d->gunselect == GUN_PISTOL && d->ai) d->gunwait += int(d->gunwait*(((101-d->skill)+rnd(111-d->skill))/100.f));
+        d->gunwait = guns[d->gunselect].attackdelay;
+        if(d->gunselect == GUN_PISTOL && d->ai) d->gunwait += int(d->gunwait*(((101-d->skill)+rnd(111-d->skill))/100.f));
         d->totalshots += guns[d->gunselect].damage*(d->quadmillis ? 4 : 1)*guns[d->gunselect].rays;
+        if(d->gunselect >= 0 && d->gunselect < MAXWEAPONS) {
+            d->detaileddamagetotal[d->gunselect] +=
+                guns[d->gunselect].damage*(d->quadmillis ? 4 : 1)*guns[d->gunselect].rays;
+        }
     }
 
     void adddynlights()

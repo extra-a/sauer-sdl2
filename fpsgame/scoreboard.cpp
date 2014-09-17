@@ -5,6 +5,13 @@
 namespace game
 {
     extern const char* getcurrentteam();
+    extern fpsent* getcurrentplayer();
+    extern int getgundamagetotal(int gun);
+    extern int getgundamagedealt(int gun);
+    extern int getgundamagereceived(int gun);
+    extern int getgundamagewasted(int gun);
+    extern int getgunnetdamage(int gun);
+    extern double getweaponaccuracy(int gun);
 
     VARP(scoreboard2d, 0, 1, 1);
     VARP(showservinfo, 0, 1, 1);
@@ -425,18 +432,142 @@ namespace game
 
     } scoreboard;
 
+
+    void renderplayerstats(g3d_gui &g, bool firstpass) {
+        g.titlef("Stats for %s(%d)", 0xFFFFFF, NULL,
+                 getcurrentplayer()->name, getcurrentplayer()->clientnum);
+        g.separator();
+
+        g.pushlist();
+
+        g.pushlist();
+        g.text("Weapon", 0xFFFF80);
+        g.strut(6);
+        loopi(MAXWEAPONS) {
+            g.textf("%d", 0xFFFFFF, NULL, i);
+        }
+        g.space(1);
+        g.text("Total", 0x00C8FF);
+        g.poplist();
+
+        g.space(2);
+
+        g.pushlist();
+        g.text("Dealt", 0xFFFF80);
+        g.strut(6);
+        loopi(MAXWEAPONS) {
+            g.textf("%d", 0xFFFFFF, NULL, getgundamagedealt(i));
+        }
+        g.space(1);
+        g.textf("%d", 0x00C8FF, NULL, getgundamagedealt(-1));
+        g.poplist();
+
+        g.space(2);
+
+        g.pushlist();
+        g.text("Wasted", 0xFFFF80);
+        g.strut(6);
+        loopi(MAXWEAPONS) {
+            g.textf("%d", 0xFFFFFF, NULL, getgundamagewasted(i));
+        }
+        g.space(1);
+        g.textf("%d", 0x00C8FF, NULL, getgundamagewasted(-1));
+        g.poplist();
+
+        g.space(2);
+
+        g.pushlist();
+        g.text("Acc", 0xFFFF80);
+        g.strut(6);
+        loopi(MAXWEAPONS) {
+            g.textf("%.2lf", 0xFFFFFF, NULL, getweaponaccuracy(i));
+        }
+        g.space(1);
+        g.textf("%.2lf", 0x00C8FF, NULL, getweaponaccuracy(-1));
+        g.poplist();
+
+
+        g.separator();
+
+        g.pushlist();
+        g.text("Taken", 0xFFFF80);
+        g.strut(6);
+        loopi(MAXWEAPONS) {
+            g.textf("%d", 0xFFFFFF, NULL, getgundamagereceived(i));
+        }
+        g.space(1);
+        g.textf("%d", 0x00C8FF, NULL, getgundamagereceived(-1));
+        g.poplist();
+
+        g.space(2);
+
+        g.pushlist();
+        g.text("Net", 0xFFFF80);
+        g.strut(6);
+        int net = 0;
+        loopi(MAXWEAPONS) {
+            net = getgunnetdamage(i);
+            g.textf("%d", 0xFFFFFF, NULL, net);
+        }
+        net = getgunnetdamage(-1);
+        g.space(1);
+        g.textf("%d", net >= 0 ? 0x00FF00 : 0xFF0000, NULL, net);
+        g.poplist();
+
+        g.poplist();
+    }
+
+    struct playerstatsgui : g3d_callback {
+        bool showing;
+        vec menupos;
+        int menustart;
+
+        playerstatsgui() : showing(false) {}
+
+        void show(bool on) {
+            if(!showing && on)
+            {
+                menupos = menuinfrontofplayer();
+                menustart = starttime();
+            }
+            showing = on;
+        }
+
+        void gui(g3d_gui &g, bool firstpass)  {
+            g.start(menustart, 0.03f, NULL, false);
+            renderplayerstats(g, firstpass);
+            g.end();
+        }
+
+        void render()  {
+            if(showing)
+                g3d_addgui(this, menupos, (scoreboard2d ? GUI_FORCE_2D : GUI_2D | GUI_FOLLOW) | GUI_BOTTOM);
+        }
+
+    } playerstats;
+
+
     void g3d_gamemenus()
     {
         scoreboard.render();
+        playerstats.render();
     }
 
+    // scoreboard
     VARFN(scoreboard, showscoreboard, 0, 0, 1, scoreboard.show(showscoreboard!=0));
-
     void showscores(bool on)
     {
         showscoreboard = on ? 1 : 0;
         scoreboard.show(on);
     }
     ICOMMAND(showscores, "D", (int *down), showscores(*down!=0));
+
+    // player stats
+    void showplayerstats(bool on)
+    {
+        playerstats.show(on);
+    }
+    ICOMMAND(showplayerstats, "D", (int *down), showplayerstats(*down!=0));
+
 }
 

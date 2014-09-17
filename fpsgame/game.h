@@ -529,6 +529,8 @@ struct fpsstate
     }
 };
 
+#define MAXWEAPONS 7
+
 struct fpsent : dynent, fpsstate
 {
     int weight;                         // affects the effectiveness of hitpush
@@ -543,6 +545,9 @@ struct fpsent : dynent, fpsstate
     int lastpickup, lastpickupmillis, lastbase, lastrepammo, flagpickup, tokens;
     vec lastcollect;
     int frags, flags, deaths, totaldamage, totalshots;
+    int detaileddamagedealt[MAXWEAPONS];
+    int detaileddamagetotal[MAXWEAPONS];
+    int detaileddamagereceived[MAXWEAPONS];
     editinfo *edit;
     float deltayaw, deltapitch, deltaroll, newyaw, newpitch, newroll;
     int smoothmillis;
@@ -558,6 +563,11 @@ struct fpsent : dynent, fpsstate
     {
         name[0] = team[0] = info[0] = 0;
         respawn();
+        loopi(MAXWEAPONS) {
+            detaileddamagedealt[i] = 0;
+            detaileddamagetotal[i] = 0;
+            detaileddamagereceived[i] = 0;
+        }
     }
     ~fpsent()
     {
