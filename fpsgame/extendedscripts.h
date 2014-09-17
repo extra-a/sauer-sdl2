@@ -19,7 +19,11 @@ const char *extended_settings_gui =
 
     "guitab \"Clock\"\n"
 
+    "guilist [\n"
     "guicheckbox \"Show clock\" gameclock\n"
+    "guibar\n"
+    "guicheckbox \"Disable with GUI\" gameclockdisablewithgui\n"
+    "]\n"
     "guitext \"Size:\" 0\n"
     "guislider gameclocksize\n"
     "guistrut 1\n"
@@ -42,7 +46,12 @@ const char *extended_settings_gui =
 
     "guitab \"HudScores\"\n"
 
+    "guilist [\n"
     "guicheckbox \"Show hud scores\" hudscores\n"
+    "guibar\n"
+    "guicheckbox \"Disable with GUI\" hudscoresdisablewithgui\n"
+    "]\n"
+
     "guitext \"Size:\" 0\n"
     "guislider hudscoressize\n"
     "guistrut 1\n"
@@ -74,7 +83,11 @@ const char *extended_settings_gui =
 
     "guitab \"Ammobar\"\n"
 
+    "guilist [\n"
     "guicheckbox \"Show ammobar\" ammobar\n"
+    "guibar\n"
+    "guicheckbox \"Disable with GUI\" ammobardisablewithgui\n"
+    "]\n"
     "guicheckbox \"Horizontal ammobar\" ammobarhorizontal\n"
     "guistrut 1\n"
 

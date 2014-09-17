@@ -615,6 +615,7 @@ extern void drawskybox(int farplane, bool limited);
 extern bool limitsky();
 
 // 3dgui
+extern bool framehasgui;
 extern void g3d_render();
 extern bool g3d_windowhit(bool on, bool act);
 extern bool g3d_key(int code, bool isdown);

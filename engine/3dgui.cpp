@@ -7,6 +7,8 @@
 
 #include "textedit.h"
 
+bool framehasgui;
+
 static bool layoutpass, actionon = false;
 static int mousebuttons = 0;
 static struct gui *windowhit = NULL;
@@ -1059,6 +1061,7 @@ struct gui : g3d_gui
 
     void draw()
     {
+        framehasgui = true;
         cb->gui(*this, layoutpass);
     }
 };

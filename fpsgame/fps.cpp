@@ -2,6 +2,7 @@
 #include "extendedscripts.h"
 
 extern float conscale;
+extern bool framehasgui;
 
 #ifdef WIN32
 #define snprintf _snprintf
@@ -24,6 +25,9 @@ namespace game
 
     VARP(hudscores, 0, 0, 1);
     XIDENTHOOK(hudscores, IDF_EXTENDED);
+
+    VARP(hudscoresdisablewithgui, 0, 0, 1);
+    XIDENTHOOK(hudscoresdisablewithgui, IDF_EXTENDED);
 
     VARP(hudscoressize, 1, 5, 30);
     XIDENTHOOK(hudscoressize, IDF_EXTENDED);
@@ -825,6 +829,8 @@ namespace game
 
     VARP(ammobar, 0, 0, 1);
     XIDENTHOOK(ammobar, IDF_EXTENDED);
+    VARP(ammobardisablewithgui, 0, 0, 1);
+    XIDENTHOOK(ammobardisablewithgui, IDF_EXTENDED);
     VARP(ammobarsize, 1, 5, 30);
     XIDENTHOOK(ammobarsize, IDF_EXTENDED);
     VARP(ammobaroffset_x, 0, 955, 1000);
@@ -1016,6 +1022,8 @@ namespace game
     /* Game Clock */
     VARP(gameclock, 0, 1, 1);
     XIDENTHOOK(gameclock, IDF_EXTENDED);
+    VARP(gameclockdisablewithgui, 0, 0, 1);
+    XIDENTHOOK(gameclockdisablewithgui, IDF_EXTENDED);
     VARP(gameclocksize, 1, 5, 30);
     XIDENTHOOK(gameclocksize, IDF_EXTENDED);
     VARP(gameclockoffset_x, 0, 900, 1000);
@@ -1079,12 +1087,12 @@ namespace game
         const int gamemode = game::gamemode;
         const int conw = int(w/conscale), conh = int(h/conscale);
 
-        if(ammobar && !m_edit && !m_insta && d->state!=CS_DEAD) {
+        if(ammobar && !m_edit && !m_insta && d->state!=CS_DEAD &&
+           !(ammobardisablewithgui && framehasgui)) {
             drawammobar(d, w, h);
         }
 
-        if(gameclock && !m_edit)
-        {
+        if(gameclock && !m_edit && !(gameclockdisablewithgui && framehasgui)) {
             static char buf[16];
             const int millis = max(game::maplimit-lastmillis, 0);
             int secs = millis/1000;
@@ -1111,7 +1119,7 @@ namespace game
             glPopMatrix();
         }
 
-        if(hudscores) {
+        if(hudscores && !m_edit && !(hudscoresdisablewithgui && framehasgui)) {
 
             vector<fpsent *> bestplayers;
             vector<scoregroup *> bestgroups;
