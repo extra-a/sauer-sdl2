@@ -20,5 +20,6 @@ provided. Use "extendedsettings" command to for configuring.
   list.
 * Easy additional visual settings configuration via "extendedsettings"
   command.
-
+* Accuracy/damage menu command "showplayerstats".
+* More scoreboard statistics.
 
