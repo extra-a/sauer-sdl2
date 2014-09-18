@@ -1173,7 +1173,7 @@ namespace game
                 b2 = hudscoresenemycolor_b,
                 a2 = hudscoresenemycolor_a;
 
-            int scoresep = 30*scorescale*conscale;
+            int scoresep = 40*scorescale*conscale;
 
             if(grsz) {
                 char buff[10];

@@ -305,7 +305,7 @@ namespace game
             if(showacc)
             {
                 g.pushlist();
-                g.strut(5);
+                g.strut(6);
                 g.text("acc", fgcolor);
                 loopscoregroup(o, g.textf("%.2lf", 0xFFFFDD, NULL, getweaponaccuracy(-1,o)));
                 g.poplist();
@@ -330,7 +330,7 @@ namespace game
                 {
                     g.pushlist();
                     g.text("ping", fgcolor);
-                    g.strut(6);
+                    g.strut(5);
                     loopscoregroup(o,
                     {
                         fpsent *p = o->ownernum >= 0 ? getclient(o->ownernum) : o;
@@ -344,7 +344,6 @@ namespace game
 
             if(showclientnum || player1->privilege>=PRIV_MASTER)
             {
-                g.space(1);
                 g.pushlist();
                 g.text("cn", fgcolor);
                 loopscoregroup(o, g.textf("%d", 0xFFFFDD, NULL, o->clientnum));
