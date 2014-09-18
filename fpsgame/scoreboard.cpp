@@ -284,6 +284,33 @@ namespace game
             });
             g.poplist();
 
+            if(showdamagedealt)
+            {
+                g.pushlist();
+                g.strut(6);
+                g.text("dmg", fgcolor);
+                loopscoregroup(o, g.textf("%d", 0xFFFFDD, NULL, getgundamagedealt(-1,o)));
+                g.poplist();
+            }
+
+            if(shownetdamage)
+            {
+                g.pushlist();
+                g.strut(6);
+                g.text("net", fgcolor);
+                loopscoregroup(o, g.textf("%d", 0xFFFFDD, NULL, getgunnetdamage(-1,o)));
+                g.poplist();
+            }
+
+            if(showacc)
+            {
+                g.pushlist();
+                g.strut(5);
+                g.text("acc", fgcolor);
+                loopscoregroup(o, g.textf("%.2lf", 0xFFFFDD, NULL, getweaponaccuracy(-1,o)));
+                g.poplist();
+            }
+
             if(multiplayer(false) || demoplayback)
             {
                 if(showpj)
@@ -313,33 +340,6 @@ namespace game
                     });
                     g.poplist();
                 }
-            }
-
-            if(showdamagedealt)
-            {
-                g.pushlist();
-                g.strut(6);
-                g.text("dmg", fgcolor);
-                loopscoregroup(o, g.textf("%d", 0xFFFFDD, NULL, getgundamagedealt(-1,o)));
-                g.poplist();
-            }
-
-            if(shownetdamage)
-            {
-                g.pushlist();
-                g.strut(6);
-                g.text("net", fgcolor);
-                loopscoregroup(o, g.textf("%d", 0xFFFFDD, NULL, getgunnetdamage(-1,o)));
-                g.poplist();
-            }
-
-            if(showacc)
-            {
-                g.pushlist();
-                g.strut(5);
-                g.text("acc", fgcolor);
-                loopscoregroup(o, g.textf("%.2lf", 0xFFFFDD, NULL, getweaponaccuracy(-1,o)));
-                g.poplist();
             }
 
             if(showclientnum || player1->privilege>=PRIV_MASTER)
