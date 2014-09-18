@@ -11,13 +11,17 @@ const char *extended_settings_gui =
     "guicheckbox \"Colored health\" coloredhealth\n"
     "guicheckbox \"Colored ammo\" coloredammo\n"
     "guicheckbox \"Use following player team\" usefollowingplayerteam\n"
-    "guicheckbox \"Show damage dealt on scoreboard\" showdamagedealt\n"
-    "guicheckbox \"Show net damage on scoreboard\" shownetdamage\n"
-    "guicheckbox \"Show accuracy on scoreboard\" showacc\n"
     "guistrut 1\n"
 
     "guitext \"Smoke density (for rockets and grenades):\" 0\n"
     "guislider smokefps\n"
+
+    "guitab \"Scoreboard\"\n"
+    "guicheckbox \"Show frags in all modes\" showfrags\n"
+    "guicheckbox \"Show flags scored\" showflags\n"
+    "guicheckbox \"Show damage dealt\" showdamagedealt\n"
+    "guicheckbox \"Show net damage\" shownetdamage\n"
+    "guicheckbox \"Show accuracy\" showacc\n"
 
 
     "guitab \"Clock\"\n"

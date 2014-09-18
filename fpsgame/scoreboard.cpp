@@ -22,9 +22,9 @@ namespace game
     VARP(highlightscore, 0, 1, 1);
     VARP(showconnecting, 0, 0, 1);
 
-    VARP(showfrags, 0, 1, 1);
+    VARP(showfrags, 0, 0, 1);
     XIDENTHOOK(showfrags, IDF_EXTENDED);
-    VARP(showflags, 0, 1, 1);
+    VARP(showflags, 0, 0, 1);
     XIDENTHOOK(showflags, IDF_EXTENDED);
 
     VARP(showdamagedealt, 0, 1, 1);
