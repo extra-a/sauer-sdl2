@@ -318,7 +318,7 @@ namespace game
             if(showdamagedealt)
             {
                 g.pushlist();
-                g.strut(5);
+                g.strut(6);
                 g.text("dmg", fgcolor);
                 loopscoregroup(o, g.textf("%d", 0xFFFFDD, NULL, getgundamagedealt(-1,o)));
                 g.poplist();
@@ -327,8 +327,8 @@ namespace game
             if(shownetdamage)
             {
                 g.pushlist();
-                g.strut(5);
-                g.text("netd", fgcolor);
+                g.strut(6);
+                g.text("net", fgcolor);
                 loopscoregroup(o, g.textf("%d", 0xFFFFDD, NULL, getgunnetdamage(-1,o)));
                 g.poplist();
             }
@@ -496,18 +496,6 @@ namespace game
         }
         g.space(1);
         g.textf("%d", 0xFFFFFF, NULL, getgundamagedealt(-1));
-        g.poplist();
-
-        g.space(2);
-
-        g.pushlist();
-        g.text("Wasted", 0xFFFF80);
-        g.strut(6);
-        loopi(MAXWEAPONS) {
-            g.textf("%d", 0xFFFFFF, NULL, getgundamagewasted(i));
-        }
-        g.space(1);
-        g.textf("%d", 0xFFFFFF, NULL, getgundamagewasted(-1));
         g.poplist();
 
         g.space(2);
