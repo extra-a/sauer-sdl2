@@ -1051,7 +1051,7 @@ namespace game
     }
 
     /* Game Clock */
-    VARP(gameclock, 0, 1, 1);
+    VARP(gameclock, 0, 0, 1);
     XIDENTHOOK(gameclock, IDF_EXTENDED);
     VARP(gameclockdisablewithgui, 0, 0, 1);
     XIDENTHOOK(gameclockdisablewithgui, IDF_EXTENDED);
