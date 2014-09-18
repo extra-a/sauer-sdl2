@@ -618,11 +618,7 @@ namespace game
             d->maxhealth = 100;
             d->lifesequence = -1;
             d->respawned = d->suicided = -2;
-            loopi(MAXWEAPONS) {
-                d->detaileddamagedealt[i] = 0;
-                d->detaileddamagetotal[i] = 0;
-                d->detaileddamagereceived[i] = 0;
-            }
+            d->resetextstats();
         }
 
         setclientmode();

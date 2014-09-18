@@ -80,8 +80,8 @@ namespace game
     }
 
     double getweaponaccuracy(int gun, fpsent* f) {
-        double total = getgundamagetotal(gun, f);
-        return (getgundamagedealt(gun, f) / (total ? total : 1.0)) * 100;
+        double total = max(1.0, (double)getgundamagetotal(gun, f));
+        return (getgundamagedealt(gun, f) / total) * 100;
     }
 
 
@@ -400,6 +400,8 @@ namespace game
         loopi(min(damage/25, 40)+1) spawnbouncer(from, vel, d, BNC_GIBS);
     }
 
+    extern bool isdamgeignored(fpsent *f1, fpsent *f2);
+
     void hit(int damage, dynent *d, fpsent *at, const vec &vel, int gun, float info1, int info2 = 1)
     {
         if(at==player1 && d!=at)
@@ -419,14 +421,6 @@ namespace game
 
         f->lastpain = lastmillis;
         if(at->type==ENT_PLAYER && !isteam(at->team, f->team)) at->totaldamage += damage;
-
-        if(at->type==ENT_PLAYER && !isteam(at->team, f->team) && gun >= 0 && gun < MAXWEAPONS) {
-            at->detaileddamagedealt[gun] += damage;
-        }
-
-        if(f->type==ENT_PLAYER && !isteam(at->team, f->team) && gun >= 0 && gun < MAXWEAPONS) {
-            f->detaileddamagereceived[gun] += damage;
-        }
 
         if(f->type==ENT_AI || !m_mp(gamemode) || f==at) f->hitpush(damage, vel, at, gun);
 
@@ -899,9 +893,10 @@ namespace game
         d->gunwait = guns[d->gunselect].attackdelay;
         if(d->gunselect == GUN_PISTOL && d->ai) d->gunwait += int(d->gunwait*(((101-d->skill)+rnd(111-d->skill))/100.f));
         d->totalshots += guns[d->gunselect].damage*(d->quadmillis ? 4 : 1)*guns[d->gunselect].rays;
-        if(d->gunselect >= 0 && d->gunselect < MAXWEAPONS) {
-            d->detaileddamagetotal[d->gunselect] +=
-                guns[d->gunselect].damage*(d->quadmillis ? 4 : 1)*guns[d->gunselect].rays;
+        int gun = d->gunselect;
+        if(d && gun >= 0 && gun < MAXWEAPONS) {
+            d->detaileddamagetotal[gun] +=
+                guns[gun].damage*(d->quadmillis ? 4 : 1)*guns[gun].rays;
         }
     }
 

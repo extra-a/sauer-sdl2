@@ -1226,6 +1226,29 @@ namespace game
 
     extern int deathscore;
 
+    bool isdamgeignored(fpsent *f1, fpsent *f2) {
+        if(!f1 || !f2) return true;
+        if(f1 == f2) return false;
+        return isteam(f1->team, f2->team);
+    }
+
+    void adddmg(fpsent *target, fpsent *from, int damage, int gun) {
+        if(target && !isdamgeignored(target, from) && gun >= 0 && gun < MAXWEAPONS) {
+            target->detaileddamagereceived[gun] += damage;
+        }
+
+        if(from && !isdamgeignored(target, from) && gun >= 0 && gun < MAXWEAPONS) {
+            from->detaileddamagedealt[gun] += damage;
+        }
+    }
+
+    void addshots(fpsent *from, int gun) {
+        if(from && gun >= 0 && gun < MAXWEAPONS) {
+            from->detaileddamagetotal[gun] +=
+                guns[gun].damage*(from->quadmillis ? 4 : 1)*guns[gun].rays;
+        }
+    }
+
     void parsemessages(int cn, fpsent *d, ucharbuf &p)
     {
         static char text[MAXTRANS];
@@ -1478,6 +1501,7 @@ namespace game
                 s->lastaction = lastmillis;
                 s->lastattackgun = s->gunselect;
                 shoteffects(s->gunselect, from, to, s, false, id, prevaction);
+                addshots(s, gun);
                 break;
             }
 
@@ -1503,6 +1527,7 @@ namespace game
                 target->health = health;
                 if(target->state == CS_ALIVE && actor != player1) target->lastpain = lastmillis;
                 damaged(damage, target, actor, false);
+                adddmg(target, actor, damage, actor->gunselect);
                 break;
             }
 

@@ -569,12 +569,21 @@ struct fpsent : dynent, fpsstate
             detaileddamagereceived[i] = 0;
         }
     }
+
     ~fpsent()
     {
         freeeditinfo(edit);
         if(attackchan >= 0) stopsound(attacksound, attackchan);
         if(idlechan >= 0) stopsound(idlesound, idlechan);
         if(ai) delete ai;
+    }
+
+    void resetextstats() {
+        loopi(MAXWEAPONS) {
+            detaileddamagedealt[i] = 0;
+            detaileddamagetotal[i] = 0;
+            detaileddamagereceived[i] = 0;
+        }
     }
 
     void hitpush(int damage, const vec &dir, fpsent *actor, int gun)
