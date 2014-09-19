@@ -180,7 +180,7 @@ hashtable<int, keym> keyms(128);
 
 #include "sdl2_keymap_extrakeys.h"
 
-static bool sdl2_keymap_hack_effective = true;
+static int sdl2_keymap_hack_effective = true;
 static void sdl2_keymap_hack_check(){
 	extern int sdl2_keymap_hack;
 	if(keyms.numelems){
