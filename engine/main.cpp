@@ -35,7 +35,7 @@ void quit()                     // normal exit
     exit(EXIT_SUCCESS);
 }
 
-#if !defined(WIN32) && defined(_DEBUG) && defined(__GNUC__)
+#if !defined(WIN32) && !defined(_DEBUG) && defined(__GNUC__)
 #include <stdio.h>
 #include <execinfo.h>
 #include <signal.h>
@@ -1141,11 +1141,11 @@ VAR(numcpus, 1, 1, 16);
 int main(int argc, char **argv)
 {
     #if defined(WIN32) && !defined(_DEBUG) && !defined(__GNUC__)
-    atexit((void (__cdecl *)(void))_CrtDumpMemoryLeaks);
+    // atexit((void (__cdecl *)(void))_CrtDumpMemoryLeaks);
     __try {
     #endif
 
-    #if !defined(WIN32) && defined(_DEBUG) && defined(__GNUC__)
+    #if !defined(WIN32) && !defined(_DEBUG) && defined(__GNUC__)
     signal(SIGFPE, handler);
     signal(SIGSEGV, handler);
     signal(SIGBUS, handler);

@@ -25,7 +25,3 @@ are used). Use "extendedsettings" command for configuring.
 * Accuracy/damage statistics menu command "showplayerstats" (due to
   current network protocol limitations, statistics is gathered only
   after connection to a server.
-
-## Troubleshooting
-
-Build with _DEBUG=1 to print stacktrace on crash.

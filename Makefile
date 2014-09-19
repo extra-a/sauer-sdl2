@@ -1,6 +1,6 @@
-CXXFLAGS= -O3 -fomit-frame-pointer -ffast-math
+CXXFLAGS= -O3 -fomit-frame-pointer -ffast-math -rdynamic
 ifdef _DEBUG
-  CXXFLAGS+= -rdynamic -D_DEBUG=$(_DEBUG)
+  CXXFLAGS+= -D_DEBUG=$(_DEBUG)
 endif
 override CXXFLAGS+= -Wall -fsigned-char -fno-exceptions -fno-rtti
 
