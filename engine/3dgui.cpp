@@ -800,6 +800,64 @@ struct gui : g3d_gui
         return layout(w, FONTH);
     }
 
+    void iconregion_(Texture *t, bool overlaid, int x, int y, int size, bool hit,
+                     float tx, float ty, float tszx, float tszy) {
+        float scale = float(size)/max(t->xs*tszx, t->ys*tszy); //scale and preserve aspect ratio
+        float xs = t->xs*scale*tszy, ys = t->ys*scale*tszx;
+        x += int((size-xs)/2);
+        y += int((size-ys)/2);
+        const vec &color = hit ? vec(1, 0.5f, 0.5f) : (overlaid ? vec(1, 1, 1) : light);
+
+        holdscreenlock;
+        glBindTexture(GL_TEXTURE_2D, t->id);
+        if(hit && actionon)
+        {
+            glColor4f(0, 0, 0, 0.75f);
+            rect_(x+SHADOW, y+SHADOW, xs, ys, 0);
+        }
+
+        glBegin(GL_TRIANGLE_STRIP);
+        glColor3fv(color.v);
+        glTexCoord2f(tx,     ty);     glVertex2f(x,    y);
+        glTexCoord2f(tx+tszx, ty);     glVertex2f(x+xs, y);
+        glTexCoord2f(tx,     ty+tszy); glVertex2f(x,    y+ys);
+        glTexCoord2f(tx+tszx, ty+tszy); glVertex2f(x+xs, y+ys);
+        glEnd();
+        xtraverts += 4;
+    }
+
+    int textwithtextureicon(const char *text, int color, const char *icon,
+                            bool clickable, bool center,
+                            float tx, float ty, float tszx, float tszy)
+    {
+        const int padding = 10;
+        const int iconsize = ICON_SIZE;
+        int w = 0;
+        Texture *t = NULL;
+        if(icon && icon[0] != ' ') {
+            t = textureload(icon, false, true, false);
+        }
+        if(icon) w += iconsize;
+        if(icon && text) w += padding;
+        if(text) w += text_width(text);
+
+        if(visible())
+        {
+            bool hit = ishit(w, FONTH);
+            if(hit && clickable) color = 0xFF0000;
+            int x = curx;
+            if(isvertical() && center) x += (xsize-w)/2;
+
+            if(t) {
+                iconregion_(t, false, x, cury, iconsize, clickable && hit, tx, ty, tszx, tszy);
+                x += iconsize;
+            }
+            if(icon && text) x += padding;
+            if(text) text_(text, x, cury, color, center || (hit && clickable && actionon), hit && clickable);
+        }
+        return layout(w, FONTH);
+    }
+
     static Texture *skintex, *overlaytex, *slidertex;
     static const int skinx[], skiny[];
     static const struct patch { ushort left, right, top, bottom; uchar flags; } patches[];

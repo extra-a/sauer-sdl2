@@ -1,7 +1,6 @@
 // creation of scoreboard
 #include "game.h"
 
-
 namespace game
 {
     extern const char* getcurrentteam();
@@ -523,8 +522,15 @@ namespace game
     } scoreboard;
 
 
+    static void rendericon(g3d_gui &g, int i) {
+        int icons[MAXWEAPONS] = {0, GUN_SG, GUN_CG, GUN_RL, GUN_RIFLE, GUN_GL, GUN_PISTOL};
+        g.textwithtextureicon(NULL, 0, "packages/hud/items.png", false, true,
+                              0.25f*((HICON_FIST+icons[i])%4),
+                              0.25f*((HICON_FIST+icons[i])/4),
+                              0.25f, 0.25f);
+    }
+
     void renderplayerstats(g3d_gui &g, bool firstpass) {
-        const char* weaponnames[] = { "Saw" ,  "Shotgun" , "Chaingun" , "Rocket" , "Rifle" ,  "Grenade" , "Pistol"  };
         g.titlef("Stats for %s(%d)", 0xFFFFFF, NULL,
                  getcurrentplayer()->name, getcurrentplayer()->clientnum);
         g.separator();
@@ -532,25 +538,12 @@ namespace game
         g.pushlist();
 
         g.pushlist();
-        g.text("Weapon", 0xFFFF80);
-        g.strut(10);
+        g.space(1);
+        g.strut(4);
         loopi(MAXWEAPONS) {
-            g.textf("%s", 0xFFFFFF, NULL, weaponnames[i]);
+            rendericon(g, i);
         }
         g.space(1);
-        g.text("Total", 0xFFFF80);
-        g.poplist();
-
-        g.separator();
-
-        g.pushlist();
-        g.text("Dealt", 0xFFFF80);
-        g.strut(6);
-        loopi(MAXWEAPONS) {
-            g.textf("%d", 0xFFFFFF, NULL, getgundamagedealt(i));
-        }
-        g.space(1);
-        g.textf("%d", 0xFFFFFF, NULL, getgundamagedealt(-1));
         g.poplist();
 
         g.space(2);
@@ -565,7 +558,19 @@ namespace game
         g.textf("%.2lf", 0x00C8FF, NULL, getweaponaccuracy(-1));
         g.poplist();
 
-        g.separator();
+        g.space(2);
+
+        g.pushlist();
+        g.text("Dealt", 0xFFFF80);
+        g.strut(6);
+        loopi(MAXWEAPONS) {
+            g.textf("%d", 0xFFFFFF, NULL, getgundamagedealt(i));
+        }
+        g.space(1);
+        g.textf("%d", 0xFFFFFF, NULL, getgundamagedealt(-1));
+        g.poplist();
+
+        g.space(2);
 
         g.pushlist();
         g.text("Taken", 0xFFFF80);
