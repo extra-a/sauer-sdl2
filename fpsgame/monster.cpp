@@ -1,8 +1,6 @@
 // monster.h: implements AI for single player monsters, currently client only
 #include "game.h"
 
-extern int physsteps;
-
 namespace game
 {
     static vector<int> teleports;

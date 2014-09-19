@@ -1,10 +1,6 @@
 #include "game.h"
 #include "extendedscripts.h"
 
-extern float conscale;
-extern bool framehasgui;
-extern void drawacoloredquad(float x, float y, float w, float h,
-                             GLubyte r, GLubyte g, GLubyte b, GLubyte a);
 
 #ifdef WIN32
 #define snprintf _snprintf

@@ -7,6 +7,8 @@ extern int totalmillis;                 // total elapsed time
 extern uint totalsecs;
 extern int gamespeed, paused;
 
+extern int identflags;                  // custom configs
+
 enum
 {
     MATF_INDEX_SHIFT  = 0,
@@ -342,6 +344,7 @@ extern bool loadents(const char *fname, vector<entity> &ents, uint *crc = NULL);
 extern vec collidewall;
 extern bool collideinside;
 extern physent *collideplayer;
+extern int physsteps;
 
 extern void moveplayer(physent *pl, int moveres, bool local);
 extern bool moveplayer(physent *pl, int moveres, bool local, int curtime);
@@ -542,3 +545,9 @@ extern void g3d_cursorpos(float &x, float &y);
 extern void g3d_resetcursor();
 extern void g3d_limitscale(float scale);
 
+// various
+extern void drawacoloredquad(float x, float y, float w, float h,
+                             uchar r, uchar g, uchar b, uchar a);
+extern float conscale;
+extern bool framehasgui;
+extern int fog;

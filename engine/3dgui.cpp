@@ -1374,7 +1374,7 @@ void consolebox(int x1, int y1, int x2, int y2)
 
 
 void drawacoloredquad(float x, float y, float w, float h,
-                      GLubyte r, GLubyte g, GLubyte b, GLubyte a) {
+                      uchar r, uchar g, uchar b, uchar a) {
     holdscreenlock;
 
     glDisable(GL_TEXTURE_2D);

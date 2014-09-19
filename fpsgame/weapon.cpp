@@ -22,69 +22,6 @@ namespace game
 
     ICOMMAND(getweapon, "", (), intret(player1->state==CS_SPECTATOR ? 6 : player1->gunselect));
 
-    fpsent* getcurrentplayer() {
-        if(player1->state==CS_SPECTATOR && followingplayer()) {
-            return followingplayer();
-        }
-        return player1;
-    }
-
-    int getgundamagetotal(int gun, fpsent* f) {
-        fpsent* d = f ? f : getcurrentplayer();
-        if(gun < 0) {
-            int dmg = 0;
-            loopi(MAXWEAPONS) {
-                dmg += d->detaileddamagetotal[i];
-            }
-            return dmg;
-        } else if(gun < MAXWEAPONS) {
-            return d->detaileddamagetotal[gun];
-        }
-        return 0;
-    }
-
-    int getgundamagedealt(int gun, fpsent* f) {
-        fpsent* d = f ? f : getcurrentplayer();
-        if(gun < 0) {
-            int dmg = 0;
-            loopi(MAXWEAPONS) {
-                dmg += d->detaileddamagedealt[i];
-            }
-            return dmg;
-        } else if(gun < MAXWEAPONS) {
-            return d->detaileddamagedealt[gun];
-        }
-        return 0;
-    }
-
-    int getgundamagereceived(int gun, fpsent* f) {
-        fpsent* d = f ? f : getcurrentplayer();
-        if(gun < 0) {
-            int dmg = 0;
-            loopi(MAXWEAPONS) {
-                dmg += d->detaileddamagereceived[i];
-            }
-            return dmg;
-        } else if(gun < MAXWEAPONS) {
-            return d->detaileddamagereceived[gun];
-        }
-        return 0;
-    }
-
-    int getgundamagewasted(int gun, fpsent* f) {
-        return getgundamagetotal(gun, f) - getgundamagedealt(gun, f);
-    }
-
-    int getgunnetdamage(int gun, fpsent* f) {
-        return getgundamagedealt(gun, f) - getgundamagereceived(gun, f);
-    }
-
-    double getweaponaccuracy(int gun, fpsent* f) {
-        double total = max(1.0, (double)getgundamagetotal(gun, f));
-        return (getgundamagedealt(gun, f) / total) * 100;
-    }
-
-
     void gunselect(int gun, fpsent *d)
     {
         if(gun!=d->gunselect)

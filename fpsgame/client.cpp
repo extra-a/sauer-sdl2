@@ -1,7 +1,5 @@
 #include "game.h"
 
-extern int identflags;
-
 namespace game
 {
     extern const char* getcurrentteam();
