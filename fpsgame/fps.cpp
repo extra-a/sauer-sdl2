@@ -1114,7 +1114,8 @@ namespace game
         const int gamemode = game::gamemode;
         const int conw = int(w/conscale), conh = int(h/conscale);
 
-        if(ammobar && !m_edit && !m_insta && d->state!=CS_DEAD &&
+        if(ammobar && !m_edit && !m_insta &&
+           d->state!=CS_DEAD && d->state!=CS_SPECTATOR &&
            !(ammobardisablewithgui && framehasgui)) {
             drawammobar(d, w, h);
         }
