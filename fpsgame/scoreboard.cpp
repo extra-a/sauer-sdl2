@@ -561,7 +561,7 @@ namespace game
         g.space(2);
 
         g.pushlist();
-        g.text("Dealt", 0xFFFF80);
+        g.text("Dmg", 0xFFFF80);
         g.strut(6);
         loopi(MAXWEAPONS) {
             g.textf("%d", 0xFFFFFF, NULL, getgundamagedealt(i));
