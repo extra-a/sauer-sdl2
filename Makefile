@@ -1,4 +1,7 @@
-CXXFLAGS= -O3 -fomit-frame-pointer -ffast-math -rdynamic
+CXXFLAGS= -O3 -fomit-frame-pointer -ffast-math
+ifdef _DEBUG
+  CXXFLAGS+= -rdynamic -D_DEBUG=$(_DEBUG)
+endif
 override CXXFLAGS+= -Wall -fsigned-char -fno-exceptions -fno-rtti
 
 PLATFORM= $(shell uname -s | tr '[:lower:]' '[:upper:]')

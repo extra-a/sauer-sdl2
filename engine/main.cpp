@@ -35,8 +35,7 @@ void quit()                     // normal exit
     exit(EXIT_SUCCESS);
 }
 
-#ifdef __GNUC__
-
+#if !defined(WIN32) && defined(_DEBUG) && defined(__GNUC__)
 #include <stdio.h>
 #include <execinfo.h>
 #include <signal.h>
@@ -569,11 +568,7 @@ void setfullscreen(bool enable)
     }
 }
 
-#ifdef _DEBUG
-VARF(fullscreen, 0, 0, 1, setfullscreen(fullscreen!=0));
-#else
 VARF(fullscreen, 0, 1, 1, setfullscreen(fullscreen!=0));
-#endif
 
 void screenres(int w, int h)
 {
@@ -1009,10 +1004,6 @@ void swapbuffers(bool overlay)
 VAR(menufps, 0, 60, 1000);
 VARP(maxfps, 0, 200, 1000);
 
-#ifdef __APPLE__
-#define main SDL_main
-#endif
-
 
 void limitfps(int &millis, int curmillis)
 {
@@ -1146,27 +1137,20 @@ int getclockmillis()
 
 VAR(numcpus, 1, 1, 16);
 
-#ifdef __APPLE__
-#define main SDL_main
-#endif
 
 int main(int argc, char **argv)
 {
-    #ifdef WIN32
-    //atexit((void (__cdecl *)(void))_CrtDumpMemoryLeaks);
-    #ifndef _DEBUG
-    #ifndef __GNUC__
+    #if defined(WIN32) && !defined(_DEBUG) && !defined(__GNUC__)
+    atexit((void (__cdecl *)(void))_CrtDumpMemoryLeaks);
     __try {
     #endif
-    #endif
-    #endif
 
-#ifdef __GNUC__
+    #if !defined(WIN32) && defined(_DEBUG) && defined(__GNUC__)
     signal(SIGFPE, handler);
     signal(SIGSEGV, handler);
     signal(SIGBUS, handler);
     signal(SIGABRT, handler);
-#endif
+    #endif
 
     setlogfile(NULL);
 
@@ -1249,12 +1233,7 @@ int main(int argc, char **argv)
     {
         logoutf("init: sdl");
 
-        int par = 0;
-        #ifdef _DEBUG
-        par = SDL_INIT_NOPARACHUTE;
-        #endif
-
-        if(SDL_Init(SDL_INIT_TIMER|SDL_INIT_VIDEO|SDL_INIT_AUDIO|par)<0) fatal("Unable to initialize SDL: %s", SDL_GetError());
+        if(SDL_Init(SDL_INIT_TIMER|SDL_INIT_VIDEO|SDL_INIT_AUDIO)<0) fatal("Unable to initialize SDL: %s", SDL_GetError());
 
         SDL_version compiled;
         SDL_version linked;
