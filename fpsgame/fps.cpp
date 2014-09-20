@@ -21,6 +21,8 @@ namespace game
 
     bool clientoption(const char *arg) { return false; }
 
+    const float staticscale = 0.33;
+
     VARP(hudscores, 0, 0, 1);
     XIDENTHOOK(hudscores, IDF_EXTENDED);
 
@@ -885,23 +887,23 @@ namespace game
     void drawammobar(fpsent *d, int w, int h) {
         if(!d) return;
         #define NWEAPONS 6
-        int conw = int(w/conscale), conh = int(h/conscale);
+        float conw = w/staticscale, conh = h/staticscale;
 
         int icons[NWEAPONS] = {GUN_SG, GUN_CG, GUN_RL, GUN_RIFLE, GUN_GL, GUN_PISTOL};
 
         int r = 255, g = 255, b = 255, a = 255;
         char buff[10];
-        float ammobarscale = 1 + ammobarsize/10.0;
+        float ammobarscale = (1 + ammobarsize/10.0)*h/1080.0;
         float xoff = ammobaroffset_x*conw/1000;
         float yoff = ammobaroffset_y*conh/1000;
-        int vsep = 10*ammobarscale*conscale;
-        int hsep = 60*ammobarscale*conscale;
-        int textsep = 20*ammobarscale*conscale;
+        float vsep = 10*ammobarscale*staticscale;
+        float hsep = 60*ammobarscale*staticscale;
+        float textsep = 20*ammobarscale*staticscale;
         int tw, th, pw, ph, textw;
 
         holdscreenlock;
         glPushMatrix();
-        glScalef(conscale*ammobarscale, conscale*ammobarscale, 1);
+        glScalef(staticscale*ammobarscale, staticscale*ammobarscale, 1);
 
         for(int i = 0, xpos = 0, ypos = 0; i < NWEAPONS; i++) {
             snprintf(buff, 10, "%d", d->ammo[i+1]);
@@ -1112,7 +1114,8 @@ namespace game
         glPopMatrix();
 
         const int gamemode = game::gamemode;
-        const int conw = int(w/conscale), conh = int(h/conscale);
+        const float staticscale = 0.33;
+        const int conw = int(w/staticscale), conh = int(h/staticscale);
 
         if(ammobar && !m_edit && !m_insta &&
            d->state!=CS_DEAD && d->state!=CS_SPECTATOR &&
@@ -1121,25 +1124,25 @@ namespace game
         }
 
         if(gameclock && !m_edit && !(gameclockdisablewithgui && framehasgui)) {
-            static char buf[16];
-            const int millis = max(game::maplimit-lastmillis, 0);
+            char buf[10];
+            int millis = max(game::maplimit-lastmillis, 0);
             int secs = millis/1000;
             int mins = secs/60;
             secs %= 60;
-            sprintf(buf, "%d:%02d", mins, secs);
+            snprintf(buf, 10, "%d:%02d", mins, secs);
 
             int r = gameclockcolor_r,
                 g = gameclockcolor_g,
                 b = gameclockcolor_b,
                 a = gameclockcolor_a;
 
-            const float gameclockscale = 1 + gameclocksize/10.0;
-            const bool radar = (m_ctf || m_capture);
-            const float xoff = ((radar ? gameclockoffset_x_withradar : gameclockoffset_x)*conw/1000);
-            const float yoff = ((radar ? gameclockoffset_y_withradar : gameclockoffset_y)*conh/1000);
+            float gameclockscale = (1 + gameclocksize/10.0)*h/1080.0;
+            bool radar = (m_ctf || m_capture);
+            float xoff = ((radar ? gameclockoffset_x_withradar : gameclockoffset_x)*conw/1000);
+            float yoff = ((radar ? gameclockoffset_y_withradar : gameclockoffset_y)*conh/1000);
 
             glPushMatrix();
-            glScalef(conscale*gameclockscale, conscale*gameclockscale, 1);
+            glScalef(staticscale*gameclockscale, staticscale*gameclockscale, 1);
             draw_text(buf,
                       xoff/gameclockscale,
                       yoff/gameclockscale,
@@ -1156,10 +1159,10 @@ namespace game
             if(m_teammode) { grsz = groupplayers(); bestgroups = getscoregroups(); }
             else { getbestplayers(bestplayers,1); grsz = bestplayers.length(); }
 
-            const float scorescale = 1 + hudscoressize/10.0;
-            const bool radar = (m_ctf || m_capture);
-            const float xoff = ((radar ? hudscoresoffset_x_withradar : hudscoresoffset_x)*conw/1000);
-            const float yoff = ((radar ? hudscoresoffset_y_withradar : hudscoresoffset_y)*conh/1000);
+            float scorescale = (1 + hudscoressize/10.0)*h/1080.0;
+            bool radar = (m_ctf || m_capture);
+            float xoff = ((radar ? hudscoresoffset_x_withradar : hudscoresoffset_x)*conw/1000);
+            float yoff = ((radar ? hudscoresoffset_y_withradar : hudscoresoffset_y)*conh/1000);
             int r1 = hudscoresplayercolor_r,
                 g1 = hudscoresplayercolor_g,
                 b1 = hudscoresplayercolor_b,
@@ -1170,7 +1173,7 @@ namespace game
                 b2 = hudscoresenemycolor_b,
                 a2 = hudscoresenemycolor_a;
 
-            int scoresep = 40*scorescale*conscale;
+            int scoresep = 40*scorescale*staticscale;
 
             if(grsz) {
                 char buff[10];
@@ -1182,7 +1185,7 @@ namespace game
                 else isbest = currentplayer == bestplayers[0];
 
                 glPushMatrix();
-                glScalef(conscale*scorescale, conscale*scorescale, 1);
+                glScalef(staticscale*scorescale, staticscale*scorescale, 1);
 
                 if(isbest) {
                     int frags=0;
