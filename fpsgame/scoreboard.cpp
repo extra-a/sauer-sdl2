@@ -632,8 +632,8 @@ namespace game
 
     void g3d_gamemenus()
     {
-        scoreboard.render();
         playerstats.render();
+        scoreboard.render();
     }
 
     // scoreboard
