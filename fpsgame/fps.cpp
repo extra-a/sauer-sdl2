@@ -38,7 +38,7 @@ namespace game
     VARP(hudscoresoffset_y, 0, 55, 1000);
     XIDENTHOOK(hudscoresoffset_y, IDF_EXTENDED);
 
-    VARP(hudscoresoffset_x_withradar, 0, 765, 1000);
+    VARP(hudscoresoffset_x_withradar, 0, 750, 1000);
     XIDENTHOOK(hudscoresoffset_x_withradar, IDF_EXTENDED);
 
     VARP(hudscoresoffset_y_withradar, 0, 55, 1000);
@@ -1059,7 +1059,7 @@ namespace game
     XIDENTHOOK(gameclockoffset_x, IDF_EXTENDED);
     VARP(gameclockoffset_y, 0, 5, 1000);
     XIDENTHOOK(gameclockoffset_y, IDF_EXTENDED);
-    VARP(gameclockoffset_x_withradar, 0, 765, 1000);
+    VARP(gameclockoffset_x_withradar, 0, 750, 1000);
     XIDENTHOOK(gameclockoffset_x_withradar, IDF_EXTENDED);
     VARP(gameclockoffset_y_withradar, 0, 5, 1000);
     XIDENTHOOK(gameclockoffset_y_withradar, IDF_EXTENDED);

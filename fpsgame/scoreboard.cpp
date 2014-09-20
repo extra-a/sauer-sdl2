@@ -82,11 +82,11 @@ namespace game
     VARP(showflags, 0, 0, 1);
     XIDENTHOOK(showflags, IDF_EXTENDED);
 
-    VARP(showdamagedealt, 0, 1, 1);
+    VARP(showdamagedealt, 0, 0, 1);
     XIDENTHOOK(showdamagedealt, IDF_EXTENDED);
-    VARP(shownetdamage, 0, 1, 1);
+    VARP(shownetdamage, 0, 0, 1);
     XIDENTHOOK(shownetdamage, IDF_EXTENDED);
-    VARP(showacc, 0, 1, 1);
+    VARP(showacc, 0, 0, 1);
     XIDENTHOOK(showacc, IDF_EXTENDED);
 
 
