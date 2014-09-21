@@ -3,6 +3,10 @@
 
 #include "cube.h"
 
+#ifdef WIN32
+#define snprintf _snprintf
+#endif
+
 // console message types
 
 enum
