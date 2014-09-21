@@ -17,12 +17,22 @@ const char *extended_settings_gui =
     "guislider smokefps\n"
 
     "guitab \"Scoreboard\"\n"
-    "guicheckbox \"Show frags in all modes\" showfrags\n"
     "guicheckbox \"Show flags scored\" showflags\n"
+    "guilist [\n"
+    "guicheckbox \"Show frags in all modes\" showfrags\n"
+    "guibar\n"
+    "guicheckbox \"Show net in frags field\" shownetfrags\n"
+    "guibar\n"
+    "guicheckbox \"Net colors\" netfragscolors\n"
+    "]\n"
+    "guilist [\n"
     "guicheckbox \"Show damage dealt\" showdamagedealt\n"
-    "guicheckbox \"Show net damage\" shownetdamage\n"
+    "guibar\n"
+    "guicheckbox \"Show net in damage field\" shownetdamage\n"
+    "guibar\n"
+    "guicheckbox \"Net colors\" netdamagecolors\n"
+    "]\n"
     "guicheckbox \"Show accuracy\" showacc\n"
-
 
     "guitab \"Clock\"\n"
 

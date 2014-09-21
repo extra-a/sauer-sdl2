@@ -84,13 +84,18 @@ namespace game
 
     VARP(shownetfrags, 0, 0, 1);
     XIDENTHOOK(shownetfrags, IDF_EXTENDED);
+    VARP(netfragscolors, 0, 0, 1);
+    XIDENTHOOK(netfragscolors, IDF_EXTENDED);
+
     VARP(showdamagedealt, 0, 0, 1);
     XIDENTHOOK(showdamagedealt, IDF_EXTENDED);
     VARP(shownetdamage, 0, 0, 1);
     XIDENTHOOK(shownetdamage, IDF_EXTENDED);
+    VARP(netdamagecolors, 0, 0, 1);
+    XIDENTHOOK(netdamagecolors, IDF_EXTENDED);
+
     VARP(showacc, 0, 0, 1);
     XIDENTHOOK(showacc, IDF_EXTENDED);
-
 
     static hashset<teaminfo> teaminfos;
 
@@ -215,6 +220,47 @@ namespace game
         return numgroups;
     }
 
+    void formatdmg(char* buff, int bufflen, int d) {
+        if(abs(d) < 1000) {
+            snprintf(buff, bufflen, "%d", d);
+        } else {
+            snprintf(buff, bufflen, "%d.%dk", d/1000, abs((d%1000)/100));
+        }
+    }
+
+    void getcolor(int val, int &color) {
+        if(val>=0) {
+            color = 0x00FF00;
+        } else {
+            color = 0xFF0000;
+        }
+    }
+
+    void fragwrapper(g3d_gui &g, int frags, int deaths) {
+        g.pushlist();
+        g.textf("%d", 0xFFFFDD, NULL, frags);
+        int net = frags-deaths, c = 0xFFFFDD;
+        if(netfragscolors) getcolor(net, c);
+        g.textf(":", 0x888888, NULL);
+        g.textf("%d", c, NULL, net);
+        g.poplist();
+    }
+
+    void dmgwrapper(g3d_gui &g, int dealt, int net) {
+        char buff[10];
+        g.pushlist();
+        formatdmg(buff, 10, dealt);
+        g.textf("%s", 0xFFFFDD, NULL, buff);
+        if(shownetdamage) {
+            int c = 0xFFFFDD;
+            if(netdamagecolors) getcolor(net, c);
+            g.textf(":", 0x888888, NULL);
+            formatdmg(buff, 10, net);
+            g.textf("%s", c, NULL, buff);
+        }
+        g.poplist();
+    }
+
     void renderscoreboard(g3d_gui &g, bool firstpass)
     {
         const ENetAddress *address = connectedpeer();
@@ -320,18 +366,13 @@ namespace game
             if(!cmode || !cmode->hidefrags() || showfrags)
             { 
                 g.pushlist();
-                g.strut(5);
+                g.strut(shownetfrags ? 7 : 5);
                 g.text("frags", fgcolor);
-                loopscoregroup(o, g.textf("%d", 0xFFFFDD, NULL, o->frags));
-                g.poplist();
-            }
-
-            if(!cmode || !cmode->hidefrags() || showfrags)
-            { 
-                g.pushlist();
-                g.strut(6);
-                g.text("deaths", fgcolor);
-                loopscoregroup(o, g.textf("%d", 0xFFFFDD, NULL, o->deaths));
+                if(shownetfrags) {
+                    loopscoregroup(o, fragwrapper(g, o->frags, o->deaths));
+                } else {
+                    loopscoregroup(o, g.textf("%d", 0xFFFFDD, NULL, o->frags));
+                }
                 g.poplist();
             }
 
@@ -353,18 +394,9 @@ namespace game
             if(showdamagedealt)
             {
                 g.pushlist();
-                g.strut(6);
+                g.strut(shownetdamage ? 10 : 6);
                 g.text("dmg", fgcolor);
-                loopscoregroup(o, g.textf("%d", 0xFFFFDD, NULL, getgundamagedealt(-1,o)));
-                g.poplist();
-            }
-
-            if(shownetdamage)
-            {
-                g.pushlist();
-                g.strut(6);
-                g.text("net", fgcolor);
-                loopscoregroup(o, g.textf("%d", 0xFFFFDD, NULL, getgunnetdamage(-1,o)));
+                loopscoregroup(o, dmgwrapper(g, getgundamagedealt(-1,o), getgunnetdamage(-1,o)));
                 g.poplist();
             }
 
@@ -598,14 +630,15 @@ namespace game
         g.pushlist();
         g.text("Net", 0xFFFF80);
         g.strut(6);
-        int net = 0;
+        int net = 0, color = 0;
         loopi(MAXWEAPONS) {
             net = getgunnetdamage(i);
             g.textf("%d", 0xFFFFFF, NULL, net);
         }
         net = getgunnetdamage(-1);
+        getcolor(net, color);
         g.space(1);
-        g.textf("%d", net >= 0 ? 0x00FF00 : 0xFF0000, NULL, net);
+        g.textf("%d", color, NULL, net);
         g.poplist();
 
         g.poplist();
