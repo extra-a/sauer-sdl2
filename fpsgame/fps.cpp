@@ -290,6 +290,7 @@ namespace game
         }
     }
 
+    extern void checkextinfos();
     void updateworld()        // main game update loop
     {
         if(!maptime) { maptime = lastmillis; maprealtime = totalmillis; return; }
@@ -331,6 +332,7 @@ namespace game
             else if(cmode) cmode->checkitems(player1);
         }
         if(player1->clientnum>=0) c2sinfo();   // do this last, to reduce the effective frame lag
+        checkextinfos();
     }
 
     void spawnplayer(fpsent *d)   // place at random spawn

@@ -529,8 +529,44 @@ struct fpsstate
     }
 };
 
-#define MAXWEAPONS 7
+#define MAXEXTRETRIES 2
+#define EXTRETRIESINT 1000
+struct extplayerinfo
+{
+    bool finished;
+    int lastattempt;
+    int attempts;
+    extplayerinfo() {
+        finished = false;
+        attempts = 0;
+        lastattempt = totalmillis;
+    }
+    void resetextdata() {
+        finished = false;
+        attempts = 0;
+        lastattempt = totalmillis;
+    }
+    void setextplayerinfo() {
+        finished = true;
+    }
+    void addattempt() {
+        attempts++;
+        lastattempt = totalmillis;
+    }
+    bool needretry() {
+        return !finished && lastattempt + EXTRETRIESINT < totalmillis && attempts <= MAXEXTRETRIES;
+    }
+    bool isset() {
+        return finished || attempts > MAXEXTRETRIES;
+    }
+    int getextplayerinfo() {
+        if(!finished) return -1;
+        if(attempts > MAXEXTRETRIES) return -2;
+        return 0;
+    }
+};
 
+#define MAXWEAPONS 7
 struct fpsent : dynent, fpsstate
 {
     int weight;                         // affects the effectiveness of hitpush
@@ -548,6 +584,7 @@ struct fpsent : dynent, fpsstate
     int detaileddamagedealt[MAXWEAPONS];
     int detaileddamagetotal[MAXWEAPONS];
     int detaileddamagereceived[MAXWEAPONS];
+    struct extplayerinfo extdata;
     editinfo *edit;
     float deltayaw, deltapitch, deltaroll, newyaw, newpitch, newroll;
     int smoothmillis;

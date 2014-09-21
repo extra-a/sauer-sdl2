@@ -82,6 +82,8 @@ namespace game
     VARP(showflags, 0, 0, 1);
     XIDENTHOOK(showflags, IDF_EXTENDED);
 
+    VARP(shownetfrags, 0, 0, 1);
+    XIDENTHOOK(shownetfrags, IDF_EXTENDED);
     VARP(showdamagedealt, 0, 0, 1);
     XIDENTHOOK(showdamagedealt, IDF_EXTENDED);
     VARP(shownetdamage, 0, 0, 1);
@@ -321,6 +323,15 @@ namespace game
                 g.strut(5);
                 g.text("frags", fgcolor);
                 loopscoregroup(o, g.textf("%d", 0xFFFFDD, NULL, o->frags));
+                g.poplist();
+            }
+
+            if(!cmode || !cmode->hidefrags() || showfrags)
+            { 
+                g.pushlist();
+                g.strut(6);
+                g.text("deaths", fgcolor);
+                loopscoregroup(o, g.textf("%d", 0xFFFFDD, NULL, o->deaths));
                 g.poplist();
             }
 

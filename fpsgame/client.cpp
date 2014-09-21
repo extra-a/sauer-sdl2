@@ -1,7 +1,124 @@
 #include "game.h"
 
+#define EXT_ACK                         -1
+#define EXT_PLAYERSTATS_RESP_STATS      -11
+#define EXT_PLAYERSTATS                 1
+#define EXT_VERSION                     105
+
 namespace game
 {
+    ENetSocket extinfosock = ENET_SOCKET_NULL;
+
+    ENetSocket getextsock()
+    {
+        if(extinfosock != ENET_SOCKET_NULL) return extinfosock;
+        extinfosock = enet_socket_create(ENET_SOCKET_TYPE_DATAGRAM);
+        enet_socket_set_option(extinfosock, ENET_SOCKOPT_NONBLOCK, 1);
+        enet_socket_set_option(extinfosock, ENET_SOCKOPT_BROADCAST, 1);
+        return extinfosock;
+    }
+
+    void requestextinfo(int cn)
+    {
+        const ENetAddress *paddress = connectedpeer();
+        if(!paddress) return;
+        ENetAddress address = *paddress;
+        ENetSocket extsock = getextsock();
+        if(extsock == ENET_SOCKET_NULL) return;
+        address.port = address.port+1;
+        ENetBuffer buf;
+        uchar send[MAXTRANS];
+        ucharbuf p(send, MAXTRANS);
+        putint(p, 0);
+        putint(p, EXT_PLAYERSTATS);
+        putint(p, cn);
+        buf.data = send;
+        buf.dataLength = p.length();
+        enet_socket_send(extsock, &address, &buf, 1);
+    }
+
+    // EXT_VERSION 105
+    int extinfoparser(ucharbuf p, int &cn, int &deaths)
+    {
+        char strdata[MAXTRANS];
+
+        // original ext data send
+        if(getint(p) != 0 || getint(p) != EXT_PLAYERSTATS) return -1;
+        getint(p); // original cn or -1
+
+        // ack and version
+        if(getint(p) != EXT_ACK || getint(p) != EXT_VERSION) return -2;
+
+        getint(p); // reply separator and header
+        if(getint(p) != EXT_PLAYERSTATS_RESP_STATS) return -3;
+
+        // actual player data
+        cn = getint(p); // cn
+        getint(p); // ping
+        getstring(strdata, p); // name
+        getstring(strdata, p); // team
+        getint(p); // frags
+        getint(p); // flags
+        deaths = getint(p); // deaths
+        getint(p); // teamkills
+        getint(p); // acc
+        getint(p); // health
+        getint(p); // armour
+        getint(p); // gunselect
+        getint(p); // privilege
+        getint(p); // state
+        return 0;
+    }
+
+    void processextinfo()
+    {
+        const ENetAddress *paddress = connectedpeer();
+        if(!paddress) return;
+        ENetAddress connectedaddress = *paddress;
+        if(extinfosock == ENET_SOCKET_NULL) return;
+        enet_uint32 events = ENET_SOCKET_WAIT_RECEIVE;
+        int s = 0;
+        ENetBuffer buf;
+        ENetAddress address;
+        uchar data[MAXTRANS];
+        buf.data = data;
+        buf.dataLength = sizeof(data);
+        while((s = enet_socket_wait(extinfosock, &events, 0)) >= 0 && events) {
+            int len = enet_socket_receive(extinfosock, &address, &buf, 1);
+            if(len <= 0 || connectedaddress.host != address.host ||
+               connectedaddress.port+1 != address.port) continue;
+            ucharbuf p(data, len);
+            int deaths, cn;
+            if(!extinfoparser(p, cn, deaths)) {
+                fpsent *d = getclient(cn);
+                if(!d || d->extdata.isset()) continue;
+                d->extdata.setextplayerinfo();
+                d->deaths = deaths;
+            }
+        }
+    }
+
+    extern vector<fpsent *> clients;
+    void checkextinfos()
+    {
+        const ENetAddress *paddress = connectedpeer();
+        if(!paddress) return;
+        processextinfo();
+        loopv(clients) {
+            fpsent * d = clients[i];
+            if(!d) continue;
+            if(d->extdata.needretry()) {
+                d->extdata.addattempt();
+                requestextinfo(d->clientnum);
+            }
+        }
+        if(player1->extdata.needretry()) {
+            player1->extdata.addattempt();
+            requestextinfo(player1->clientnum);
+        }
+    }
+    
+
     extern const char* getcurrentteam();
 
     VARP(minradarscale, 0, 384, 10000);
@@ -881,6 +998,7 @@ namespace game
         player1->lifesequence = 0;
         player1->state = CS_ALIVE;
         player1->privilege = PRIV_NONE;
+        player1->extdata.resetextdata();
         sendcrc = senditemstoserver = false;
         demoplayback = false;
         gamepaused = false;
@@ -1223,6 +1341,7 @@ namespace game
     }
 
     extern int deathscore;
+    extern int shownetfrags;
 
     bool isdamgeignored(fpsent *f1, fpsent *f2) {
         if(!f1 || !f2) return true;
@@ -1287,6 +1406,7 @@ namespace game
             {
                 connected = true;
                 notifywelcome();
+                requestextinfo(-1);
                 break;
             }
 
@@ -1418,6 +1538,7 @@ namespace game
                 getstring(text, p);
                 filtertext(d->team, text, false, MAXTEAMLEN);
                 d->playermodel = getint(p);
+                requestextinfo(cn);
                 break;
             }
 
@@ -1561,6 +1682,7 @@ namespace game
                     particle_textcopy(actor->abovehead(), ds, PART_TEXT, 2000, 0x32FF64, 4.0f, -8);
                 }
                 if(!victim) break;
+                if(victim!=player1) victim->deaths+=1;
                 killed(victim, actor);
                 break;
             }
