@@ -901,6 +901,7 @@ namespace game
         float xoff = ammobaroffset_x*conw/1000;
         float yoff = ammobaroffset_y*conh/1000;
         float vsep = 10*ammobarscale*staticscale;
+        float vgap = 10*ammobarscale*staticscale;
         float hsep = 60*ammobarscale*staticscale;
         float textsep = 20*ammobarscale*staticscale;
         int tw, th, pw, ph, textw;
@@ -928,7 +929,7 @@ namespace game
                 xpos += th + textw + textsep + hsep;
             } else {
                 draw_text(buff, xoff/ammobarscale + xpos + th + textsep, yoff/ammobarscale + ypos, r, g, b, a);
-                ypos += th + vsep;
+                ypos += th + vsep + vgap;
             }
         }
         glPopMatrix();
