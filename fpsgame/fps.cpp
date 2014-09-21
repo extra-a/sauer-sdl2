@@ -859,7 +859,9 @@ namespace game
 
     void getammocolor(fpsent *d, int gun, int &r, int &g, int &b, int &a) {
         if(!d) return;
-        if(gun == 2 || gun == 6) {
+        if(gun == 0) {
+            r = 255, g = 255, b = 255, a = 255;
+        } else if(gun == 2 || gun == 6) {
             if(d->ammo[gun] > 10) {
                 r = 255, g = 255, b = 255, a = 255;
             } else if(d->ammo[gun] > 5) {
