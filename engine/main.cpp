@@ -1098,15 +1098,15 @@ void getfps(int &fps, int &bestdiff, int &worstdiff)
         if(millis < best) best = millis;
         if(millis > worst) worst = millis;
     }
-    fps = (1000*MAXFPSHISTORY)/total;
-    bestdiff = 1000/best-fps;
-    worstdiff = fps-1000/worst;
+    fps = (1000*MAXFPSHISTORY)/max(1, total);
+    bestdiff = 1000/max(1, best) - fps;
+    worstdiff = fps - 1000/max(1, worst);
 }
 
 void getfps_(int *raw)
 {
     int fps, bestdiff, worstdiff;
-    if(*raw) fps = 1000/fpshistory[(fpspos+MAXFPSHISTORY-1)%MAXFPSHISTORY];
+    if(*raw) fps = 1000/max(1, fpshistory[(fpspos+MAXFPSHISTORY-1)%MAXFPSHISTORY]);
     else getfps(fps, bestdiff, worstdiff);
     intret(fps);
 }
@@ -1350,6 +1350,7 @@ int main(int argc, char **argv)
     logoutf("init: mainloop");
 
     initmumble();
+    resetfpshistory();
 
     inputgrab(grabinput = true);
     ignoremousemotion();
