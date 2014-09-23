@@ -5,6 +5,11 @@
 #define EXT_PLAYERSTATS                 1
 #define EXT_VERSION                     105
 
+namespace server
+{
+    extern string smapname;
+}
+
 namespace game
 {
     ENetSocket extinfosock = ENET_SOCKET_NULL;
@@ -117,7 +122,43 @@ namespace game
             requestextinfo(player1->clientnum);
         }
     }
-    
+
+    int seekmillispos = -1;
+    bool demoseekmode = false;
+
+    extern int gamespeed;
+    extern void changegamespeed(int val);
+    extern void pausegame(bool val);
+    extern void changemap(const char *name, int mode);
+
+    void demoseek(int min, int sec) {
+        pausegame(false);
+        if( !demoplayback || min < 0 || sec < 0 ) return;
+        int currentmillis = max(maplimit-lastmillis, 0);
+        seekmillispos = (min*60 + sec)*1000;
+        if(seekmillispos > currentmillis) {
+            string s;
+            copystring(s, server::smapname);
+            stopdemo();
+            changemap(s);
+        }
+        game::demoseekmode = true;
+        changegamespeed(10000);
+    }
+
+    void checkseek() {
+        if(demoseekmode) {
+            int currentmillis = max(maplimit-lastmillis, 0);
+            if(currentmillis <= seekmillispos || !demoplayback || seekmillispos < 0) {
+                seekmillispos = -1;
+                demoseekmode=false;
+                changegamespeed(100);
+                pausegame(true);
+            }
+        }
+    }
+
+    ICOMMAND(demoseek, "ii", (int *min, int *sec), demoseek(*min, *sec));
 
     extern const char* getcurrentteam();
 
@@ -1427,7 +1468,7 @@ namespace game
 
             case N_GAMESPEED:
             {
-                int val = clamp(getint(p), 10, 1000), cn = getint(p);
+                int val = clamp(getint(p), 10, demoseekmode ? 10000 : 1000), cn = getint(p);
                 fpsent *a = cn >= 0 ? getclient(cn) : NULL;
                 if(!demopacket) gamespeed = val;
                 extern int slowmosp;

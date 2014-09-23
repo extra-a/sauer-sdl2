@@ -11,7 +11,11 @@ namespace game
             if(!server::serveroption(args[i]))
                 conoutf(CON_ERROR, "unknown command-line option: %s", args[i]);
     }
-
+#ifdef STANDALONE
+    bool demoseekmode = false;
+#else
+    extern bool demoseekmode;
+#endif
     const char *gameident() { return "fps"; }
 }
 
@@ -1275,7 +1279,7 @@ namespace server
 
     void changegamespeed(int val, clientinfo *ci = NULL)
     {
-        val = clamp(val, 10, 1000);
+        val = clamp(val, 10, game::demoseekmode ? 10000 : 1000);
         if(gamespeed==val) return;
         gamespeed = val;
         sendf(-1, 1, "riii", N_GAMESPEED, gamespeed, ci ? ci->clientnum : -1);

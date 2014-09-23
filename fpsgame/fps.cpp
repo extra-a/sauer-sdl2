@@ -284,7 +284,7 @@ namespace game
             player1->health++;
         }
     }
-
+    extern void checkseek();
     extern void checkextinfos();
     void updateworld()        // main game update loop
     {
@@ -328,6 +328,7 @@ namespace game
         }
         if(player1->clientnum>=0) c2sinfo();   // do this last, to reduce the effective frame lag
         checkextinfos();
+        checkseek();
     }
 
     void spawnplayer(fpsent *d)   // place at random spawn
