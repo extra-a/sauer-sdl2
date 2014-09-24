@@ -1355,7 +1355,7 @@ int main(int argc, char **argv)
     inputgrab(grabinput = true);
     ignoremousemotion();
 
-    conoutf(stringify_macro(\f0Sauerbraten SDL2 Client\f2 v0.8));
+    conoutf(stringify_macro(\f0Sauerbraten SDL2 Client\f2 v0.9));
 
     for(;;)
     {
