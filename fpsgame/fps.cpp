@@ -284,6 +284,95 @@ namespace game
             player1->health++;
         }
     }
+
+    extern int getgundamagetotal(int gun, fpsent* f);
+    extern double getweaponaccuracy(int gun, fpsent* f);
+    extern int getgundamagedealt(int gun, fpsent* f);
+    extern int getgundamagereceived(int gun, fpsent* f);
+    extern int getgunnetdamage(int gun, fpsent* f);
+
+    void printplayerstats(fpsent *d) {
+        #define ROWS 7
+        #define BLEN 100
+        const char* weapname[] = {"SAW", "SG", "CG", "RL", "RF", "GL", "PI"};
+        char buff[BLEN];
+        char *ppos = buff;
+        if(!d) return;
+        if(getgundamagetotal(-1, d) == 0) return;
+        printf("---------------------\n");
+        if(d->team && strlen(d->team)) {
+            logoutf("%s(%d): flags %d frags %d net %d (team: %s)\n", d->name, d->clientnum, d->flags, d->frags, d->frags - d->deaths, d->team);
+        } else {
+            logoutf("%s(%d): flags %d frags %d net %d\n", d->name, d->clientnum, d->flags, d->frags, d->frags - d->deaths);
+        }
+
+        ppos = buff;
+        snprintf(ppos, BLEN, "%-10s","weapon");
+        loopi(ROWS) {
+            ppos+=10;
+            snprintf(ppos, BLEN, "%-10s", weapname[i]);
+        }
+        ppos+=10;
+        snprintf(ppos, BLEN, "%-10s","total");
+        logoutf("%s", buff);
+
+        ppos = buff;
+        snprintf(ppos, BLEN, "%-10s", "accuracy");
+        loopi(ROWS) {
+            ppos+=10;
+            snprintf(ppos, BLEN,"%-10.2lf", getweaponaccuracy(i, d));
+        }
+        ppos+=10;
+        snprintf(ppos, BLEN, "%-10.2lf", getweaponaccuracy(-1, d));
+        logoutf("%s", buff);
+
+        ppos = buff;
+        snprintf(ppos, BLEN, "%-10s", "damage");
+        loopi(ROWS) {
+            ppos+=10;
+            snprintf(ppos, BLEN, "%-10d", getgundamagedealt(i, d));
+        }
+        ppos+=10;
+        snprintf(ppos, BLEN, "%-10d", getgundamagedealt(-1, d));
+        logoutf("%s", buff);
+
+        ppos = buff;
+        snprintf(ppos, BLEN, "%-10s", "taken");
+        loopi(ROWS) {
+            ppos+=10;
+            snprintf(ppos, BLEN, "%-10d", getgundamagereceived(i, d));
+        }
+        ppos+=10;
+        snprintf(ppos, BLEN, "%-10d", getgundamagereceived(-1, d));
+        logoutf("%s", buff);
+
+        ppos = buff;
+        snprintf(ppos, BLEN, "%-10s", "net");
+        loopi(ROWS) {
+            ppos+=10;
+            snprintf(ppos, BLEN, "%-10d", getgunnetdamage(i, d));
+        }
+        ppos+=10;
+        snprintf(ppos, BLEN, "%-10d", getgunnetdamage(-1, d));
+        logoutf("%s", buff);
+
+        #undef BLEN
+        #undef ROWS
+    }
+
+    void dumpstats() {
+        loopv(clients) {
+            fpsent *d = clients[i];
+            printplayerstats(d);
+        }
+        printplayerstats(player1);
+        printf("---------------------\n");
+    }
+
+    VARP(dumpstatsongameend, 0, 0, 1);
+    XIDENTHOOK(dumpstatsongameend, IDF_EXTENDED);
+    ICOMMAND(dumpstats, "", (), dumpstats());
+
     extern void checkseek();
     extern void checkextinfos();
     void updateworld()        // main game update loop
@@ -506,6 +595,7 @@ namespace game
             player1->attacking = false;
             if(cmode) cmode->gameover();
             conoutf(CON_GAMEINFO, "\f2intermission:");
+            if(dumpstatsongameend) dumpstats();
             conoutf(CON_GAMEINFO, "\f2game has ended!");
             if(m_ctf) conoutf(CON_GAMEINFO, "\f2player frags: %d, flags: %d, deaths: %d", player1->frags, player1->flags, player1->deaths);
             else if(m_collect) conoutf(CON_GAMEINFO, "\f2player frags: %d, skulls: %d, deaths: %d", player1->frags, player1->flags, player1->deaths);
