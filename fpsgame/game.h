@@ -533,6 +533,32 @@ struct fpsstate
     }
 };
 
+#define MAXSERVSTRING 100
+struct serverdata {
+    int ping;
+    int nclients;
+    int mode;
+    int timelimit;
+    int maxclients;
+    int access;
+    int gamepaused;
+    int gamespeed;
+    char servname[MAXSERVSTRING];
+    char description[MAXSERVSTRING];
+    serverdata() {
+        ping = 0;
+        nclients = 0;
+        mode = 0;
+        timelimit = 0;
+        maxclients = 0;
+        access = 0;
+        gamepaused = 0;
+        gamespeed = 0;
+        servname[0] = 0;
+        description[0] = 0;
+    }
+};
+
 #define MAXEXTNAMELENGHT 16
 #define MAXEXTTEAMLENGHT 5
 struct extplayerdata {

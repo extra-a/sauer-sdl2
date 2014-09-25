@@ -91,6 +91,7 @@ namespace game
     extern bool serverinfostartcolumn(g3d_gui *g, int i);
     extern void serverinfoendcolumn(g3d_gui *g, int i);
     extern bool serverinfoentry(g3d_gui *g, int i, const char *name, int port, const char *desc, const char *map, int ping, const vector<int> &attr, int np);
+    extern void showserverpreview(const char *servername, int serverport);
     extern bool needminimap();
 } 
  

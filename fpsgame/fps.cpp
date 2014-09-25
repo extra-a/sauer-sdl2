@@ -375,6 +375,7 @@ namespace game
 
     extern void checkseek();
     extern void checkextinfos();
+    extern void checkseserverinfo();
     void updateworld()        // main game update loop
     {
         if(!maptime) { maptime = lastmillis; maprealtime = totalmillis; return; }
@@ -416,6 +417,7 @@ namespace game
             else if(cmode) cmode->checkitems(player1);
         }
         if(player1->clientnum>=0) c2sinfo();   // do this last, to reduce the effective frame lag
+        checkseserverinfo();
         checkextinfos();
         checkseek();
     }

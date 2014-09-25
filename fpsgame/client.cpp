@@ -43,7 +43,7 @@ namespace game
     }
 
     // EXT_VERSION 105
-    int extinfoparser(ucharbuf p, struct extplayerdata& data)
+    int extinfoplayerparser(ucharbuf p, struct extplayerdata& data)
     {
         char strdata[MAXTRANS];
 
@@ -54,8 +54,10 @@ namespace game
         // ack and version
         if(getint(p) != EXT_ACK || getint(p) != EXT_VERSION) return -2;
 
-        getint(p); // reply separator and header
-        if(getint(p) != EXT_PLAYERSTATS_RESP_STATS) return -3;
+        int err = getint(p); // has error
+        if(err) return -3;
+
+        if(getint(p) != EXT_PLAYERSTATS_RESP_STATS) return -4;
 
         // actual player data
         data.cn = getint(p); // cn
@@ -98,7 +100,7 @@ namespace game
                connectedaddress.port+1 != address.port) continue;
             ucharbuf p(data, len);
             struct extplayerdata extpdata;
-            if(!extinfoparser(p, extpdata)) {
+            if(!extinfoplayerparser(p, extpdata)) {
                 fpsent *d = getclient(extpdata.cn);
                 if(!d || d->extdata.isset()) continue;
                 d->extdata.setextplayerinfo();
@@ -106,6 +108,109 @@ namespace game
             }
         }
     }
+
+    ENetSocket servinfosock = ENET_SOCKET_NULL;
+    struct serverdata lastserverdata;
+    ENetAddress lastservaddress;
+    int lastupdate = 0;
+    int hasservinfo = 0;
+
+    ENetSocket getservsock()
+    {
+        if(servinfosock != ENET_SOCKET_NULL) return servinfosock;
+        servinfosock = enet_socket_create(ENET_SOCKET_TYPE_DATAGRAM);
+        enet_socket_set_option(servinfosock, ENET_SOCKOPT_NONBLOCK, 1);
+        enet_socket_set_option(servinfosock, ENET_SOCKOPT_BROADCAST, 1);
+        return servinfosock;
+    }
+
+    int serverinfoparser(ucharbuf p, struct serverdata& data)
+    {
+        char strdata[MAXTRANS];
+        int millis = getint(p); // ping
+        data.ping = (totalmillis - millis);
+        data.nclients = getint(p); // clients count
+
+        // check protocol/length
+        int nargs = getint(p);
+        if(getint(p) != PROTOCOL_VERSION) return -1;
+
+        data.mode = getint(p); // mode
+        data.timelimit = getint(p); // time remaining
+        data.maxclients = getint(p); // max clients
+        data.access = getint(p); // server access
+        if(nargs >= 7) {
+            data.gamepaused = getint(p); // paused
+            data.gamespeed = getint(p); // speed
+        } else {
+            data.gamepaused = 0; // paused
+            data.gamespeed = 100; // speed
+        }
+        getstring(strdata, p); // server name
+        strncpy(data.servname, strdata, MAXSERVSTRING-1);
+        data.servname[MAXSERVSTRING-1] = 0;
+        getstring(strdata, p); // server description
+        strncpy(data.description, strdata, MAXSERVSTRING-1);
+        data.description[MAXSERVSTRING-1] = 0;
+        return 0;
+    }
+
+    void requestserverinfo(char *servername, int serverport) {
+        lastupdate = 0;
+        hasservinfo = 0;
+        if(enet_address_set_host( &lastservaddress, servername) < 0) return;
+        ENetSocket sock = getservsock();
+        if(sock == ENET_SOCKET_NULL) return;
+        if(serverport) {
+            lastservaddress.port = serverport+1;
+        } else {
+            lastservaddress.port = SAUERBRATEN_SERVINFO_PORT;
+        }
+        ENetBuffer buf;
+        uchar send[MAXTRANS];
+        ucharbuf p(send, MAXTRANS);
+        putint(p, totalmillis);
+        buf.data = send;
+        buf.dataLength = p.length();
+        enet_socket_send(sock, &lastservaddress, &buf, 1);
+    }
+
+    void checkseserverinfo() {
+        ENetSocket sock = getservsock();
+        if(sock == ENET_SOCKET_NULL) return;
+        if(hasservinfo) return;
+        enet_uint32 events = ENET_SOCKET_WAIT_RECEIVE;
+        int s = 0;
+        ENetBuffer buf;
+        ENetAddress address;
+        uchar data[MAXTRANS];
+        buf.data = data;
+        buf.dataLength = sizeof(data);
+        while((s = enet_socket_wait(sock, &events, 0)) >= 0 && events) {
+            int len = enet_socket_receive(sock, &address, &buf, 1);
+            if(len <= 0 || lastservaddress.host != address.host ||
+               lastservaddress.port != address.port) continue;
+            ucharbuf p(data, len);
+            if(!serverinfoparser(p, lastserverdata)) {
+                lastupdate = totalmillis;
+                hasservinfo = 1;
+            }
+        }
+    }
+
+    void printserverinfo() {
+        if(hasservinfo) {
+            conoutf("ping %d, nclients %d, mode %d, timelimit %d, maxclients %d, access %d, gamepaused %d, gamespeed %d, servname %s, description %s", lastserverdata.ping, lastserverdata.nclients, lastserverdata.mode, lastserverdata.timelimit, lastserverdata.maxclients, lastserverdata.access, lastserverdata.gamepaused, lastserverdata.gamespeed, lastserverdata.servname, lastserverdata.description);
+        }
+    }
+
+    ICOMMAND(printserverinfo, "", (), printserverinfo());
+    ICOMMAND(reqserverinfo, "si", (char *s, int *p), requestserverinfo(s, *p));
+
+    void showserverpreview(const char *servername, int serverport) {
+        return;
+    }
+
 
     extern vector<fpsent *> clients;
     void checkextinfos()
