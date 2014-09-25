@@ -533,6 +533,75 @@ struct fpsstate
     }
 };
 
+#define MAXEXTNAMELENGHT 16
+#define MAXEXTTEAMLENGHT 5
+struct extplayerdata {
+    int cn;
+    int ping;
+    char name[MAXEXTNAMELENGHT];
+    char team[MAXEXTTEAMLENGHT];
+    int frags;
+    int flags;
+    int deaths;
+    int teamkills;
+    int acc;
+    int health;
+    int armour;
+    int gunselect;
+    int privilege;
+    int state;
+    extplayerdata() {
+        cn = 0;
+        ping = 0;
+        name[0] = 0;
+        team[0] = 0;
+        frags = 0;
+        flags = 0;
+        deaths = 0;
+        teamkills = 0;
+        acc = 0;
+        health = 0;
+        armour = 0;
+        gunselect = 0;
+        privilege = 0;
+        state = 0;
+    }
+    void reset() {
+        cn = 0;
+        ping = 0;
+        name[0] = 0;
+        team[0] = 0;
+        frags = 0;
+        flags = 0;
+        deaths = 0;
+        teamkills = 0;
+        acc = 0;
+        health = 0;
+        armour = 0;
+        gunselect = 0;
+        privilege = 0;
+        state = 0;
+    }
+    void update(struct extplayerdata ndata) {
+        cn = ndata.cn;
+        ping = ndata.ping;
+        strncpy(name, ndata.name, MAXEXTNAMELENGHT-1);
+        name[MAXEXTNAMELENGHT-1] = 0;
+        strncpy(team, ndata.team, MAXEXTTEAMLENGHT-1);
+        team[MAXEXTTEAMLENGHT-1] = 0;
+        frags = ndata.frags;
+        flags = ndata.flags;
+        deaths = ndata.deaths;
+        teamkills = ndata.teamkills;
+        acc = ndata.acc;
+        health = ndata.health;
+        armour = ndata.armour;
+        gunselect = ndata.gunselect;
+        privilege = ndata.privilege;
+        state = ndata.state;
+    }
+};
+
 #define MAXEXTRETRIES 2
 #define EXTRETRIESINT 1000
 struct extplayerinfo
@@ -540,17 +609,33 @@ struct extplayerinfo
     bool finished;
     int lastattempt;
     int attempts;
+    bool needrefresh;
+    struct extplayerdata data;
     extplayerinfo() {
         finished = false;
         attempts = 0;
         lastattempt = totalmillis;
+        needrefresh = false;
+    }
+    extplayerinfo(bool refresh) {
+        finished = false;
+        attempts = 0;
+        lastattempt = totalmillis;
+        needrefresh = refresh;
     }
     void resetextdata() {
         finished = false;
         attempts = 0;
         lastattempt = totalmillis;
+        data.reset();
     }
     void setextplayerinfo() {
+        attempts = 0;
+        finished = true;
+    }
+    void setextplayerinfo(struct extplayerdata ndata) {
+        attempts = 0;
+        data.update(ndata);
         finished = true;
     }
     void addattempt() {
@@ -558,14 +643,20 @@ struct extplayerinfo
         lastattempt = totalmillis;
     }
     bool needretry() {
-        return !finished && lastattempt + EXTRETRIESINT < totalmillis && attempts <= MAXEXTRETRIES;
+        return (!finished || needrefresh) && lastattempt + EXTRETRIESINT < totalmillis && (attempts <= MAXEXTRETRIES || needrefresh);
     }
     bool isset() {
-        return finished || attempts > MAXEXTRETRIES;
+        return (finished || attempts > MAXEXTRETRIES) && !needrefresh;
     }
     int getextplayerinfo() {
         if(!finished) return -1;
         if(attempts > MAXEXTRETRIES) return -2;
+        return 0;
+    }
+    int getextplayerinfo(struct extplayerdata& ldata) {
+        if(!finished) return -1;
+        if(attempts > MAXEXTRETRIES) return -2;
+        ldata.update(data);
         return 0;
     }
 };

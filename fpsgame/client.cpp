@@ -43,7 +43,7 @@ namespace game
     }
 
     // EXT_VERSION 105
-    int extinfoparser(ucharbuf p, int &cn, int &deaths)
+    int extinfoparser(ucharbuf p, struct extplayerdata& data)
     {
         char strdata[MAXTRANS];
 
@@ -58,20 +58,24 @@ namespace game
         if(getint(p) != EXT_PLAYERSTATS_RESP_STATS) return -3;
 
         // actual player data
-        cn = getint(p); // cn
-        getint(p); // ping
+        data.cn = getint(p); // cn
+        data.ping = getint(p); // ping
         getstring(strdata, p); // name
+        strncpy(data.name, strdata, MAXEXTNAMELENGHT-1);
+        data.name[MAXEXTNAMELENGHT-1] = 0;
         getstring(strdata, p); // team
-        getint(p); // frags
-        getint(p); // flags
-        deaths = getint(p); // deaths
-        getint(p); // teamkills
-        getint(p); // acc
-        getint(p); // health
-        getint(p); // armour
-        getint(p); // gunselect
-        getint(p); // privilege
-        getint(p); // state
+        strncpy(data.team, strdata, MAXEXTTEAMLENGHT-1);
+        data.team[MAXEXTTEAMLENGHT-1] = 0;
+        data.frags = getint(p); // frags
+        data.flags = getint(p); // flags
+        data.deaths = getint(p); // deaths
+        data.teamkills = getint(p); // teamkills
+        data.acc = getint(p); // acc
+        data.health = getint(p); // health
+        data.armour = getint(p); // armour
+        data.gunselect = getint(p); // gunselect
+        data.privilege = getint(p); // privilege
+        data.state = getint(p); // state
         return 0;
     }
 
@@ -93,12 +97,12 @@ namespace game
             if(len <= 0 || connectedaddress.host != address.host ||
                connectedaddress.port+1 != address.port) continue;
             ucharbuf p(data, len);
-            int deaths, cn;
-            if(!extinfoparser(p, cn, deaths)) {
-                fpsent *d = getclient(cn);
+            struct extplayerdata extpdata;
+            if(!extinfoparser(p, extpdata)) {
+                fpsent *d = getclient(extpdata.cn);
                 if(!d || d->extdata.isset()) continue;
                 d->extdata.setextplayerinfo();
-                d->deaths = deaths;
+                d->deaths = extpdata.deaths;
             }
         }
     }
