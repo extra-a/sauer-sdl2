@@ -180,12 +180,12 @@ namespace game
 
 
     int serverinfohelper(ucharbuf p,
-                         int nteams,
                          struct serverdata& sdata,
                          struct extplayerdata& pdata,
                          struct teamsinfo& tdata) {
         int millis = getint(p); // milllis
-        int res = 0, type = 0;
+        int res = 0, type = 0, nteams = 0;
+        char* teamnames[MAXTEAMS];
         if(millis) {
             type = 1;
             res = serverinfoparser(p, millis, sdata);
@@ -196,6 +196,23 @@ namespace game
                 res = extinfoplayerparser(p, pdata);
             } else if(extinfotype == EXT_TEAMSCORE) {
                 type = 3;
+                int isold;
+                loopi(lastpreviewdata.nplayers) {
+                    isold = 0;
+                    loopj(nteams) {
+                        isold = !strcmp(lastpreviewdata.players[i].team, teamnames[j]);
+                        if(isold) break;
+                    }
+                    if(!isold) {
+                        teamnames[nteams] = new char[MAXSTRLEN];
+                        copystring(teamnames[nteams], lastpreviewdata.players[i].team);
+                        nteams++;
+                    }
+                }
+                loopi(nteams) {
+                    delete[] teamnames[i];
+                }
+                conoutf("nteams: %d", nteams);
                 res = extinfoteamparser(p, nteams, tdata);
             }
         }
@@ -276,8 +293,7 @@ namespace game
             struct serverdata sdata;
             struct extplayerdata pdata;
             struct teamsinfo tdata;
-            int nteams = 0;
-            int type = serverinfohelper(p, nteams, sdata, pdata, tdata);
+            int type = serverinfohelper(p, sdata, pdata, tdata);
             switch(type) {
             case 1:
                 lastpreviewdata.sdata.update(sdata);
@@ -289,7 +305,10 @@ namespace game
                 break;
             case 3:
                 lastpreviewdata.tinfo.update(tdata);
-                conoutf("team notteammode info: %d gamemode %d timeleft %d nteams %d", tdata.notteammode, tdata.gamemode, tdata.timeleft, tdata.nteams);
+                conoutf("team info: notteammode %d gamemode %d timeleft %d nteams %d", tdata.notteammode, tdata.gamemode, tdata.timeleft, tdata.nteams);
+                loopi(tdata.nteams) {
+                    conoutf("team %s, score %d, bases %d", tdata.teams[i].teamname, tdata.teams[i].score, tdata.teams[i].bases);
+                }
                 break;
             }
         }
