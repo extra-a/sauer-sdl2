@@ -533,6 +533,8 @@ struct fpsstate
     }
 };
 
+#define MAXTEAMS 128
+
 #define MAXSERVSTRING 100
 struct serverdata {
     int ping;
@@ -557,10 +559,89 @@ struct serverdata {
         servname[0] = 0;
         description[0] = 0;
     }
+    void reset() {
+        ping = 0;
+        nclients = 0;
+        mode = 0;
+        timelimit = 0;
+        maxclients = 0;
+        access = 0;
+        gamepaused = 0;
+        gamespeed = 0;
+        servname[0] = 0;
+        description[0] = 0;
+    }
+    void update(struct serverdata& ndata) {
+        ping = ndata.ping;
+        nclients = ndata.nclients;
+        mode = ndata.mode;
+        timelimit = ndata.timelimit;
+        maxclients = ndata.maxclients;
+        access = ndata.access;
+        gamepaused = ndata.gamepaused;
+        gamespeed = ndata.gamespeed;
+        strncpy(servname, ndata.servname, MAXSERVSTRING-1);
+        servname[MAXSERVSTRING-1] = 0;
+        strncpy(description, ndata.description, MAXSERVSTRING-1);
+        description[MAXSERVSTRING-1] = 0;
+    }
 };
 
-#define MAXEXTNAMELENGHT 16
 #define MAXEXTTEAMLENGHT 5
+
+struct teamdata {
+    char teamname[MAXEXTTEAMLENGHT];
+    int score;
+    int bases;
+    teamdata() {
+        teamname[0] = 0;
+        score = 0;
+        bases = 0;
+    }
+    void update(struct teamdata& ndata) {
+        strncpy(teamname, ndata.teamname, MAXEXTTEAMLENGHT-1);
+        teamname[MAXEXTTEAMLENGHT-1] = 0;
+        score = ndata.score;
+        bases = ndata.bases;
+    }
+};
+
+struct teamsinfo {
+    int notteammode;
+    int gamemode;
+    int timeleft;
+    int nteams;
+    struct teamdata teams[MAXTEAMS];
+    teamsinfo() {
+        notteammode = 0;
+        gamemode = 0;
+        timeleft = 0;
+        nteams = 0;
+    }
+    void update(struct teamsinfo& ndata) {
+        notteammode = ndata.notteammode;
+        gamemode = ndata.gamemode;
+        timeleft = ndata.timeleft;
+        nteams = ndata.nteams;
+        loopi(ndata.nteams) {
+            teams[i].update(ndata.teams[i]);
+        }
+    }
+    void reset() {
+        notteammode = 0;
+        gamemode = 0;
+        timeleft = 0;
+        nteams = 0;
+    }
+    void addteam(struct teamdata &td) {
+        if(nteams>=MAXTEAMS) return;
+        teams[nteams].update(td);
+        nteams++;
+    }
+};
+
+
+#define MAXEXTNAMELENGHT 16
 struct extplayerdata {
     int cn;
     int ping;
@@ -608,7 +689,7 @@ struct extplayerdata {
         privilege = 0;
         state = 0;
     }
-    void update(struct extplayerdata ndata) {
+    void update(struct extplayerdata& ndata) {
         cn = ndata.cn;
         ping = ndata.ping;
         strncpy(name, ndata.name, MAXEXTNAMELENGHT-1);
@@ -625,6 +706,46 @@ struct extplayerdata {
         gunselect = ndata.gunselect;
         privilege = ndata.privilege;
         state = ndata.state;
+    }
+};
+
+#define MAXPREVIEWPLAYERS 128
+#define SERVUPDATEINTERVAL 3000
+#define SERVUPDATETEAMGAP 500
+
+struct serverpreviewdata {
+    struct serverdata sdata;
+    struct extplayerdata players[MAXPREVIEWPLAYERS];
+    int nplayers;
+    struct teamsinfo tinfo;
+    ENetAddress servaddress;
+    bool isupdating;
+    int lastupdate;
+    int lastteamupdate;
+    serverpreviewdata() {
+        isupdating = false;
+        lastupdate = 0;
+        lastteamupdate = 0;
+        sdata.reset();
+        tinfo.reset();
+        servaddress.host = 0;
+        servaddress.port = 0;
+        nplayers = 0;
+    }
+    void reset() {
+        isupdating = false;
+        lastupdate = 0;
+        lastteamupdate = 0;
+        sdata.reset();
+        tinfo.reset();
+        servaddress.host = 0;
+        servaddress.port = 0;
+        nplayers = 0;
+    }
+    void addplayer(struct extplayerdata& data) {
+        if(nplayers >= MAXPREVIEWPLAYERS) return;
+        players[nplayers].update(data);
+        nplayers++;
     }
 };
 
@@ -801,7 +922,6 @@ struct teamscore
 static inline uint hthash(const teamscore &t) { return hthash(t.team); }
 static inline bool htcmp(const char *key, const teamscore &t) { return htcmp(key, t.team); }
 
-#define MAXTEAMS 128
 
 struct teaminfo
 {

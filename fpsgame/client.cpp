@@ -3,6 +3,7 @@
 #define EXT_ACK                         -1
 #define EXT_PLAYERSTATS_RESP_STATS      -11
 #define EXT_PLAYERSTATS                 1
+#define EXT_TEAMSCORE                   2
 #define EXT_VERSION                     105
 
 namespace server
@@ -47,8 +48,6 @@ namespace game
     {
         char strdata[MAXTRANS];
 
-        // original ext data send
-        if(getint(p) != 0 || getint(p) != EXT_PLAYERSTATS) return -1;
         getint(p); // original cn or -1
 
         // ack and version
@@ -81,6 +80,13 @@ namespace game
         return 0;
     }
 
+
+    int extplayershelper(ucharbuf p, struct extplayerdata& data) {
+        // original ext data send
+        if(getint(p) != 0 || getint(p) != EXT_PLAYERSTATS) return -1;
+        return extinfoplayerparser(p, data);
+    }
+
     void processextinfo()
     {
         const ENetAddress *paddress = connectedpeer();
@@ -110,10 +116,7 @@ namespace game
     }
 
     ENetSocket servinfosock = ENET_SOCKET_NULL;
-    struct serverdata lastserverdata;
-    ENetAddress lastservaddress;
-    int lastupdate = 0;
-    int hasservinfo = 0;
+    struct serverpreviewdata lastpreviewdata;
 
     ENetSocket getservsock()
     {
@@ -124,16 +127,15 @@ namespace game
         return servinfosock;
     }
 
-    int serverinfoparser(ucharbuf p, struct serverdata& data)
+    int serverinfoparser(ucharbuf p, int millis, struct serverdata& data)
     {
         char strdata[MAXTRANS];
-        int millis = getint(p); // ping
         data.ping = (totalmillis - millis);
         data.nclients = getint(p); // clients count
 
         // check protocol/length
         int nargs = getint(p);
-        if(getint(p) != PROTOCOL_VERSION) return -1;
+        if(getint(p) != PROTOCOL_VERSION) return -2;
 
         data.mode = getint(p); // mode
         data.timelimit = getint(p); // time remaining
@@ -155,30 +157,109 @@ namespace game
         return 0;
     }
 
-    void requestserverinfo(char *servername, int serverport) {
-        lastupdate = 0;
-        hasservinfo = 0;
-        if(enet_address_set_host( &lastservaddress, servername) < 0) return;
-        ENetSocket sock = getservsock();
-        if(sock == ENET_SOCKET_NULL) return;
-        if(serverport) {
-            lastservaddress.port = serverport+1;
-        } else {
-            lastservaddress.port = SAUERBRATEN_SERVINFO_PORT;
+    int extinfoteamparser(ucharbuf p, int expectedteams, struct teamsinfo& data) {
+        char strdata[MAXTRANS];
+        // ack and version
+        if(getint(p) != EXT_ACK || getint(p) != EXT_VERSION) return -2;
+
+        // actual team data
+        data.notteammode = getint(p); // is team mode
+        data.gamemode = getint(p); // mode
+        data.timeleft = getint(p); // time left
+        struct teamdata td;
+        loopi(expectedteams) {
+            getstring(strdata, p);
+            strncpy(td.teamname, strdata, MAXEXTTEAMLENGHT-1);
+            td.teamname[MAXEXTTEAMLENGHT-1] = 0;
+            td.score = getint(p);
+            td.bases = getint(p);
+            data.addteam(td);
         }
-        ENetBuffer buf;
-        uchar send[MAXTRANS];
-        ucharbuf p(send, MAXTRANS);
-        putint(p, totalmillis);
-        buf.data = send;
-        buf.dataLength = p.length();
-        enet_socket_send(sock, &lastservaddress, &buf, 1);
+        return 0;
     }
 
-    void checkseserverinfo() {
+
+    int serverinfohelper(ucharbuf p,
+                         int nteams,
+                         struct serverdata& sdata,
+                         struct extplayerdata& pdata,
+                         struct teamsinfo& tdata) {
+        int millis = getint(p); // milllis
+        int res = 0, type = 0;
+        if(millis) {
+            type = 1;
+            res = serverinfoparser(p, millis, sdata);
+        } else {
+            int extinfotype = getint(p);
+            if(extinfotype == EXT_PLAYERSTATS) {
+                type = 2;
+                res = extinfoplayerparser(p, pdata);
+            } else if(extinfotype == EXT_TEAMSCORE) {
+                type = 3;
+                res = extinfoteamparser(p, nteams, tdata);
+            }
+        }
+        return res ? res : type;
+    }
+
+    void requestserverinfosend() {
         ENetSocket sock = getservsock();
         if(sock == ENET_SOCKET_NULL) return;
-        if(hasservinfo) return;
+        lastpreviewdata.lastupdate = totalmillis;
+
+        uchar send[MAXTRANS];
+
+        ENetBuffer buf1;
+        ucharbuf p1(send, MAXTRANS);
+        putint(p1, totalmillis);
+        buf1.data = send;
+        buf1.dataLength = p1.length();
+        enet_socket_send(sock, &lastpreviewdata.servaddress, &buf1, 1);
+
+        ENetBuffer buf2;
+        ucharbuf p2(send, MAXTRANS);
+        putint(p2, 0);
+        putint(p2, EXT_PLAYERSTATS);
+        putint(p2, -1);
+        buf2.data = send;
+        buf2.dataLength = p2.length();
+        enet_socket_send(sock, &lastpreviewdata.servaddress, &buf2, 1);
+        conoutf("serverinfo request is sent");
+    }
+
+    void requeststeaminfosend() {
+        ENetSocket sock = getservsock();
+        if(sock == ENET_SOCKET_NULL) return;
+        lastpreviewdata.lastteamupdate = totalmillis;
+
+        uchar send[MAXTRANS];
+
+        ENetBuffer buf2;
+        ucharbuf p2(send, MAXTRANS);
+        putint(p2, 0);
+        putint(p2, EXT_TEAMSCORE);
+        buf2.data = send;
+        buf2.dataLength = p2.length();
+        enet_socket_send(sock, &lastpreviewdata.servaddress, &buf2, 1);
+        conoutf("teaminfo request is sent");
+    }
+
+    void setpreviewserver(char *servername, int serverport) {
+        lastpreviewdata.reset();
+        if(enet_address_set_host( &lastpreviewdata.servaddress, servername) < 0) return;
+        if(serverport) {
+            lastpreviewdata.servaddress.port = serverport+1;
+        } else {
+            lastpreviewdata.servaddress.port = SAUERBRATEN_SERVINFO_PORT;
+        }
+        lastpreviewdata.isupdating = true;
+        conoutf("listening fo updates from %d:%d", lastpreviewdata.servaddress.host, lastpreviewdata.servaddress.port);
+    }
+
+    void getseserverinfo() {
+        ENetSocket sock = getservsock();
+        if(sock == ENET_SOCKET_NULL || !lastpreviewdata.isupdating) return;
+
         enet_uint32 events = ENET_SOCKET_WAIT_RECEIVE;
         int s = 0;
         ENetBuffer buf;
@@ -187,30 +268,50 @@ namespace game
         buf.data = data;
         buf.dataLength = sizeof(data);
         while((s = enet_socket_wait(sock, &events, 0)) >= 0 && events) {
+            conoutf("checking socket data");
             int len = enet_socket_receive(sock, &address, &buf, 1);
-            if(len <= 0 || lastservaddress.host != address.host ||
-               lastservaddress.port != address.port) continue;
+            if(len <= 0 || lastpreviewdata.servaddress.host != address.host ||
+               lastpreviewdata.servaddress.port != address.port) continue;
             ucharbuf p(data, len);
-            if(!serverinfoparser(p, lastserverdata)) {
-                lastupdate = totalmillis;
-                hasservinfo = 1;
+            struct serverdata sdata;
+            struct extplayerdata pdata;
+            struct teamsinfo tdata;
+            int nteams = 0;
+            int type = serverinfohelper(p, nteams, sdata, pdata, tdata);
+            switch(type) {
+            case 1:
+                lastpreviewdata.sdata.update(sdata);
+                conoutf("server info: ping %d, nclients %d, mode %d, timelimit %d, maxclients %d, access %d, gamepaused %d, gamespeed %d, servname %s, description %s", sdata.ping, sdata.nclients, sdata.mode, sdata.timelimit, sdata.maxclients, sdata.access, sdata.gamepaused, sdata.gamespeed, sdata.servname, sdata.description);
+                break;
+            case 2:
+                lastpreviewdata.addplayer(pdata);
+                conoutf("player info: cn %d name %s team %s", pdata.cn, pdata.name, pdata.team);
+                break;
+            case 3:
+                lastpreviewdata.tinfo.update(tdata);
+                conoutf("team notteammode info: %d gamemode %d timeleft %d nteams %d", tdata.notteammode, tdata.gamemode, tdata.timeleft, tdata.nteams);
+                break;
             }
         }
     }
 
-    void printserverinfo() {
-        if(hasservinfo) {
-            conoutf("ping %d, nclients %d, mode %d, timelimit %d, maxclients %d, access %d, gamepaused %d, gamespeed %d, servname %s, description %s", lastserverdata.ping, lastserverdata.nclients, lastserverdata.mode, lastserverdata.timelimit, lastserverdata.maxclients, lastserverdata.access, lastserverdata.gamepaused, lastserverdata.gamespeed, lastserverdata.servname, lastserverdata.description);
+    void checkseserverinfo() {
+        if(!lastpreviewdata.isupdating) return;
+        if(lastpreviewdata.lastupdate + SERVUPDATEINTERVAL < totalmillis) {
+            requestserverinfosend();
         }
+        if(lastpreviewdata.lastteamupdate + SERVUPDATEINTERVAL < totalmillis &&
+           lastpreviewdata.lastupdate + SERVUPDATETEAMGAP < totalmillis) {
+            requeststeaminfosend();
+        }
+        getseserverinfo();
     }
 
-    ICOMMAND(printserverinfo, "", (), printserverinfo());
-    ICOMMAND(reqserverinfo, "si", (char *s, int *p), requestserverinfo(s, *p));
+    ICOMMAND(reqserverinfo, "si", (char *s, int *p), setpreviewserver(s, *p));
 
     void showserverpreview(const char *servername, int serverport) {
         return;
     }
-
 
     extern vector<fpsent *> clients;
     void checkextinfos()
