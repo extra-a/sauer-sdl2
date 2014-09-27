@@ -304,11 +304,9 @@ namespace game
                 break;
             case 2:
                 lastpreviewdata.addplayer(pdata);
-                // conoutf("player info: cn %d name %s team %s", pdata.cn, pdata.name, pdata.team);
                 break;
             case 3:
                 lastpreviewdata.tinfo.update(tdata);
-                // conoutf("team info: notteammode %d gamemode %d timeleft %d nteams %d", tdata.notteammode, tdata.gamemode, tdata.timeleft, tdata.nteams);
                 quicksort(lastpreviewdata.players, lastpreviewdata.players+lastpreviewdata.nplayers, sortfn);
                 lastpreviewdata.hasplayerdata = true;
                 break;
@@ -333,12 +331,6 @@ namespace game
             string hostname;
             if(enet_address_get_host_ip(&lastpreviewdata.servaddress, hostname, sizeof(hostname)) >= 0) {
                 g->titlef("%s", 0xFFFFFF, NULL, lastpreviewdata.sdata.description);
-                // g->pushlist();
-                // g->spring();
-                // g->textf("(%s:%d)", 0xFFFFDD, NULL, hostname, lastpreviewdata.servaddress.port-1);
-                // g->spring();
-                // g->poplist();
-
                 g->pushlist();
                 g->spring();
                 g->textf("%s", 0xFFFF80, NULL, server::modename(lastpreviewdata.sdata.mode));
@@ -362,7 +354,7 @@ namespace game
                 g->poplist();
             }
         }
-        if(lastpreviewdata.hasplayerdata) {
+        if(lastpreviewdata.hasplayerdata && lastpreviewdata.nplayers) {
             g->separator();
             const int n = 4;
             int pos = 0, rest = 0;
