@@ -598,11 +598,14 @@ struct teamdata {
         score = 0;
         bases = 0;
     }
-    void update(struct teamdata& ndata) {
+    void update(const struct teamdata& ndata) {
         strncpy(teamname, ndata.teamname, MAXEXTTEAMLENGHT-1);
         teamname[MAXEXTTEAMLENGHT-1] = 0;
         score = ndata.score;
         bases = ndata.bases;
+    }
+    teamdata(const struct teamdata& ndata) {
+        update(ndata);
     }
 };
 
@@ -618,7 +621,7 @@ struct teamsinfo {
         timeleft = 0;
         nteams = 0;
     }
-    void update(struct teamsinfo& ndata) {
+    void update(const struct teamsinfo& ndata) {
         notteammode = ndata.notteammode;
         gamemode = ndata.gamemode;
         timeleft = ndata.timeleft;
@@ -626,6 +629,9 @@ struct teamsinfo {
         loopi(ndata.nteams) {
             teams[i].update(ndata.teams[i]);
         }
+    }
+    teamsinfo(const struct teamsinfo& ndata) {
+        update(ndata);
     }
     void reset() {
         notteammode = 0;
@@ -689,7 +695,7 @@ struct extplayerdata {
         privilege = 0;
         state = 0;
     }
-    void update(struct extplayerdata& ndata) {
+    void update(const struct extplayerdata& ndata) {
         cn = ndata.cn;
         ping = ndata.ping;
         strncpy(name, ndata.name, MAXEXTNAMELENGHT-1);
@@ -706,6 +712,9 @@ struct extplayerdata {
         gunselect = ndata.gunselect;
         privilege = ndata.privilege;
         state = ndata.state;
+    }
+    extplayerdata(const struct extplayerdata& ndata) {
+        update(ndata);
     }
 };
 
@@ -750,8 +759,17 @@ struct serverpreviewdata {
     }
     void addplayer(struct extplayerdata& data) {
         if(nplayers >= MAXPREVIEWPLAYERS) return;
-        players[nplayers].update(data);
-        nplayers++;
+        bool found = false;
+        loopi(nplayers) {
+            if(players[i].cn == data.cn) {
+                players[i].update(data);
+                found = true;
+            }
+        }
+        if(!found) {
+            players[nplayers].update(data);
+            nplayers++;
+        }
     }
 };
 

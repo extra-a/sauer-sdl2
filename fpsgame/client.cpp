@@ -216,7 +216,6 @@ namespace game
                 loopi(nteams) {
                     delete[] teamnames[i];
                 }
-                conoutf("nteams: %d", nteams);
                 res = extinfoteamparser(p, nteams, tdata);
             }
         }
@@ -274,6 +273,10 @@ namespace game
         lastpreviewdata.isupdating = true;
     }
 
+    int sortfn(struct extplayerdata& d1, struct extplayerdata& d2) {
+        return d1.frags > d2.frags;
+    }
+
     void getseserverinfo() {
         ENetSocket sock = getservsock();
         if(sock == ENET_SOCKET_NULL || !lastpreviewdata.isupdating) return;
@@ -301,14 +304,12 @@ namespace game
                 break;
             case 2:
                 lastpreviewdata.addplayer(pdata);
-                conoutf("player info: cn %d name %s team %s", pdata.cn, pdata.name, pdata.team);
+                // conoutf("player info: cn %d name %s team %s", pdata.cn, pdata.name, pdata.team);
                 break;
             case 3:
                 lastpreviewdata.tinfo.update(tdata);
-                conoutf("team info: notteammode %d gamemode %d timeleft %d nteams %d", tdata.notteammode, tdata.gamemode, tdata.timeleft, tdata.nteams);
-                loopi(tdata.nteams) {
-                    conoutf("team %s, score %d, bases %d", tdata.teams[i].teamname, tdata.teams[i].score, tdata.teams[i].bases);
-                }
+                // conoutf("team info: notteammode %d gamemode %d timeleft %d nteams %d", tdata.notteammode, tdata.gamemode, tdata.timeleft, tdata.nteams);
+                quicksort(lastpreviewdata.players, lastpreviewdata.players+lastpreviewdata.nplayers, sortfn);
                 lastpreviewdata.hasplayerdata = true;
                 break;
             }
@@ -361,8 +362,22 @@ namespace game
                 g->poplist();
             }
         }
-        g->separator();
-        g->title("players stub", 0xFFFF80);
+        if(lastpreviewdata.hasplayerdata) {
+            g->separator();
+            const int n = 4;
+            int pos = 0, rest = 0;
+            loopi(lastpreviewdata.nplayers/n + 1) {
+                pos = i*n;
+                rest = lastpreviewdata.nplayers - pos;
+                g->pushlist();
+                loopj(min(rest,n)) {
+                    g->spring();
+                    g->textf("%s(%d)   ", 0xFFFFDD, NULL, lastpreviewdata.players[i*n +j].name, lastpreviewdata.players[i*n +j].frags);
+                }
+                g->spring();
+                g->poplist();
+            }
+        }
         g->separator();
         g->pushlist();
         g->spring();
