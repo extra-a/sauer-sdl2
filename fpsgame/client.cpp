@@ -166,6 +166,7 @@ namespace game
         data.notteammode = getint(p); // is team mode
         data.gamemode = getint(p); // mode
         data.timeleft = getint(p); // time left
+        if(data.notteammode) return 0;
         struct teamdata td;
         loopi(expectedteams) {
             getstring(strdata, p);
@@ -173,6 +174,9 @@ namespace game
             td.teamname[MAXEXTTEAMLENGHT-1] = 0;
             td.score = getint(p);
             td.bases = getint(p);
+            loopj(td.bases) {
+                getint(p);
+            }
             data.addteam(td);
         }
         return 0;
@@ -241,7 +245,6 @@ namespace game
         buf2.data = send;
         buf2.dataLength = p2.length();
         enet_socket_send(sock, &lastpreviewdata.servaddress, &buf2, 1);
-        conoutf("serverinfo request is sent");
     }
 
     void requeststeaminfosend() {
@@ -258,10 +261,9 @@ namespace game
         buf2.data = send;
         buf2.dataLength = p2.length();
         enet_socket_send(sock, &lastpreviewdata.servaddress, &buf2, 1);
-        conoutf("teaminfo request is sent");
     }
 
-    void setpreviewserver(char *servername, int serverport) {
+    void setserverpreview(const char *servername, int serverport) {
         lastpreviewdata.reset();
         if(enet_address_set_host( &lastpreviewdata.servaddress, servername) < 0) return;
         if(serverport) {
@@ -270,7 +272,6 @@ namespace game
             lastpreviewdata.servaddress.port = SAUERBRATEN_SERVINFO_PORT;
         }
         lastpreviewdata.isupdating = true;
-        conoutf("listening fo updates from %d:%d", lastpreviewdata.servaddress.host, lastpreviewdata.servaddress.port);
     }
 
     void getseserverinfo() {
@@ -285,7 +286,6 @@ namespace game
         buf.data = data;
         buf.dataLength = sizeof(data);
         while((s = enet_socket_wait(sock, &events, 0)) >= 0 && events) {
-            conoutf("checking socket data");
             int len = enet_socket_receive(sock, &address, &buf, 1);
             if(len <= 0 || lastpreviewdata.servaddress.host != address.host ||
                lastpreviewdata.servaddress.port != address.port) continue;
@@ -297,7 +297,7 @@ namespace game
             switch(type) {
             case 1:
                 lastpreviewdata.sdata.update(sdata);
-                conoutf("server info: ping %d, nclients %d, mode %d, timelimit %d, maxclients %d, access %d, gamepaused %d, gamespeed %d, servname %s, description %s", sdata.ping, sdata.nclients, sdata.mode, sdata.timelimit, sdata.maxclients, sdata.access, sdata.gamepaused, sdata.gamespeed, sdata.servname, sdata.description);
+                lastpreviewdata.hasserverdata = true;
                 break;
             case 2:
                 lastpreviewdata.addplayer(pdata);
@@ -309,6 +309,7 @@ namespace game
                 loopi(tdata.nteams) {
                     conoutf("team %s, score %d, bases %d", tdata.teams[i].teamname, tdata.teams[i].score, tdata.teams[i].bases);
                 }
+                lastpreviewdata.hasplayerdata = true;
                 break;
             }
         }
@@ -326,10 +327,60 @@ namespace game
         getseserverinfo();
     }
 
-    ICOMMAND(reqserverinfo, "si", (char *s, int *p), setpreviewserver(s, *p));
+    int showserverpreview(g3d_gui *g) {
+        if(lastpreviewdata.hasserverdata) {
+            string hostname;
+            if(enet_address_get_host_ip(&lastpreviewdata.servaddress, hostname, sizeof(hostname)) >= 0) {
+                g->titlef("%s", 0xFFFFFF, NULL, lastpreviewdata.sdata.description);
+                // g->pushlist();
+                // g->spring();
+                // g->textf("(%s:%d)", 0xFFFFDD, NULL, hostname, lastpreviewdata.servaddress.port-1);
+                // g->spring();
+                // g->poplist();
 
-    void showserverpreview(const char *servername, int serverport) {
-        return;
+                g->pushlist();
+                g->spring();
+                g->textf("%s", 0xFFFF80, NULL, server::modename(lastpreviewdata.sdata.mode));
+                g->separator();
+                g->textf("%s", 0xFFFF80, NULL, lastpreviewdata.sdata.servname);
+                if(lastpreviewdata.sdata.gamespeed != 100) {
+                    g->separator();
+                    g->textf("%d.%02dx", 0xFFFF80, NULL, lastpreviewdata.sdata.gamespeed/100, lastpreviewdata.sdata.gamespeed%100);
+                }
+                g->separator();
+                int secs = lastpreviewdata.sdata.timelimit%60, mins = lastpreviewdata.sdata.timelimit/60;
+                g->pushlist();
+                g->strut(mins >= 10 ? 4.5f : 3.5f);
+                g->textf("%d:%02d", 0xFFFF80, NULL, mins, secs);
+                g->poplist();
+                if(lastpreviewdata.sdata.gamepaused) {
+                    g->separator();
+                    g->text("paused", 0xFFFF80);
+                }
+                g->spring();
+                g->poplist();
+            }
+        }
+        g->separator();
+        g->title("players stub", 0xFFFF80);
+        g->separator();
+        g->pushlist();
+        g->spring();
+        if(g->button("back", 0xFFFFDD, "exit")&G3D_UP) {
+            g->poplist();
+            lastpreviewdata.reset();
+            return -1;
+        }
+        g->separator();
+        if(g->button("connect", 0xFFFFDD, "checkbox_on")&G3D_UP) {
+            g->poplist();
+            g->end();
+            lastpreviewdata.reset();
+            return 1;
+        }
+        g->spring();
+        g->poplist();
+        return 0;
     }
 
     extern vector<fpsent *> clients;

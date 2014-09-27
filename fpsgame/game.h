@@ -720,10 +720,14 @@ struct serverpreviewdata {
     struct teamsinfo tinfo;
     ENetAddress servaddress;
     bool isupdating;
+    bool hasserverdata;
+    bool hasplayerdata;
     int lastupdate;
     int lastteamupdate;
     serverpreviewdata() {
         isupdating = false;
+        hasserverdata = false;
+        hasplayerdata = false;
         lastupdate = 0;
         lastteamupdate = 0;
         sdata.reset();
@@ -734,6 +738,8 @@ struct serverpreviewdata {
     }
     void reset() {
         isupdating = false;
+        hasserverdata = false;
+        hasplayerdata = false;
         lastupdate = 0;
         lastteamupdate = 0;
         sdata.reset();

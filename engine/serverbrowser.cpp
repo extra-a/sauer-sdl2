@@ -627,11 +627,27 @@ void refreshservers()
 }
 
 serverinfo *selectedserver = NULL;
+bool ispreview = false;
 VARP(showserverpreviews, 0, 0, 1);
 XIDENTHOOK(showserverpreviews, IDF_EXTENDED);
 
 const char *showservers(g3d_gui *cgui, uint *header, int pagemin, int pagemax)
 {
+    if(ispreview) {
+        int cmd = game::showserverpreview(cgui);
+        switch(cmd) {
+        case 0:
+            return NULL;
+        case 1:
+            ispreview = false;
+            return "connectselected";
+        case -1:
+            ispreview = false;
+            selectedserver = NULL;
+            return NULL;
+        }
+        return NULL;
+    }
     refreshservers();
     if(servers.empty())
     {
@@ -665,7 +681,12 @@ const char *showservers(g3d_gui *cgui, uint *header, int pagemin, int pagemax)
     }
     if(selectedserver || !sc) return NULL;
     selectedserver = sc;
-    return showserverpreviews ? "previewselected" : "connectselected";
+    if(showserverpreviews) {
+        game::setserverpreview(sc->name, sc->port);
+        ispreview = true;
+        return NULL;
+    }
+    return "connectselected";
 }
 
 void connectselected()
@@ -677,13 +698,6 @@ void connectselected()
 
 COMMAND(connectselected, "");
 
-void previewselected()
-{
-    if(!selectedserver) return;
-    game::showserverpreview(selectedserver->name, selectedserver->port);
-}
-
-COMMAND(previewselected, "");
 
 void clearservers(bool full = false)
 {
