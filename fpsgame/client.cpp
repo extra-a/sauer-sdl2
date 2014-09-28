@@ -106,7 +106,7 @@ namespace game
                connectedaddress.port+1 != address.port) continue;
             ucharbuf p(data, len);
             struct extplayerdata extpdata;
-            if(!extinfoplayerparser(p, extpdata)) {
+            if(!extplayershelper(p, extpdata)) {
                 fpsent *d = getclient(extpdata.cn);
                 if(!d || d->extdata.isset()) continue;
                 d->extdata.setextplayerinfo();
