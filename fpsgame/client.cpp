@@ -353,7 +353,7 @@ namespace game
            m_check(lastpreviewdata.sdata.mode, M_COLLECT)) {
             g->pushlist();
             g->strut(6);
-            g->text("scored", 0xFFFF80);
+            g->text("score", 0xFFFF80);
             for(int i=0; i<lastpreviewdata.nplayers; i++) {
                 if(isingroup(name, i)) {
                     g->textf("%d", 0xFFFFDD, NULL, lastpreviewdata.players[i].flags);
