@@ -273,8 +273,12 @@ namespace game
         lastpreviewdata.isupdating = true;
     }
 
-    int sortfn(struct extplayerdata& d1, struct extplayerdata& d2) {
+    int sortplayersfn(struct extplayerdata& d1, struct extplayerdata& d2) {
         return d1.frags > d2.frags;
+    }
+
+    int sortteamsfn(struct teamdata& t1, struct teamdata& t2) {
+        return t1.score > t2.score;
     }
 
     void getseserverinfo() {
@@ -307,7 +311,8 @@ namespace game
                 break;
             case 3:
                 lastpreviewdata.tinfo.update(tdata);
-                quicksort(lastpreviewdata.players, lastpreviewdata.players+lastpreviewdata.nplayers, sortfn);
+                quicksort(lastpreviewdata.tinfo.teams, lastpreviewdata.tinfo.teams+lastpreviewdata.tinfo.nteams, sortteamsfn);
+                quicksort(lastpreviewdata.players, lastpreviewdata.players+lastpreviewdata.nplayers, sortplayersfn);
                 lastpreviewdata.hasplayerdata = true;
                 break;
             }
@@ -324,6 +329,112 @@ namespace game
             requeststeaminfosend();
         }
         getseserverinfo();
+    }
+
+    int isingroup(const char* name, int i) {
+        return (name == NULL || !strcmp(lastpreviewdata.players[i].team, name)) &&
+            lastpreviewdata.players[i].state != CS_SPECTATOR;
+    }
+
+    int isspec(int i) {
+        return lastpreviewdata.players[i].state == CS_SPECTATOR;
+    }
+
+    bool hasspecs() {
+        loopi(lastpreviewdata.nplayers) {
+            if(isspec(i)) return true;
+        }
+        return false;
+    }
+
+    void drawgroup(g3d_gui *g, const char* name) {
+
+        if(m_check(lastpreviewdata.sdata.mode, M_CTF) ||
+           m_check(lastpreviewdata.sdata.mode, M_COLLECT)) {
+            g->pushlist();
+            g->strut(6);
+            g->text("scored", 0xFFFF80);
+            for(int i=0; i<lastpreviewdata.nplayers; i++) {
+                if(isingroup(name, i)) {
+                    g->textf("%d", 0xFFFFDD, NULL, lastpreviewdata.players[i].flags);
+                }
+            }
+            g->poplist();
+        }
+
+        g->pushlist();
+        g->strut(6);
+        g->text("frags", 0xFFFF80);
+        loopi(lastpreviewdata.nplayers) {
+            if(isingroup(name, i)) {
+                g->textf("%d", 0xFFFFDD, NULL, lastpreviewdata.players[i].frags);
+            }
+        }
+        g->poplist();
+
+        g->pushlist();
+        g->strut(15);
+        g->text("name", 0xFFFF80);
+        loopi(lastpreviewdata.nplayers) {
+            if(isingroup(name, i)) {
+                g->textf("%s", 0xFFFFDD, NULL, lastpreviewdata.players[i].name);
+            }
+        }
+        g->poplist();
+
+        g->pushlist();
+        g->strut(6);
+        g->text("ping", 0xFFFF80);
+        loopi(lastpreviewdata.nplayers) {
+            if(isingroup(name, i)) {
+                g->textf("%d", 0xFFFFDD, NULL, lastpreviewdata.players[i].ping);
+            }
+        }
+        g->poplist();
+
+        g->pushlist();
+        g->strut(6);
+        g->text("cn", 0xFFFF80);
+        loopi(lastpreviewdata.nplayers) {
+            if(isingroup(name, i)) {
+                g->textf("%d", 0xFFFFDD, NULL, lastpreviewdata.players[i].cn);
+            }
+        }
+        g->poplist();
+
+    }
+
+    void drawspecs(g3d_gui *g) {
+
+        g->pushlist();
+        g->strut(15);
+        g->text("spectator", 0xFFFF80);
+        loopi(lastpreviewdata.nplayers) {
+            if(isspec(i)) {
+                g->textf("%s", 0xFFFFDD, NULL, lastpreviewdata.players[i].name);
+            }
+        }
+        g->poplist();
+
+        g->pushlist();
+        g->strut(6);
+        g->text("ping", 0xFFFF80);
+        loopi(lastpreviewdata.nplayers) {
+            if(isspec(i)) {
+                g->textf("%d", 0xFFFFDD, NULL, lastpreviewdata.players[i].ping);
+            }
+        }
+        g->poplist();
+
+        g->pushlist();
+        g->strut(6);
+        g->text("cn", 0xFFFF80);
+        loopi(lastpreviewdata.nplayers) {
+            if(isspec(i)) {
+                g->textf("%d", 0xFFFFDD, NULL, lastpreviewdata.players[i].cn);
+            }
+        }
+        g->poplist();
     }
 
     int showserverpreview(g3d_gui *g) {
@@ -356,17 +467,35 @@ namespace game
         }
         if(lastpreviewdata.hasplayerdata && lastpreviewdata.nplayers) {
             g->separator();
-            const int n = 4;
-            int pos = 0, rest = 0;
-            loopi(lastpreviewdata.nplayers/n + 1) {
-                pos = i*n;
-                rest = lastpreviewdata.nplayers - pos;
+            if(lastpreviewdata.tinfo.notteammode) {
                 g->pushlist();
-                loopj(min(rest,n)) {
-                    g->spring();
-                    g->textf("%s(%d)   ", 0xFFFFDD, NULL, lastpreviewdata.players[i*n +j].name, lastpreviewdata.players[i*n +j].frags);
+                drawgroup(g, NULL);
+                g->poplist();
+            } else {
+                int groups = lastpreviewdata.tinfo.nteams;
+                loopi(groups) {
+                    if((i%2)==0) g->pushlist();
+                    g->pushlist();
+                    if(lastpreviewdata.tinfo.teams[i].score>=10000) g->titlef("%s: WIN", 0xFFFFDD, NULL, lastpreviewdata.tinfo.teams[i].teamname);
+                    else g->titlef("%s: %d", 0xFFFFDD, NULL, lastpreviewdata.tinfo.teams[i].teamname, lastpreviewdata.tinfo.teams[i].score);
+                    g->pushlist();
+                    drawgroup(g, lastpreviewdata.tinfo.teams[i].teamname);
+                    g->poplist();
+                    g->poplist();
+                    if(i+1<groups && (i+1)%2) {
+                        g->space(2);
+                    } else {
+                        g->poplist();
+                        if(i+1 != groups) {
+                            g->space(1);
+                        }
+                    }
                 }
-                g->spring();
+            }
+            if(hasspecs()) {
+                g->space(1);
+                g->pushlist();
+                drawspecs(g);
                 g->poplist();
             }
         }

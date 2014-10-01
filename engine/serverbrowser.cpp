@@ -634,18 +634,22 @@ XIDENTHOOK(showserverpreviews, IDF_EXTENDED);
 const char *showservers(g3d_gui *cgui, uint *header, int pagemin, int pagemax)
 {
     if(ispreview) {
+        cgui->allowautotab(false);
         int cmd = game::showserverpreview(cgui);
         switch(cmd) {
         case 0:
             return NULL;
         case 1:
+            cgui->allowautotab(true);
             ispreview = false;
             return "connectselected";
         case -1:
             ispreview = false;
             selectedserver = NULL;
+            cgui->allowautotab(true);
             return NULL;
         }
+        cgui->allowautotab(true);
         return NULL;
     }
     refreshservers();
@@ -683,6 +687,7 @@ const char *showservers(g3d_gui *cgui, uint *header, int pagemin, int pagemax)
     selectedserver = sc;
     if(showserverpreviews) {
         game::setserverpreview(sc->name, sc->port);
+        cgui->allowautotab(false);
         ispreview = true;
         return NULL;
     }
