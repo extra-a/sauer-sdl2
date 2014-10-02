@@ -12,6 +12,7 @@ const char *extended_settings_gui =
     "guicheckbox \"Colored ammo\" coloredammo\n"
     "guicheckbox \"Use following player team\" usefollowingplayerteam\n"
     "guicheckbox \"Log players stats on game end\" dumpstatsongameend\n"
+    "guicheckbox \"Show servers preview\" showserverpreviews\n"
     "guistrut 1\n"
 
     "guitext \"Smoke density (for rockets and grenades):\" 0\n"
