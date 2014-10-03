@@ -51,6 +51,7 @@ namespace game
     extern void loadconfigs();
 
     extern void updateworld();
+    extern void checkgameinfo();
     extern void initclient();
     extern const char **getgamescripts();
     extern void physicstrigger(physent *d, bool local, int floorlevel, int waterlevel, int material = 0);

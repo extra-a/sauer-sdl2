@@ -1378,6 +1378,7 @@ int main(int argc, char **argv)
         tryedit();
 
         if(lastmillis) game::updateworld();
+        game::checkgameinfo();
 
         checksleep(lastmillis);
 
