@@ -402,7 +402,7 @@ namespace game
         g->poplist();
 
         g->pushlist();
-        g->strut(6);
+        g->strut(3);
         g->text("cn", 0xFFFF80);
         loopi(lastpreviewdata.nplayers) {
             if(isingroup(name, i)) {
@@ -436,7 +436,7 @@ namespace game
         g->poplist();
 
         g->pushlist();
-        g->strut(6);
+        g->strut(3);
         g->text("cn", 0xFFFF80);
         loopi(lastpreviewdata.nplayers) {
             if(isspec(i)) {
@@ -498,7 +498,7 @@ namespace game
                     g->poplist();
                     g->poplist();
                     if(k+1<validgroups && (k+1)%2) {
-                        g->space(2);
+                        g->space(5);
                     } else {
                         g->poplist();
                         if(k+1 != validgroups) {
