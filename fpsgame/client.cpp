@@ -331,18 +331,27 @@ namespace game
         getseserverinfo();
     }
 
-    int isingroup(const char* name, int i) {
+    bool isingroup(const char* name, int i) {
         return (name == NULL || !strcmp(lastpreviewdata.players[i].team, name)) &&
             lastpreviewdata.players[i].state != CS_SPECTATOR;
     }
 
-    int isspec(int i) {
+    bool isspec(int i) {
         return lastpreviewdata.players[i].state == CS_SPECTATOR;
     }
 
     bool hasspecs() {
         loopi(lastpreviewdata.nplayers) {
             if(isspec(i)) return true;
+        }
+        return false;
+    }
+
+    bool hasplayers(const char* groupname) {
+        loopi(lastpreviewdata.nplayers) {
+            if(isingroup(groupname, i) && !isspec(i)) {
+                return true;
+            }
         }
         return false;
     }
@@ -473,8 +482,14 @@ namespace game
                 g->poplist();
             } else {
                 int groups = lastpreviewdata.tinfo.nteams;
+                int validgroups = 0;
                 loopi(groups) {
-                    if((i%2)==0) g->pushlist();
+                    if(hasplayers(lastpreviewdata.tinfo.teams[i].teamname)) validgroups++;
+                }
+                int k = 0;
+                loopi(groups) {
+                    if(!hasplayers(lastpreviewdata.tinfo.teams[i].teamname)) continue;
+                    if((k%2)==0) g->pushlist();
                     g->pushlist();
                     if(lastpreviewdata.tinfo.teams[i].score>=10000) g->titlef("%s: WIN", 0xFFFFDD, NULL, lastpreviewdata.tinfo.teams[i].teamname);
                     else g->titlef("%s: %d", 0xFFFFDD, NULL, lastpreviewdata.tinfo.teams[i].teamname, lastpreviewdata.tinfo.teams[i].score);
@@ -482,14 +497,15 @@ namespace game
                     drawgroup(g, lastpreviewdata.tinfo.teams[i].teamname);
                     g->poplist();
                     g->poplist();
-                    if(i+1<groups && (i+1)%2) {
+                    if(k+1<validgroups && (k+1)%2) {
                         g->space(2);
                     } else {
                         g->poplist();
-                        if(i+1 != groups) {
+                        if(k+1 != validgroups) {
                             g->space(1);
                         }
                     }
+                    k++;
                 }
             }
             if(hasspecs()) {
