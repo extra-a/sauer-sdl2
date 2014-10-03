@@ -477,9 +477,11 @@ namespace game
         if(lastpreviewdata.hasplayerdata && lastpreviewdata.nplayers) {
             g->separator();
             if(lastpreviewdata.tinfo.notteammode) {
-                g->pushlist();
-                drawgroup(g, NULL);
-                g->poplist();
+                if(hasplayers(NULL)) {
+                    g->pushlist();
+                    drawgroup(g, NULL);
+                    g->poplist();
+                }
             } else {
                 int groups = lastpreviewdata.tinfo.nteams;
                 int validgroups = 0;
