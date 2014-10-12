@@ -1145,6 +1145,51 @@ namespace game
         }
     }
 
+    VARP(newhud_hpssize, 0, 30, 50);
+    XIDENTHOOK(newhud_hpssize, IDF_EXTENDED);
+    VARP(newhud_hpiconssize, 0, 50, 200);
+    XIDENTHOOK(newhud_hpiconssize, IDF_EXTENDED);
+    VARP(newhud_hpvertical, 0, 0, 1);
+    XIDENTHOOK(newhud_hpvertical, IDF_EXTENDED);
+    VARP(newhud_hppos_x, 0, 100, 1000);
+    XIDENTHOOK(newhud_hppos_x, IDF_EXTENDED);
+    VARP(newhud_hppos_y, 0, 910, 1000);
+    XIDENTHOOK(newhud_hppos_y, IDF_EXTENDED);
+
+    void drawnewhudhp(fpsent *d, int w, int h) {
+        holdscreenlock;
+
+        int conw = int(w/staticscale), conh = int(h/staticscale);
+        float hpscale = (1 + newhud_hpssize/10.0)*h/1080.0;
+        float xoff = newhud_hppos_x*conw/1000;
+        float yoff = newhud_hppos_y*conh/1000;
+
+        glPushMatrix();
+        glScalef(staticscale*hpscale, staticscale*hpscale, 1);
+
+        char buff[10];
+        int r = 255, g = 255, b = 255, a = 255, tw = 0, th = 0;
+        float hsep = 20*hpscale*staticscale;
+        float iconsz = HICON_SIZE*hpscale*staticscale*newhud_hpiconssize/200.0;
+        if(coloredhealth && !m_insta) getchpcolors(d, r, g, b, a);
+        snprintf(buff, 10, "%d", d->state==CS_DEAD ? 0 : d->health);
+        text_bounds(buff, tw, th);
+        draw_text(buff, xoff/hpscale - tw, yoff/hpscale, r, g, b, a);
+        if(d->state!=CS_DEAD && d->armour) {
+            draw_text("", 0, 0, 255, 255, 255, 255);
+            drawicon(HICON_BLUE_ARMOUR+d->armourtype, xoff/hpscale + hsep, yoff/hpscale + th/2.0 - iconsz/2.0, iconsz);
+            snprintf(buff, 10, "%d", d->armour);
+            draw_text(buff, xoff/hpscale + 2*hsep + iconsz, yoff/hpscale, r, g, b, a);
+        }
+        draw_text("", 0, 0, 255, 255, 255, 255);
+
+        glPopMatrix();
+    }
+
+    void drawnewhudammo(fpsent *d, int w, int h) {
+        return;
+    }
+
     /* Game Clock */
     VARP(gameclock, 0, 0, 1);
     XIDENTHOOK(gameclock, IDF_EXTENDED);
@@ -1229,20 +1274,29 @@ namespace game
 
     void gameplayhud(int w, int h)
     {
+        holdscreenlock;
+
         drawspectator(w, h);
 
-        holdscreenlock;
-        glPushMatrix();
-        glScalef(h/1800.0f, h/1800.0f, 1);
-
         fpsent *d = hudplayer();
-        if(d->state!=CS_EDITING)
-        {
-            if(d->state!=CS_SPECTATOR) drawhudicons(d);
-            if(cmode) cmode->drawhud(d, w, h);
+        if(d->state!=CS_EDITING) {
+            if(newhud) {
+                if(d->state!=CS_SPECTATOR) {
+                    drawnewhudhp(d, w, h);
+                    drawnewhudammo(d, w, h);
+                }
+                glPushMatrix();
+                glScalef(h/1800.0f, h/1800.0f, 1);
+                if(cmode) cmode->drawhud(d, w, h);
+                glPopMatrix();
+            } else {
+                glPushMatrix();
+                glScalef(h/1800.0f, h/1800.0f, 1);
+                if(d->state!=CS_SPECTATOR) drawhudicons(d);
+                if(cmode) cmode->drawhud(d, w, h);
+                glPopMatrix();
+            }
         }
-
-        glPopMatrix();
 
         int gamemode = game::gamemode;
         int conw = int(w/staticscale), conh = int(h/staticscale);
