@@ -1,6 +1,8 @@
 #include "game.h"
 #include "extendedscripts.h"
 
+extern int newhud;
+
 namespace game
 {
     bool intermission = false;
@@ -9,14 +11,13 @@ namespace game
     int lasthit = 0, lastspawnattempt = 0;
 
     int following = -1, followdir = 0;
+    const float staticscale = 0.33;
 
     fpsent *player1 = NULL;         // our client
     vector<fpsent *> players;       // other clients
     int savedammo[NUMGUNS];
 
     bool clientoption(const char *arg) { return false; }
-
-    const float staticscale = 0.33;
 
     VARP(hudscores, 0, 0, 1);
     XIDENTHOOK(hudscores, IDF_EXTENDED);
@@ -1171,14 +1172,30 @@ namespace game
     /* Config GUI */
     ICOMMAND(extendedsettings, "", (), executestr("showgui extended_settings"));
 
-    void gameplayhud(int w, int h)
-    {
-        holdscreenlock;
-        glPushMatrix();
-        glScalef(h/1800.0f, h/1800.0f, 1);
+    VARP(newhud_spectatorsize, 0, 5, 30);
+    XIDENTHOOK(newhud_spectatorsize, IDF_EXTENDED);
+    VARP(newhud_spectatorpos_x, 0, 900, 1000);
+    XIDENTHOOK(newhud_spectatorpos_x, IDF_EXTENDED);
+    VARP(newhud_spectatorpos_y, 0, 800, 1000);
+    XIDENTHOOK(newhud_spectatorpos_y, IDF_EXTENDED);
 
-        if(player1->state==CS_SPECTATOR)
-        {
+
+    void drawspectator(int w, int h) {
+        holdscreenlock;
+        
+        int conw = int(w/staticscale), conh = int(h/staticscale);
+        float specscale = (1 + newhud_spectatorsize/10.0)*h/1080.0;
+        float xoff = newhud_spectatorpos_x*conw/1000;
+        float yoff = newhud_spectatorpos_y*conh/1000;
+
+        glPushMatrix();
+        if(newhud) {
+            glScalef(staticscale*specscale, staticscale*specscale, 1);
+        } else {
+            glScalef(h/1800.0f, h/1800.0f, 1);
+        }
+
+        if(player1->state==CS_SPECTATOR) {
             int pw, ph, tw, th, fw, fh;
             text_bounds("  ", pw, ph);
             text_bounds("SPECTATOR", tw, th);
@@ -1186,7 +1203,11 @@ namespace game
             fpsent *f = followingplayer();
             text_bounds(f ? colorname(f) : " ", fw, fh);
             fh = max(fh, ph);
-            draw_text("SPECTATOR", w*1800/h - tw - pw, 1650 - th - fh);
+            if(newhud) {
+                draw_text("SPECTATOR", xoff/specscale, yoff/specscale);
+            } else {
+                draw_text("SPECTATOR", w*1800/h - tw - pw, 1650 - th - fh);
+            }
             if(f) 
             {
                 int color = f->state!=CS_DEAD ? 0xFFFFFF : 0x606060;
@@ -1195,11 +1216,25 @@ namespace game
                     color = f->privilege>=PRIV_ADMIN ? 0xFF8000 : 0x40FF80;
                     if(f->state==CS_DEAD) color = (color>>1)&0x7F7F7F;
                 }
-                draw_text(colorname(f), w*1800/h - fw - pw, 1650 - fh, (color>>16)&0xFF, (color>>8)&0xFF, color&0xFF);
+                if(newhud) {
+                    draw_text(colorname(f), xoff/specscale, yoff/specscale + fh, (color>>16)&0xFF, (color>>8)&0xFF, color&0xFF);
+                } else {
+                    draw_text(colorname(f), w*1800/h - fw - pw, 1650 - fh, (color>>16)&0xFF, (color>>8)&0xFF, color&0xFF);
+                }
+                draw_text("", 0, 0, 255, 255, 255, 255);
             }
         }
+        glPopMatrix();
+    }
 
-        draw_text("", 0, 0, 255, 255, 255, 255);
+    void gameplayhud(int w, int h)
+    {
+        drawspectator(w, h);
+
+        holdscreenlock;
+        glPushMatrix();
+        glScalef(h/1800.0f, h/1800.0f, 1);
+
         fpsent *d = hudplayer();
         if(d->state!=CS_EDITING)
         {
@@ -1209,9 +1244,8 @@ namespace game
 
         glPopMatrix();
 
-        const int gamemode = game::gamemode;
-        const float staticscale = 0.33;
-        const int conw = int(w/staticscale), conh = int(h/staticscale);
+        int gamemode = game::gamemode;
+        int conw = int(w/staticscale), conh = int(h/staticscale);
 
         if(ammobar && !m_edit && !m_insta &&
            d->state!=CS_DEAD && d->state!=CS_SPECTATOR &&
