@@ -2381,6 +2381,11 @@ VAR(statrate, 1, 200, 1000);
 
 FVARP(conscale, 1e-3f, 0.33f, 1e3f);
 
+VARP(newhud, 0, 0, 1);
+XIDENTHOOK(newhud, IDF_EXTENDED);
+VARP(newhud_miniconoffset, 0, 0, 300);
+XIDENTHOOK(newhud_miniconoffset, IDF_EXTENDED);
+
 void gl_drawhud()
 {
     int w = screenw, h = screenh;
@@ -2567,9 +2572,15 @@ void gl_drawhud()
 
     glPushMatrix();
     glScalef(conscale, conscale, 1);
-    abovehud -= rendercommand(FONTH/2, abovehud - FONTH/2, conw-FONTH);
     extern int fullconsole;
-    if(!hidehud || fullconsole) renderconsole(conw, conh, abovehud - FONTH/2);
+    if((!hidehud && !newhud) || fullconsole || (!hidehud && editmode)) {
+        abovehud -= rendercommand(FONTH/2, abovehud - FONTH/2, conw-FONTH);
+        renderconsole(conw, conh, abovehud - FONTH/2);
+    } else if(!hidehud && newhud) {
+        int pos = conh - newhud_miniconoffset * conh / 1000;
+        pos -= rendercommand(FONTH/2, pos - FONTH/2, conw-FONTH);
+        renderconsole(conw, conh, pos - FONTH/2);
+    }
     glPopMatrix();
 
     drawcrosshair(w, h);

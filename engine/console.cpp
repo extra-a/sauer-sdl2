@@ -75,6 +75,11 @@ HVARP(confilter, 0, 0x7FFFFFF, 0x7FFFFFF);
 HVARP(fullconfilter, 0, 0x7FFFFFF, 0x7FFFFFF);
 HVARP(miniconfilter, 0, 0, 0x7FFFFFF);
 
+VARP(newhud_miniconsize, 0, 6, 100);
+XIDENTHOOK(newhud_miniconsize, IDF_EXTENDED);
+VARP(newhud_miniconwidth, 0, 30, 100);
+XIDENTHOOK(newhud_miniconwidth, IDF_EXTENDED);
+
 int conskip = 0, miniconskip = 0;
 
 void setconskip(int &skip, int filter, int n)
@@ -147,11 +152,17 @@ int renderconsole(int w, int h, int abovehud)                   // render buffer
         conwidth = w - 2*(conpad + conoff) - (fullconsole ? 0 : game::clipconsole(w, h));
     
     extern void consolebox(int x1, int y1, int x2, int y2);
+    extern int newhud;
     if(fullconsole) consolebox(conpad, conpad, conwidth+conpad+2*conoff, conheight+conpad+2*conoff);
     
     int y = drawconlines(conskip, fullconsole ? 0 : confade, conwidth, conheight, conpad+conoff, fullconsole ? fullconfilter : confilter);
-    if(!fullconsole && (miniconsize && miniconwidth))
-        drawconlines(miniconskip, miniconfade, (miniconwidth*(w - 2*(conpad + conoff)))/100, min(FONTH*miniconsize, abovehud - y), conpad+conoff, miniconfilter, abovehud, -1);
+    if(!fullconsole && (miniconsize && miniconwidth)) {
+        if(miniconsize && miniconwidth && !newhud) {
+            drawconlines(miniconskip, miniconfade, (miniconwidth*(w - 2*(conpad + conoff)))/100, min(FONTH*miniconsize, abovehud - y), conpad+conoff, miniconfilter, abovehud, -1);
+        } else if(newhud_miniconsize && newhud_miniconwidth && newhud) {
+            drawconlines(miniconskip, miniconfade, (newhud_miniconwidth*(w - 2*(conpad + conoff)))/100, min(FONTH*newhud_miniconsize, abovehud - y), conpad+conoff, miniconfilter, abovehud, -1);
+        }
+    }
     return fullconsole ? conheight + 2*(conpad + conoff) : y;
 }
 
