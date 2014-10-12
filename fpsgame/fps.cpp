@@ -1186,8 +1186,41 @@ namespace game
         glPopMatrix();
     }
 
+
+    VARP(newhud_ammosize, 0, 30, 50);
+    XIDENTHOOK(newhud_ammosize, IDF_EXTENDED);
+    VARP(newhud_ammoiconssize, 0, 50, 200);
+    XIDENTHOOK(newhud_ammoiconssize, IDF_EXTENDED);
+    VARP(newhud_ammopos_x, 0, 300, 1000);
+    XIDENTHOOK(newhud_ammopos_x, IDF_EXTENDED);
+    VARP(newhud_ammopos_y, 0, 910, 1000);
+    XIDENTHOOK(newhud_ammopos_y, IDF_EXTENDED);
+
     void drawnewhudammo(fpsent *d, int w, int h) {
-        return;
+        holdscreenlock;
+
+        int conw = int(w/staticscale), conh = int(h/staticscale);
+        float ammoscale = (1 + newhud_ammosize/10.0)*h/1080.0;
+        float xoff = newhud_ammopos_x*conw/1000;
+        float yoff = newhud_ammopos_y*conh/1000;
+        float iconsz = HICON_SIZE*ammoscale*staticscale*newhud_ammoiconssize/200.0;
+        float hsep = 20*ammoscale*staticscale;
+        int r = 255, g = 255, b = 255, a = 255, tw = 0, th = 0;
+
+        glPushMatrix();
+        glScalef(staticscale*ammoscale, staticscale*ammoscale, 1);
+
+        char buff[10];
+        snprintf(buff, 10, "%d", d->ammo[d->gunselect]);
+        text_bounds(buff, tw, th);
+
+        drawicon(HICON_FIST+d->gunselect, xoff/ammoscale, yoff/ammoscale + th/2.0 - iconsz/2.0, iconsz);
+
+        if(coloredammo && !m_insta) getammocolor(d, d->gunselect, r, g, b, a);
+        draw_text(buff, xoff/ammoscale + hsep + iconsz, yoff/ammoscale, r, g, b, a);
+        draw_text("", 0, 0, 255, 255, 255, 255);
+
+        glPopMatrix();
     }
 
     /* Game Clock */
