@@ -2,6 +2,7 @@
 #include "extendedscripts.h"
 
 extern int newhud;
+float staticscale = 0.33;
 
 namespace game
 {
@@ -11,7 +12,6 @@ namespace game
     int lasthit = 0, lastspawnattempt = 0;
 
     int following = -1, followdir = 0;
-    const float staticscale = 0.33;
 
     fpsent *player1 = NULL;         // our client
     vector<fpsent *> players;       // other clients
@@ -1108,9 +1108,11 @@ namespace game
         }
     }
 
-    void drawhudicons(fpsent *d)
+    void drawhudicons(fpsent *d, int h, int w)
     {
         holdscreenlock;
+        glPushMatrix();
+        glScalef(h/1800.0f, h/1800.0f, 1);
 
         drawicon(HICON_HEALTH, HICON_X, HICON_Y);
 
@@ -1143,14 +1145,13 @@ namespace game
             if(d->quadmillis) drawicon(HICON_QUAD, HICON_X + 3*HICON_STEP, HICON_Y);
             if(ammohud) drawammohud(d);
         }
+        glPopMatrix();
     }
 
     VARP(newhud_hpssize, 0, 30, 50);
     XIDENTHOOK(newhud_hpssize, IDF_EXTENDED);
     VARP(newhud_hpiconssize, 0, 50, 200);
     XIDENTHOOK(newhud_hpiconssize, IDF_EXTENDED);
-    VARP(newhud_hpvertical, 0, 0, 1);
-    XIDENTHOOK(newhud_hpvertical, IDF_EXTENDED);
     VARP(newhud_hppos_x, 0, 100, 1000);
     XIDENTHOOK(newhud_hppos_x, IDF_EXTENDED);
     VARP(newhud_hppos_y, 0, 910, 1000);
@@ -1191,7 +1192,7 @@ namespace game
     XIDENTHOOK(newhud_ammosize, IDF_EXTENDED);
     VARP(newhud_ammoiconssize, 0, 50, 200);
     XIDENTHOOK(newhud_ammoiconssize, IDF_EXTENDED);
-    VARP(newhud_ammopos_x, 0, 300, 1000);
+    VARP(newhud_ammopos_x, 0, 550, 1000);
     XIDENTHOOK(newhud_ammopos_x, IDF_EXTENDED);
     VARP(newhud_ammopos_y, 0, 910, 1000);
     XIDENTHOOK(newhud_ammopos_y, IDF_EXTENDED);
@@ -1305,6 +1306,32 @@ namespace game
         glPopMatrix();
     }
 
+    VARP(newhud_itemssize, 0, 20, 30);
+    XIDENTHOOK(newhud_itemssize, IDF_EXTENDED);
+    VARP(newhud_itemspos_x, 0, 10, 1000);
+    XIDENTHOOK(newhud_itemspos_x, IDF_EXTENDED);
+    VARP(newhud_itemspos_y, 0, 920, 1000);
+    XIDENTHOOK(newhud_itemspos_y, IDF_EXTENDED);
+
+    void drawnewhuditems(fpsent *d, int w, int h) {
+        if(d->quadmillis) {
+            holdscreenlock;
+            char buff[10];
+            int conw = int(w/staticscale), conh = int(h/staticscale);
+            float itemsscale = (1 + newhud_itemssize/10.0)*h/1080.0;
+            float xoff = newhud_itemspos_x*conw/1000;
+            float yoff = newhud_itemspos_y*conh/1000;
+
+            glPushMatrix();
+            snprintf(buff, 10, "M");
+            int tw = 0, th = 0;
+            text_bounds(buff, tw, th);
+            glScalef(staticscale*itemsscale, staticscale*itemsscale, 1);
+            drawicon(HICON_QUAD, xoff/itemsscale, yoff/itemsscale, th);
+            glPopMatrix();
+        }
+    }
+
     void gameplayhud(int w, int h)
     {
         holdscreenlock;
@@ -1317,17 +1344,12 @@ namespace game
                 if(d->state!=CS_SPECTATOR) {
                     drawnewhudhp(d, w, h);
                     drawnewhudammo(d, w, h);
+                    drawnewhuditems(d, w, h);
                 }
-                glPushMatrix();
-                glScalef(h/1800.0f, h/1800.0f, 1);
                 if(cmode) cmode->drawhud(d, w, h);
-                glPopMatrix();
             } else {
-                glPushMatrix();
-                glScalef(h/1800.0f, h/1800.0f, 1);
-                if(d->state!=CS_SPECTATOR) drawhudicons(d);
+                if(d->state!=CS_SPECTATOR) drawhudicons(d, w, h);
                 if(cmode) cmode->drawhud(d, w, h);
-                glPopMatrix();
             }
         }
 

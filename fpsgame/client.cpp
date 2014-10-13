@@ -6,6 +6,9 @@
 #define EXT_TEAMSCORE                   2
 #define EXT_VERSION                     105
 
+extern int newhud;
+extern float staticscale;
+
 namespace server
 {
     extern string smapname;
@@ -13,6 +16,10 @@ namespace server
 
 namespace game
 {
+    extern int newhud_itemssize;
+    extern int newhud_itemspos_x;
+    extern int newhud_itemspos_y;
+
     ENetSocket extinfosock = ENET_SOCKET_NULL;
 
     ENetSocket getextsock()

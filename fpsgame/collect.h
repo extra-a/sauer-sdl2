@@ -448,16 +448,39 @@ struct collectclientmode : clientmode
     void drawhud(fpsent *d, int w, int h)
     {
         holdscreenlock;
-        if(d->state == CS_ALIVE && d->tokens > 0)
-        {
-            int x = HICON_X + 3*HICON_STEP + (d->quadmillis ? HICON_SIZE + HICON_SPACE : 0);
-            glPushMatrix();
-            glScalef(2, 2, 1);
-            draw_textf("%d", (x + HICON_SIZE + HICON_SPACE)/2, HICON_TEXTY/2, d->tokens);
-            glPopMatrix();
-            drawicon(HICON_TOKEN, x, HICON_Y);
-        }
+        int conw = int(w/staticscale), conh = int(h/staticscale);
+        float itemsscale = (1 + newhud_itemssize/10.0)*h/1080.0;
+        float xoff = newhud_itemspos_x*conw/1000;
+        float yoff = newhud_itemspos_y*conh/1000;
+        float hsep = 20*itemsscale*staticscale;
 
+        glPushMatrix();
+        if(newhud) {
+            glScalef(staticscale*itemsscale, staticscale*itemsscale, 1);
+            if(d->state == CS_ALIVE && d->tokens > 0) {
+                char buff[10];
+                int r = 255, g = 255, b = 255, a = 255, tw = 0, th = 0;
+                snprintf(buff, 10, "%d", d->tokens);
+                text_bounds(buff, tw, th);
+                int x = xoff/itemsscale + (d->quadmillis ? th + hsep : 0);
+                drawicon(HICON_TOKEN, x, yoff/itemsscale, th);
+                draw_text(buff, x + th + hsep, yoff/itemsscale, r, g, b, a);
+            }
+        } else {
+            glScalef(h/1800.0f, h/1800.0f, 1);
+            if(d->state == CS_ALIVE && d->tokens > 0) {
+                int x = HICON_X + 3*HICON_STEP + (d->quadmillis ? HICON_SIZE + HICON_SPACE : 0);
+                glPushMatrix();
+                glScalef(2, 2, 1);
+                draw_textf("%d", (x + HICON_SIZE + HICON_SPACE)/2, HICON_TEXTY/2, d->tokens);
+                glPopMatrix();
+                drawicon(HICON_TOKEN, x, HICON_Y);
+            }
+        }
+        glPopMatrix();
+
+        glPushMatrix();
+        glScalef(h/1800.0f, h/1800.0f, 1);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         int s = 1800/4, x = 1800*w/h - s - s/10, y = s/10;
         glColor4f(1, 1, 1, minimapalpha);
@@ -504,6 +527,7 @@ struct collectclientmode : clientmode
                 glPopMatrix();
             }
         }
+        glPopMatrix();
     }
 
     void rendergame()

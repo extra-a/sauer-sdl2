@@ -500,23 +500,50 @@ struct ctfclientmode : clientmode
     void drawhud(fpsent *d, int w, int h)
     {
         holdscreenlock;
-        if(d->state == CS_ALIVE)
-        {
+        int conw = int(w/staticscale), conh = int(h/staticscale);
+        float itemsscale = (1 + newhud_itemssize/10.0)*h/1080.0;
+        float xoff = newhud_itemspos_x*conw/1000;
+        float yoff = newhud_itemspos_y*conh/1000;
+        float hsep = 20*itemsscale*staticscale;
+
+        glPushMatrix();
+        if(newhud) {
+            glScalef(staticscale*itemsscale, staticscale*itemsscale, 1);
+            char buff[10];
+            int tw = 0, th = 0, x = 0;
             loopv(flags) if(flags[i].owner == d)
-            {
-                int x = HICON_X + 3*HICON_STEP + (d->quadmillis ? HICON_SIZE + HICON_SPACE : 0);
-                drawicon(m_hold ? HICON_NEUTRAL_FLAG : (flags[i].team==ctfteamflag(getcurrentteam()) ? HICON_BLUE_FLAG : HICON_RED_FLAG), x, HICON_Y);
-                if(m_hold)
                 {
-                    glPushMatrix();
-                    glScalef(2, 2, 1);
-                    draw_textf("%d", (x + HICON_SIZE + HICON_SPACE)/2, HICON_TEXTY/2, max(HOLDSECS - (lastmillis - flags[i].owntime)/1000, 0));
-                    glPopMatrix();
+                    snprintf(buff, 10, "M");
+                    text_bounds(buff, tw, th);
+                    x = xoff/itemsscale + (d->quadmillis ? th + hsep : 0);
+                    drawicon(m_hold ? HICON_NEUTRAL_FLAG : (flags[i].team==ctfteamflag(getcurrentteam()) ? HICON_BLUE_FLAG : HICON_RED_FLAG), x, yoff/itemsscale, th);
+                    if(m_hold) {
+                        draw_textf("%d", x + th + hsep, yoff/itemsscale, max(HOLDSECS - (lastmillis - flags[i].owntime)/1000, 0));
+                    }
+                    break;
                 }
-                break;
+        } else {
+            if(d->state == CS_ALIVE) {
+                glScalef(h/1800.0f, h/1800.0f, 1);
+                loopv(flags) if(flags[i].owner == d)
+                    {
+                        int x = HICON_X + 3*HICON_STEP + (d->quadmillis ? HICON_SIZE + HICON_SPACE : 0);
+                        drawicon(m_hold ? HICON_NEUTRAL_FLAG : (flags[i].team==ctfteamflag(getcurrentteam()) ? HICON_BLUE_FLAG : HICON_RED_FLAG), x, HICON_Y);
+                        if(m_hold)
+                            {
+                                glPushMatrix();
+                                glScalef(2, 2, 1);
+                                draw_textf("%d", (x + HICON_SIZE + HICON_SPACE)/2, HICON_TEXTY/2, max(HOLDSECS - (lastmillis - flags[i].owntime)/1000, 0));
+                                glPopMatrix();
+                            }
+                        break;
+                    }
             }
         }
-
+        glPopMatrix();
+        
+        glPushMatrix();
+        glScalef(h/1800.0f, h/1800.0f, 1);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         int s = 1800/4, x = 1800*w/h - s - s/10, y = s/10;
         glColor4f(1, 1, 1, minimapalpha);
@@ -566,6 +593,7 @@ struct ctfclientmode : clientmode
                 glPopMatrix();
             }
         }
+        glPopMatrix();
     }
 
     void removeplayer(fpsent *d)

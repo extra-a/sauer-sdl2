@@ -471,6 +471,8 @@ struct captureclientmode : clientmode
     void drawhud(fpsent *d, int w, int h)
     {
         holdscreenlock;
+        glPushMatrix();
+        glScalef(h/1800.0f, h/1800.0f, 1);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         int s = 1800/4, x = 1800*w/h - s - s/10, y = s/10;
         glColor4f(1, 1, 1, minimapalpha);
@@ -526,6 +528,7 @@ struct captureclientmode : clientmode
                 glPopMatrix();
             }
         }
+        glPopMatrix();
     }
 
     void setup()
