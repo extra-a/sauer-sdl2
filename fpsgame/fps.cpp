@@ -1244,9 +1244,9 @@ namespace game
 
     VARP(newhud_spectatorsize, 0, 5, 30);
     XIDENTHOOK(newhud_spectatorsize, IDF_EXTENDED);
-    VARP(newhud_spectatorpos_x, 0, 900, 1000);
+    VARP(newhud_spectatorpos_x, 0, 500, 1000);
     XIDENTHOOK(newhud_spectatorpos_x, IDF_EXTENDED);
-    VARP(newhud_spectatorpos_y, 0, 800, 1000);
+    VARP(newhud_spectatorpos_y, 0, 50, 1000);
     XIDENTHOOK(newhud_spectatorpos_y, IDF_EXTENDED);
 
 
@@ -1273,21 +1273,21 @@ namespace game
             fpsent *f = followingplayer();
             text_bounds(f ? colorname(f) : " ", fw, fh);
             fh = max(fh, ph);
-            if(newhud) {
-                draw_text("SPECTATOR", xoff/specscale, yoff/specscale);
-            } else {
+            if(!newhud) {
                 draw_text("SPECTATOR", w*1800/h - tw - pw, 1650 - th - fh);
             }
-            if(f) 
-            {
+            if(f) {
                 int color = f->state!=CS_DEAD ? 0xFFFFFF : 0x606060;
-                if(f->privilege)
-                {
+                if(f->privilege) {
                     color = f->privilege>=PRIV_ADMIN ? 0xFF8000 : 0x40FF80;
                     if(f->state==CS_DEAD) color = (color>>1)&0x7F7F7F;
                 }
                 if(newhud) {
-                    draw_text(colorname(f), xoff/specscale, yoff/specscale + fh, (color>>16)&0xFF, (color>>8)&0xFF, color&0xFF);
+                    const char *cname;
+                    int w1=0, h1=0;
+                    cname = colorname(f);
+                    text_bounds(cname, w1, h1);
+                    draw_text(cname, xoff/specscale - w1/2.0, yoff/specscale, (color>>16)&0xFF, (color>>8)&0xFF, color&0xFF);
                 } else {
                     draw_text(colorname(f), w*1800/h - fw - pw, 1650 - fh, (color>>16)&0xFF, (color>>8)&0xFF, color&0xFF);
                 }
