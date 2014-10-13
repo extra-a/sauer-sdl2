@@ -6,6 +6,7 @@ const char *hud_old =
     "ammobar 0\n"
     "ammobardisablewithgui 0\n"
     "ammobarhorizontal 0\n"
+    "ammobaroffset_reverse_x 0\n"
     "ammobaroffset_x 950\n"
     "ammobaroffset_y 410\n"
     "ammobarselectedbg 1\n"
@@ -22,6 +23,7 @@ const char *hud_old =
     "gameclockcolor_g 255\n"
     "gameclockcolor_r 255\n"
     "gameclockdisablewithgui 0\n"
+    "gameclockoffset_reverse_x 0\n"
     "gameclockoffset_x 950\n"
     "gameclockoffset_y 340\n"
     "gameclocksize 5\n"
@@ -37,6 +39,7 @@ const char *hud_old =
     "hudscoresplayercolor_b 255\n"
     "hudscoresplayercolor_g 255\n"
     "hudscoresplayercolor_r 0\n"
+    "hudscoresoffset_reverse_x 0\n"
     "hudscoressize 5\n"
     "newhud 0\n"
     "newhud_ammoiconssize 50\n"
@@ -105,6 +108,7 @@ const char *extended_settings_gui =
     "guistrut 1\n"
 
     "guitext \"Offset (X/Y)^f~:\" 0\n"
+    "guicheckbox \"Use reverse X offset\" gameclockoffset_reverse_x\n"
     "guislider gameclockoffset_x\n"
     "guislider gameclockoffset_y\n"
     "guistrut 1\n"
@@ -128,6 +132,7 @@ const char *extended_settings_gui =
     "guistrut 1\n"
 
     "guitext \"Offset (X/Y)^f~:\" 0\n"
+    "guicheckbox \"Use reverse X offset\" hudscoresoffset_reverse_x\n"
     "guislider hudscoresoffset_x\n"
     "guislider hudscoresoffset_y\n"
     "guistrut 1\n"
@@ -162,6 +167,7 @@ const char *extended_settings_gui =
     "guistrut 1\n"
     
     "guitext \"Offset (X/Y):\" 0\n"
+    "guicheckbox \"Use reverse X offset\" ammobaroffset_reverse_x\n"
     "guislider ammobaroffset_x\n"
     "guislider ammobaroffset_y\n"
     "guistrut 1\n"

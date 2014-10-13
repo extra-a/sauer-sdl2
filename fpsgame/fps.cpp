@@ -30,6 +30,8 @@ namespace game
 
     VARP(hudscoresoffset_x, 0, 800, 1000);
     XIDENTHOOK(hudscoresoffset_x, IDF_EXTENDED);
+    VARP(hudscoresoffset_reverse_x, 0, 0, 1);
+    XIDENTHOOK(hudscoresoffset_reverse_x, IDF_EXTENDED);
 
     VARP(hudscoresoffset_y, 0, 935, 1000);
     XIDENTHOOK(hudscoresoffset_y, IDF_EXTENDED);
@@ -54,7 +56,7 @@ namespace game
 
 
     static inline int limitscore(int s) {
-        return s >= 0 ? min(999, s) : max(-99, s);
+        return s >= 0 ? min(9999, s) : max(-999, s);
     }
 
     void taunt()
@@ -924,6 +926,8 @@ namespace game
     XIDENTHOOK(ammobarsize, IDF_EXTENDED);
     VARP(ammobaroffset_x, 0, 950, 1000);
     XIDENTHOOK(ammobaroffset_x, IDF_EXTENDED);
+    VARP(ammobaroffset_reverse_x, 0, 0, 1);
+    XIDENTHOOK(ammobaroffset_reverse_x, IDF_EXTENDED);
     VARP(ammobaroffset_y, 0, 410, 1000);
     XIDENTHOOK(ammobaroffset_y, IDF_EXTENDED);
     VARP(ammobarhorizontal, 0, 0, 1);
@@ -1228,6 +1232,8 @@ namespace game
     XIDENTHOOK(gameclocksize, IDF_EXTENDED);
     VARP(gameclockoffset_x, 0, 950, 1000);
     XIDENTHOOK(gameclockoffset_x, IDF_EXTENDED);
+    VARP(gameclockoffset_reverse_x, 0, 0, 1);
+    XIDENTHOOK(gameclockoffset_reverse_x, IDF_EXTENDED);
     VARP(gameclockoffset_y, 0, 340, 1000);
     XIDENTHOOK(gameclockoffset_y, IDF_EXTENDED);
     VARP(gameclockcolor_r, 0, 255, 255);
@@ -1365,17 +1371,23 @@ namespace game
                 g = gameclockcolor_g,
                 b = gameclockcolor_b,
                 a = gameclockcolor_a;
-
             float gameclockscale = (1 + gameclocksize/10.0)*h/1080.0;
-            float xoff = gameclockoffset_x*conw/1000;
-            float yoff = gameclockoffset_y*conh/1000;
 
             glPushMatrix();
             glScalef(staticscale*gameclockscale, staticscale*gameclockscale, 1);
-            draw_text(buf,
-                      xoff/gameclockscale,
-                      yoff/gameclockscale,
-                      r, g, b, a);
+
+            int tw = 0, th = 0;
+            float xoff = 0.0;
+            float yoff = gameclockoffset_y*conh/1000;
+            if(gameclockoffset_reverse_x) {
+                text_bounds(buf, tw, th);
+                xoff = (1000 - gameclockoffset_x)*conw/1000;
+                draw_text(buf, xoff/gameclockscale - tw, yoff/gameclockscale, r, g, b, a);
+            } else {
+                xoff = gameclockoffset_x*conw/1000;
+                draw_text(buf, xoff/gameclockscale, yoff/gameclockscale, r, g, b, a);
+            }
+
             glPopMatrix();
         }
 
@@ -1389,7 +1401,7 @@ namespace game
             else { getbestplayers(bestplayers,1); grsz = bestplayers.length(); }
 
             float scorescale = (1 + hudscoressize/10.0)*h/1080.0;
-            float xoff = hudscoresoffset_x*conw/1000;
+            float xoff = hudscoresoffset_reverse_x ? (1000 - hudscoresoffset_x)*conw/1000 : hudscoresoffset_x*conw/1000;
             float yoff = hudscoresoffset_y*conh/1000;
             int r1 = hudscoresplayercolor_r,
                 g1 = hudscoresplayercolor_g,
@@ -1404,8 +1416,8 @@ namespace game
             int scoresep = 40*scorescale*staticscale;
 
             if(grsz) {
-                char buff[10];
-                int isbest=1, tw=0, th=0;
+                char buff1[5], buff2[5];
+                int isbest=1, tw1=0, th1=0, tw2=0, th2=0;
                 fpsent* currentplayer = (player1->state == CS_SPECTATOR) ? followingplayer() : player1;
                 if(!currentplayer) return;
 
@@ -1421,9 +1433,8 @@ namespace game
                     else frags = bestplayers[0]->frags;
                     frags = limitscore(frags);
 
-                    snprintf(buff, 10, "%d", frags);
-                    text_bounds(buff, tw, th);
-                    draw_text(buff, xoff/scorescale, yoff/scorescale, r1, g1, b1, a1);
+                    snprintf(buff1, 5, "%d", frags);
+                    text_bounds(buff1, tw1, th1);
 
                     if(grsz > 1) {
                         int frags2=0;
@@ -1431,8 +1442,20 @@ namespace game
                         else frags2 = bestplayers[1]->frags;
                         frags2 = limitscore(frags2);
 
-                        snprintf(buff, 10, "%d", frags2);
-                        draw_text(buff, xoff/scorescale + tw + scoresep, yoff/scorescale, r2, g2, b2, a2);
+                        snprintf(buff2, 5, "%d", frags2);
+                        text_bounds(buff2, tw2, th2);
+                    }
+                    if(hudscoresoffset_reverse_x) {
+                        float addoffset = grsz > 1 ? tw1 + tw2 + scoresep : tw1;
+                        draw_text(buff1, xoff/scorescale - addoffset, yoff/scorescale, r1, g1, b1, a1);
+                        if(grsz > 1) {
+                            draw_text(buff2, xoff/scorescale - tw2, yoff/scorescale, r2, g2, b2, a2);
+                        }
+                    } else {
+                        draw_text(buff1, xoff/scorescale, yoff/scorescale, r1, g1, b1, a1);
+                        if(grsz > 1) {
+                            draw_text(buff2, xoff/scorescale + tw1 + scoresep, yoff/scorescale, r2, g2, b2, a2);
+                        }
                     }
                 } else {
                     int frags=0, frags2=0;
@@ -1440,9 +1463,8 @@ namespace game
                     else frags = bestplayers[0]->frags;
                     frags = limitscore(frags);
 
-                    snprintf(buff, 10, "%d", frags);
-                    text_bounds(buff, tw, th);
-                    draw_text(buff, xoff/scorescale, yoff/scorescale, r2, g2, b2, a2);
+                    snprintf(buff1, 5, "%d", frags);
+                    text_bounds(buff1, tw1, th1);
 
                     if(m_teammode) {
                         loopk(grsz) {
@@ -1454,8 +1476,18 @@ namespace game
                     }
                     frags2 = limitscore(frags2);
 
-                    snprintf(buff, 10, "%d", frags2);
-                    draw_text(buff, xoff/scorescale + tw + scoresep, yoff/scorescale, r1, g1, b1, a1);
+                    snprintf(buff2, 5, "%d", frags2);
+                    text_bounds(buff2, tw2, th2);
+
+                    if(hudscoresoffset_reverse_x) {
+                        float addoffset =  tw1 + tw2 + scoresep;
+                        draw_text(buff1, xoff/scorescale - addoffset, yoff/scorescale, r1, g1, b1, a1);
+
+                        draw_text(buff2, xoff/scorescale - tw2, yoff/scorescale, r2, g2, b2, a2);
+                    } else {
+                        draw_text(buff1, xoff/scorescale, yoff/scorescale, r2, g2, b2, a2);
+                        draw_text(buff2, xoff/scorescale + tw1 + scoresep, yoff/scorescale, r1, g1, b1, a1);
+                    }
                 }
 
                 glPopMatrix();
