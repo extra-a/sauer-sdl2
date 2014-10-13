@@ -208,7 +208,7 @@ namespace game
         adddecal(DECAL_BLOOD, vec(b->o).sub(vec(surface).mul(b->radius)), surface, 2.96f/b->bounces, bvec(0x60, 0xFF, 0xFF), rnd(4));
     }
         
-    VARP(smokefps, 0, 80, 200);
+    VARP(smokefps, 0, 200, 200);
     XIDENTHOOK(smokefps, IDF_EXTENDED);
     void updatebouncers(int time)
     {

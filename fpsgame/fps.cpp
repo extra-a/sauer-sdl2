@@ -28,17 +28,11 @@ namespace game
     VARP(hudscoressize, 1, 5, 30);
     XIDENTHOOK(hudscoressize, IDF_EXTENDED);
 
-    VARP(hudscoresoffset_x, 0, 900, 1000);
+    VARP(hudscoresoffset_x, 0, 800, 1000);
     XIDENTHOOK(hudscoresoffset_x, IDF_EXTENDED);
 
-    VARP(hudscoresoffset_y, 0, 55, 1000);
+    VARP(hudscoresoffset_y, 0, 935, 1000);
     XIDENTHOOK(hudscoresoffset_y, IDF_EXTENDED);
-
-    VARP(hudscoresoffset_x_withradar, 0, 750, 1000);
-    XIDENTHOOK(hudscoresoffset_x_withradar, IDF_EXTENDED);
-
-    VARP(hudscoresoffset_y_withradar, 0, 55, 1000);
-    XIDENTHOOK(hudscoresoffset_y_withradar, IDF_EXTENDED);
 
     VARP(hudscoresplayercolor_r, 0, 0, 255);
     XIDENTHOOK(hudscoresplayercolor_r, IDF_EXTENDED);
@@ -928,9 +922,9 @@ namespace game
     XIDENTHOOK(ammobardisablewithgui, IDF_EXTENDED);
     VARP(ammobarsize, 1, 5, 30);
     XIDENTHOOK(ammobarsize, IDF_EXTENDED);
-    VARP(ammobaroffset_x, 0, 955, 1000);
+    VARP(ammobaroffset_x, 0, 950, 1000);
     XIDENTHOOK(ammobaroffset_x, IDF_EXTENDED);
-    VARP(ammobaroffset_y, 0, 500, 1000);
+    VARP(ammobaroffset_y, 0, 410, 1000);
     XIDENTHOOK(ammobaroffset_y, IDF_EXTENDED);
     VARP(ammobarhorizontal, 0, 0, 1);
     XIDENTHOOK(ammobarhorizontal, IDF_EXTENDED);
@@ -1232,14 +1226,10 @@ namespace game
     XIDENTHOOK(gameclockdisablewithgui, IDF_EXTENDED);
     VARP(gameclocksize, 1, 5, 30);
     XIDENTHOOK(gameclocksize, IDF_EXTENDED);
-    VARP(gameclockoffset_x, 0, 900, 1000);
+    VARP(gameclockoffset_x, 0, 950, 1000);
     XIDENTHOOK(gameclockoffset_x, IDF_EXTENDED);
-    VARP(gameclockoffset_y, 0, 5, 1000);
+    VARP(gameclockoffset_y, 0, 340, 1000);
     XIDENTHOOK(gameclockoffset_y, IDF_EXTENDED);
-    VARP(gameclockoffset_x_withradar, 0, 750, 1000);
-    XIDENTHOOK(gameclockoffset_x_withradar, IDF_EXTENDED);
-    VARP(gameclockoffset_y_withradar, 0, 5, 1000);
-    XIDENTHOOK(gameclockoffset_y_withradar, IDF_EXTENDED);
     VARP(gameclockcolor_r, 0, 255, 255);
     XIDENTHOOK(gameclockcolor_r, IDF_EXTENDED);
     VARP(gameclockcolor_g, 0, 255, 255);
@@ -1377,9 +1367,8 @@ namespace game
                 a = gameclockcolor_a;
 
             float gameclockscale = (1 + gameclocksize/10.0)*h/1080.0;
-            bool radar = (m_ctf || m_capture);
-            float xoff = ((radar ? gameclockoffset_x_withradar : gameclockoffset_x)*conw/1000);
-            float yoff = ((radar ? gameclockoffset_y_withradar : gameclockoffset_y)*conh/1000);
+            float xoff = gameclockoffset_x*conw/1000;
+            float yoff = gameclockoffset_y*conh/1000;
 
             glPushMatrix();
             glScalef(staticscale*gameclockscale, staticscale*gameclockscale, 1);
@@ -1400,9 +1389,8 @@ namespace game
             else { getbestplayers(bestplayers,1); grsz = bestplayers.length(); }
 
             float scorescale = (1 + hudscoressize/10.0)*h/1080.0;
-            bool radar = (m_ctf || m_capture);
-            float xoff = ((radar ? hudscoresoffset_x_withradar : hudscoresoffset_x)*conw/1000);
-            float yoff = ((radar ? hudscoresoffset_y_withradar : hudscoresoffset_y)*conh/1000);
+            float xoff = hudscoresoffset_x*conw/1000;
+            float yoff = hudscoresoffset_y*conh/1000;
             int r1 = hudscoresplayercolor_r,
                 g1 = hudscoresplayercolor_g,
                 b1 = hudscoresplayercolor_b,

@@ -47,14 +47,9 @@ const char *extended_settings_gui =
     "guislider gameclocksize\n"
     "guistrut 1\n"
 
-    "guitext \"Offset (X/Y) ^f4(radar absent)^f~:\" 0\n"
+    "guitext \"Offset (X/Y)^f~:\" 0\n"
     "guislider gameclockoffset_x\n"
     "guislider gameclockoffset_y\n"
-    "guistrut 1\n"
-
-    "guitext \"Offset (X/Y) ^f4(radar present)^f~:\" 0\n"
-    "guislider gameclockoffset_x_withradar\n"
-    "guislider gameclockoffset_y_withradar\n"
     "guistrut 1\n"
 
     "guitext \"Color (^f3R^f~/^f0G^f~/^f1B^f~/^f4A^f~):\" 0\n"
@@ -75,14 +70,9 @@ const char *extended_settings_gui =
     "guislider hudscoressize\n"
     "guistrut 1\n"
 
-    "guitext \"Offset (X/Y) ^f4(radar absent)^f~:\" 0\n"
+    "guitext \"Offset (X/Y)^f~:\" 0\n"
     "guislider hudscoresoffset_x\n"
     "guislider hudscoresoffset_y\n"
-    "guistrut 1\n"
-
-    "guitext \"Offset (X/Y) ^f4(radar present)^f~:\" 0\n"
-    "guislider hudscoresoffset_x_withradar\n"
-    "guislider hudscoresoffset_y_withradar\n"
     "guistrut 1\n"
 
     "guitab \"Scores Colors\"\n"
