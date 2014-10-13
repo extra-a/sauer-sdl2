@@ -541,7 +541,7 @@ struct ctfclientmode : clientmode
             }
         }
         glPopMatrix();
-        
+
         glPushMatrix();
         glScalef(h/1800.0f, h/1800.0f, 1);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

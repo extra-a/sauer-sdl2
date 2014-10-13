@@ -1090,7 +1090,7 @@ namespace game
     XIDENTHOOK(coloredhealth, IDF_EXTENDED);
 
     void getchpcolors(fpsent *d, int& r, int& g, int& b, int& a) {
-        int chp = composedhealth(d);
+        int chp = d->state==CS_DEAD ? 0 : composedhealth(d);
         if(chp > 250) {
             r = 0, g = 127, b = 255, a = 255;
         } else if(chp > 200) {
@@ -1108,7 +1108,7 @@ namespace game
         }
     }
 
-    void drawhudicons(fpsent *d, int h, int w)
+    void drawhudicons(fpsent *d, int w, int h)
     {
         holdscreenlock;
         glPushMatrix();
@@ -1152,7 +1152,7 @@ namespace game
     XIDENTHOOK(newhud_hpssize, IDF_EXTENDED);
     VARP(newhud_hpiconssize, 0, 50, 200);
     XIDENTHOOK(newhud_hpiconssize, IDF_EXTENDED);
-    VARP(newhud_hppos_x, 0, 100, 1000);
+    VARP(newhud_hppos_x, 0, 350, 1000);
     XIDENTHOOK(newhud_hppos_x, IDF_EXTENDED);
     VARP(newhud_hppos_y, 0, 910, 1000);
     XIDENTHOOK(newhud_hppos_y, IDF_EXTENDED);
@@ -1198,6 +1198,7 @@ namespace game
     XIDENTHOOK(newhud_ammopos_y, IDF_EXTENDED);
 
     void drawnewhudammo(fpsent *d, int w, int h) {
+        if(d->state==CS_DEAD) return;
         holdscreenlock;
 
         int conw = int(w/staticscale), conh = int(h/staticscale);
