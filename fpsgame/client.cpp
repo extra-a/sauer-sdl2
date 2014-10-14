@@ -19,6 +19,7 @@ namespace game
     extern int newhud_itemssize;
     extern int newhud_itemspos_x;
     extern int newhud_itemspos_y;
+    extern int newhud_itemspos_reverse_x;
 
     ENetSocket extinfosock = ENET_SOCKET_NULL;
 

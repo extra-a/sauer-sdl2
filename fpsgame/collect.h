@@ -450,7 +450,7 @@ struct collectclientmode : clientmode
         holdscreenlock;
         int conw = int(w/staticscale), conh = int(h/staticscale);
         float itemsscale = (1 + newhud_itemssize/10.0)*h/1080.0;
-        float xoff = newhud_itemspos_x*conw/1000;
+        float xoff = newhud_itemspos_reverse_x ? (1000 - newhud_itemspos_x)*conw/1000 : newhud_itemspos_x*conw/1000;
         float yoff = newhud_itemspos_y*conh/1000;
         float hsep = 20*itemsscale*staticscale;
 
@@ -462,9 +462,16 @@ struct collectclientmode : clientmode
                 int r = 255, g = 255, b = 255, a = 255, tw = 0, th = 0;
                 snprintf(buff, 10, "%d", d->tokens);
                 text_bounds(buff, tw, th);
-                int x = xoff/itemsscale + (d->quadmillis ? th + hsep : 0);
-                drawicon(HICON_TOKEN, x, yoff/itemsscale, th);
-                draw_text(buff, x + th + hsep, yoff/itemsscale, r, g, b, a);
+                if(newhud_itemspos_reverse_x) {
+                    int x = xoff/itemsscale - (d->quadmillis ? th + hsep : 0);
+                    x -= th + tw + hsep;
+                    drawicon(HICON_TOKEN, x, yoff/itemsscale - th/2.0, th);
+                    draw_text(buff, x + th + hsep, yoff/itemsscale - th/2.0, r, g, b, a);
+                } else {
+                    int x = xoff/itemsscale + (d->quadmillis ? th + hsep : 0);
+                    drawicon(HICON_TOKEN, x, yoff/itemsscale - th/2.0, th);
+                    draw_text(buff, x + th + hsep, yoff/itemsscale - th/2.0, r, g, b, a);
+                }
             }
         } else {
             glScalef(h/1800.0f, h/1800.0f, 1);

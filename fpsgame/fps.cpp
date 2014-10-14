@@ -1155,17 +1155,19 @@ namespace game
 
         char buff[10];
         int r = 255, g = 255, b = 255, a = 255, tw = 0, th = 0;
-        float hsep = 20*hpscale*staticscale;
-        float iconsz = HICON_SIZE*hpscale*staticscale*newhud_hpiconssize/200.0;
+        float hsep = 20.0*hpscale*staticscale;
         if(coloredhealth && !m_insta) getchpcolors(d, r, g, b, a);
         snprintf(buff, 10, "%d", d->state==CS_DEAD ? 0 : d->health);
         text_bounds(buff, tw, th);
-        draw_text(buff, xoff/hpscale - tw, yoff/hpscale, r, g, b, a);
+
+        float iconsz = th*newhud_hpiconssize/100.0;
+        xoff -= iconsz/2.0*hpscale;
+        draw_text(buff, xoff/hpscale - tw - hsep, yoff/hpscale - th/2.0, r, g, b, a);
         if(d->state!=CS_DEAD && d->armour) {
             draw_text("", 0, 0, 255, 255, 255, 255);
-            drawicon(HICON_BLUE_ARMOUR+d->armourtype, xoff/hpscale + hsep, yoff/hpscale + th/2.0 - iconsz/2.0, iconsz);
+            drawicon(HICON_BLUE_ARMOUR+d->armourtype, xoff/hpscale, yoff/hpscale - iconsz/2.0, iconsz);
             snprintf(buff, 10, "%d", d->armour);
-            draw_text(buff, xoff/hpscale + 2*hsep + iconsz, yoff/hpscale, r, g, b, a);
+            draw_text(buff, xoff/hpscale + iconsz + hsep, yoff/hpscale - th/2.0, r, g, b, a);
         }
         draw_text("", 0, 0, 255, 255, 255, 255);
 
@@ -1190,8 +1192,7 @@ namespace game
         float ammoscale = (1 + newhud_ammosize/10.0)*h/1080.0;
         float xoff = newhud_ammopos_x*conw/1000;
         float yoff = newhud_ammopos_y*conh/1000;
-        float iconsz = HICON_SIZE*ammoscale*staticscale*newhud_ammoiconssize/200.0;
-        float hsep = 20*ammoscale*staticscale;
+        float hsep = 20.0*ammoscale*staticscale;
         int r = 255, g = 255, b = 255, a = 255, tw = 0, th = 0;
 
         glPushMatrix();
@@ -1200,11 +1201,13 @@ namespace game
         char buff[10];
         snprintf(buff, 10, "%d", d->ammo[d->gunselect]);
         text_bounds(buff, tw, th);
+        float iconsz = th*newhud_ammoiconssize/100.0;
+        xoff -= iconsz/2.0*ammoscale;
 
-        drawicon(HICON_FIST+d->gunselect, xoff/ammoscale, yoff/ammoscale + th/2.0 - iconsz/2.0, iconsz);
+        drawicon(HICON_FIST+d->gunselect, xoff/ammoscale, yoff/ammoscale - iconsz/2.0, iconsz);
 
         if(coloredammo && !m_insta) getammocolor(d, d->gunselect, r, g, b, a);
-        draw_text(buff, xoff/ammoscale + hsep + iconsz, yoff/ammoscale, r, g, b, a);
+        draw_text(buff, xoff/ammoscale + hsep + iconsz, yoff/ammoscale - th/2.0, r, g, b, a);
         draw_text("", 0, 0, 255, 255, 255, 255);
 
         glPopMatrix();
@@ -1465,6 +1468,8 @@ namespace game
     XIDENTHOOK(newhud_itemssize, IDF_EXTENDED);
     VARP(newhud_itemspos_x, 0, 10, 1000);
     XIDENTHOOK(newhud_itemspos_x, IDF_EXTENDED);
+    VARP(newhud_itemspos_reverse_x, 0, 1, 1);
+    XIDENTHOOK(newhud_itemspos_reverse_x, IDF_EXTENDED);
     VARP(newhud_itemspos_y, 0, 920, 1000);
     XIDENTHOOK(newhud_itemspos_y, IDF_EXTENDED);
 
@@ -1474,7 +1479,7 @@ namespace game
             char buff[10];
             int conw = int(w/staticscale), conh = int(h/staticscale);
             float itemsscale = (1 + newhud_itemssize/10.0)*h/1080.0;
-            float xoff = newhud_itemspos_x*conw/1000;
+            float xoff = newhud_itemspos_reverse_x ? (1000 - newhud_itemspos_x)*conw/1000 : newhud_itemspos_x*conw/1000;
             float yoff = newhud_itemspos_y*conh/1000;
 
             glPushMatrix();
@@ -1482,7 +1487,11 @@ namespace game
             int tw = 0, th = 0;
             text_bounds(buff, tw, th);
             glScalef(staticscale*itemsscale, staticscale*itemsscale, 1);
-            drawicon(HICON_QUAD, xoff/itemsscale, yoff/itemsscale, th);
+            if(newhud_itemspos_reverse_x) {
+                drawicon(HICON_QUAD, xoff/itemsscale - th, yoff/itemsscale - th/2.0, th);
+            } else {
+                drawicon(HICON_QUAD, xoff/itemsscale, yoff/itemsscale - th/2.0, th);
+            }
             glPopMatrix();
         }
     }
