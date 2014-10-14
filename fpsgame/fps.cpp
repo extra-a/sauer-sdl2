@@ -19,42 +19,6 @@ namespace game
 
     bool clientoption(const char *arg) { return false; }
 
-    VARP(hudscores, 0, 0, 1);
-    XIDENTHOOK(hudscores, IDF_EXTENDED);
-
-    VARP(hudscoresdisablewithgui, 0, 0, 1);
-    XIDENTHOOK(hudscoresdisablewithgui, IDF_EXTENDED);
-
-    VARP(hudscoressize, 1, 5, 30);
-    XIDENTHOOK(hudscoressize, IDF_EXTENDED);
-
-    VARP(hudscoresoffset_x, 0, 800, 1000);
-    XIDENTHOOK(hudscoresoffset_x, IDF_EXTENDED);
-    VARP(hudscoresoffset_reverse_x, 0, 0, 1);
-    XIDENTHOOK(hudscoresoffset_reverse_x, IDF_EXTENDED);
-
-    VARP(hudscoresoffset_y, 0, 935, 1000);
-    XIDENTHOOK(hudscoresoffset_y, IDF_EXTENDED);
-
-    VARP(hudscoresplayercolor_r, 0, 0, 255);
-    XIDENTHOOK(hudscoresplayercolor_r, IDF_EXTENDED);
-    VARP(hudscoresplayercolor_g, 0, 255, 255);
-    XIDENTHOOK(hudscoresplayercolor_g, IDF_EXTENDED);
-    VARP(hudscoresplayercolor_b, 0, 255, 255);
-    XIDENTHOOK(hudscoresplayercolor_b, IDF_EXTENDED);
-    VARP(hudscoresplayercolor_a, 0, 255, 255);
-    XIDENTHOOK(hudscoresplayercolor_a, IDF_EXTENDED);
-
-    VARP(hudscoresenemycolor_r, 0, 255, 255);
-    XIDENTHOOK(hudscoresenemycolor_r, IDF_EXTENDED);
-    VARP(hudscoresenemycolor_g, 0, 0, 255);
-    XIDENTHOOK(hudscoresenemycolor_g, IDF_EXTENDED);
-    VARP(hudscoresenemycolor_b, 0, 0, 255);
-    XIDENTHOOK(hudscoresenemycolor_b, IDF_EXTENDED);
-    VARP(hudscoresenemycolor_a, 0, 255, 255);
-    XIDENTHOOK(hudscoresenemycolor_a, IDF_EXTENDED);
-
-
     static inline int limitscore(int s) {
         return s >= 0 ? min(9999, s) : max(-999, s);
     }
@@ -931,7 +895,7 @@ namespace game
 
     VARP(ammobarsize, 1, 5, 30);
     XIDENTHOOK(ammobarsize, IDF_EXTENDED);
-    VARP(ammobaroffset_x, 0, 300, 1000);
+    VARP(ammobaroffset_x, 0, 30, 1000);
     XIDENTHOOK(ammobaroffset_x, IDF_EXTENDED);
     VARP(ammobaroffset_y, 0, 500, 1000);
     XIDENTHOOK(ammobaroffset_y, IDF_EXTENDED);
@@ -1246,18 +1210,17 @@ namespace game
         glPopMatrix();
     }
 
-    /* Game Clock */
     VARP(gameclock, 0, 0, 1);
     XIDENTHOOK(gameclock, IDF_EXTENDED);
     VARP(gameclockdisablewithgui, 0, 0, 1);
     XIDENTHOOK(gameclockdisablewithgui, IDF_EXTENDED);
     VARP(gameclocksize, 1, 5, 30);
     XIDENTHOOK(gameclocksize, IDF_EXTENDED);
-    VARP(gameclockoffset_x, 0, 950, 1000);
+    VARP(gameclockoffset_x, 0, 10, 1000);
     XIDENTHOOK(gameclockoffset_x, IDF_EXTENDED);
-    VARP(gameclockoffset_reverse_x, 0, 0, 1);
+    VARP(gameclockoffset_reverse_x, 0, 1, 1);
     XIDENTHOOK(gameclockoffset_reverse_x, IDF_EXTENDED);
-    VARP(gameclockoffset_y, 0, 340, 1000);
+    VARP(gameclockoffset_y, 0, 300, 1000);
     XIDENTHOOK(gameclockoffset_y, IDF_EXTENDED);
     VARP(gameclockcolor_r, 0, 255, 255);
     XIDENTHOOK(gameclockcolor_r, IDF_EXTENDED);
@@ -1268,8 +1231,181 @@ namespace game
     VARP(gameclockcolor_a, 0, 255, 255);
     XIDENTHOOK(gameclockcolor_a, IDF_EXTENDED);
 
-    /* Config GUI */
-    ICOMMAND(extendedsettings, "", (), executestr("showgui extended_settings"));
+    void drawclock(int w, int h) {
+        int conw = int(w/staticscale), conh = int(h/staticscale);
+
+        holdscreenlock;
+
+        char buf[10];
+        int millis = max(game::maplimit-lastmillis, 0);
+        int secs = millis/1000;
+        int mins = secs/60;
+        secs %= 60;
+        snprintf(buf, 10, "%d:%02d", mins, secs);
+
+        int r = gameclockcolor_r,
+            g = gameclockcolor_g,
+            b = gameclockcolor_b,
+            a = gameclockcolor_a;
+        float gameclockscale = (1 + gameclocksize/10.0)*h/1080.0;
+
+        glPushMatrix();
+        glScalef(staticscale*gameclockscale, staticscale*gameclockscale, 1);
+
+        int tw = 0, th = 0;
+        float xoff = 0.0;
+        float yoff = gameclockoffset_y*conh/1000;
+        if(gameclockoffset_reverse_x) {
+            text_bounds(buf, tw, th);
+            xoff = (1000 - gameclockoffset_x)*conw/1000;
+            draw_text(buf, xoff/gameclockscale - tw, yoff/gameclockscale - th/2.0, r, g, b, a);
+        } else {
+            text_bounds(buf, tw, th);
+            xoff = gameclockoffset_x*conw/1000;
+            draw_text(buf, xoff/gameclockscale, yoff/gameclockscale - th/2.0, r, g, b, a);
+        }
+
+        glPopMatrix();
+    }
+
+    VARP(hudscores, 0, 0, 1);
+    XIDENTHOOK(hudscores, IDF_EXTENDED);
+
+    VARP(hudscoresdisablewithgui, 0, 0, 1);
+    XIDENTHOOK(hudscoresdisablewithgui, IDF_EXTENDED);
+
+    VARP(hudscoressize, 1, 5, 30);
+    XIDENTHOOK(hudscoressize, IDF_EXTENDED);
+
+    VARP(hudscoresoffset_x, 0, 10, 1000);
+    XIDENTHOOK(hudscoresoffset_x, IDF_EXTENDED);
+    VARP(hudscoresoffset_reverse_x, 0, 1, 1);
+    XIDENTHOOK(hudscoresoffset_reverse_x, IDF_EXTENDED);
+    VARP(hudscoresoffset_y, 0, 350, 1000);
+    XIDENTHOOK(hudscoresoffset_y, IDF_EXTENDED);
+
+    VARP(hudscoresplayercolor_r, 0, 0, 255);
+    XIDENTHOOK(hudscoresplayercolor_r, IDF_EXTENDED);
+    VARP(hudscoresplayercolor_g, 0, 255, 255);
+    XIDENTHOOK(hudscoresplayercolor_g, IDF_EXTENDED);
+    VARP(hudscoresplayercolor_b, 0, 255, 255);
+    XIDENTHOOK(hudscoresplayercolor_b, IDF_EXTENDED);
+    VARP(hudscoresplayercolor_a, 0, 255, 255);
+    XIDENTHOOK(hudscoresplayercolor_a, IDF_EXTENDED);
+
+    VARP(hudscoresenemycolor_r, 0, 255, 255);
+    XIDENTHOOK(hudscoresenemycolor_r, IDF_EXTENDED);
+    VARP(hudscoresenemycolor_g, 0, 0, 255);
+    XIDENTHOOK(hudscoresenemycolor_g, IDF_EXTENDED);
+    VARP(hudscoresenemycolor_b, 0, 0, 255);
+    XIDENTHOOK(hudscoresenemycolor_b, IDF_EXTENDED);
+    VARP(hudscoresenemycolor_a, 0, 255, 255);
+    XIDENTHOOK(hudscoresenemycolor_a, IDF_EXTENDED);
+
+    void drawscores(int w, int h) {
+        int conw = int(w/staticscale), conh = int(h/staticscale);
+
+        holdscreenlock;
+
+        vector<fpsent *> bestplayers;
+        vector<scoregroup *> bestgroups;
+        int grsz = 0;
+
+        if(m_teammode) { grsz = groupplayers(); bestgroups = getscoregroups(); }
+        else { getbestplayers(bestplayers,1); grsz = bestplayers.length(); }
+
+        float scorescale = (1 + hudscoressize/10.0)*h/1080.0;
+        float xoff = hudscoresoffset_reverse_x ? (1000 - hudscoresoffset_x)*conw/1000 : hudscoresoffset_x*conw/1000;
+        float yoff = hudscoresoffset_y*conh/1000;
+        int r1 = hudscoresplayercolor_r,
+            g1 = hudscoresplayercolor_g,
+            b1 = hudscoresplayercolor_b,
+            a1 = hudscoresplayercolor_a;
+
+        int r2 = hudscoresenemycolor_r,
+            g2 = hudscoresenemycolor_g,
+            b2 = hudscoresenemycolor_b,
+            a2 = hudscoresenemycolor_a;
+
+        int scoresep = 40*scorescale*staticscale;
+
+        if(grsz) {
+            char buff1[5], buff2[5];
+            int isbest=1, tw1=0, th1=0, tw2=0, th2=0;
+            fpsent* currentplayer = (player1->state == CS_SPECTATOR) ? followingplayer() : player1;
+            if(!currentplayer) return;
+
+            if(m_teammode) isbest = ! strcmp(currentplayer->team, bestgroups[0]->team);
+            else isbest = currentplayer == bestplayers[0];
+
+            glPushMatrix();
+            glScalef(staticscale*scorescale, staticscale*scorescale, 1);
+
+            if(isbest) {
+                int frags=0;
+                if(m_teammode) frags = bestgroups[0]->score;
+                else frags = bestplayers[0]->frags;
+                frags = limitscore(frags);
+
+                snprintf(buff1, 5, "%d", frags);
+                text_bounds(buff1, tw1, th1);
+
+                if(grsz > 1) {
+                    int frags2=0;
+                    if(m_teammode) frags2 = bestgroups[1]->score;
+                    else frags2 = bestplayers[1]->frags;
+                    frags2 = limitscore(frags2);
+
+                    snprintf(buff2, 5, "%d", frags2);
+                    text_bounds(buff2, tw2, th2);
+                }
+                if(hudscoresoffset_reverse_x) {
+                    float addoffset = grsz > 1 ? tw1 + tw2 + scoresep : tw1;
+                    draw_text(buff1, xoff/scorescale - addoffset, yoff/scorescale - th1/2.0, r1, g1, b1, a1);
+                    if(grsz > 1) {
+                        draw_text(buff2, xoff/scorescale - tw2, yoff/scorescale - th2/2.0, r2, g2, b2, a2);
+                    }
+                } else {
+                    draw_text(buff1, xoff/scorescale, yoff/scorescale - th1/2.0, r1, g1, b1, a1);
+                    if(grsz > 1) {
+                        draw_text(buff2, xoff/scorescale + tw1 + scoresep, yoff/scorescale - th2/2.0, r2, g2, b2, a2);
+                    }
+                }
+            } else {
+                int frags=0, frags2=0;
+                if(m_teammode) frags = bestgroups[0]->score;
+                else frags = bestplayers[0]->frags;
+                frags = limitscore(frags);
+
+                snprintf(buff1, 5, "%d", frags);
+                text_bounds(buff1, tw1, th1);
+
+                if(m_teammode) {
+                    loopk(grsz) {
+                        if( ! strcmp(bestgroups[k]->team, currentplayer->team))
+                            frags2 = bestgroups[k]->score;
+                    }
+                } else {
+                    frags2 = currentplayer->frags;
+                }
+                frags2 = limitscore(frags2);
+
+                snprintf(buff2, 5, "%d", frags2);
+                text_bounds(buff2, tw2, th2);
+
+                if(hudscoresoffset_reverse_x) {
+                    float addoffset =  tw1 + tw2 + scoresep;
+                    draw_text(buff1, xoff/scorescale - addoffset, yoff/scorescale - th1/2.0, r2, g2, b2, a2);
+
+                    draw_text(buff2, xoff/scorescale - tw2, yoff/scorescale - th2/2.0, r1, g1, b1, a1);
+                } else {
+                    draw_text(buff1, xoff/scorescale, yoff/scorescale - th1/2.0, r2, g2, b2, a2);
+                    draw_text(buff2, xoff/scorescale + tw1 + scoresep, yoff/scorescale - th2/2.0, r1, g1, b1, a1);
+                }
+            }
+            glPopMatrix();
+        }
+    }
 
     VARP(newhud_spectatorsize, 0, 5, 30);
     XIDENTHOOK(newhud_spectatorsize, IDF_EXTENDED);
@@ -1281,7 +1417,9 @@ namespace game
 
     void drawspectator(int w, int h) {
         holdscreenlock;
-        
+        fpsent *f = followingplayer();
+        if(!f || player1->state!=CS_SPECTATOR) return;
+ 
         int conw = int(w/staticscale), conh = int(h/staticscale);
         float specscale = (1 + newhud_spectatorsize/10.0)*h/1080.0;
         float xoff = newhud_spectatorpos_x*conw/1000;
@@ -1294,34 +1432,31 @@ namespace game
             glScalef(h/1800.0f, h/1800.0f, 1);
         }
 
-        if(player1->state==CS_SPECTATOR) {
-            int pw, ph, tw, th, fw, fh;
-            text_bounds("  ", pw, ph);
-            text_bounds("SPECTATOR", tw, th);
-            th = max(th, ph);
-            fpsent *f = followingplayer();
-            text_bounds(f ? colorname(f) : " ", fw, fh);
-            fh = max(fh, ph);
-            if(!newhud) {
-                draw_text("SPECTATOR", w*1800/h - tw - pw, 1650 - th - fh);
+        int pw, ph, tw, th, fw, fh;
+        text_bounds("  ", pw, ph);
+        text_bounds("SPECTATOR", tw, th);
+        th = max(th, ph);
+        text_bounds(f ? colorname(f) : " ", fw, fh);
+        fh = max(fh, ph);
+        if(!newhud) {
+            draw_text("SPECTATOR", w*1800/h - tw - pw, 1650 - th - fh);
+        }
+        if(f) {
+            int color = f->state!=CS_DEAD ? 0xFFFFFF : 0x606060;
+            if(f->privilege) {
+                color = f->privilege>=PRIV_ADMIN ? 0xFF8000 : 0x40FF80;
+                if(f->state==CS_DEAD) color = (color>>1)&0x7F7F7F;
             }
-            if(f) {
-                int color = f->state!=CS_DEAD ? 0xFFFFFF : 0x606060;
-                if(f->privilege) {
-                    color = f->privilege>=PRIV_ADMIN ? 0xFF8000 : 0x40FF80;
-                    if(f->state==CS_DEAD) color = (color>>1)&0x7F7F7F;
-                }
-                if(newhud) {
-                    const char *cname;
-                    int w1=0, h1=0;
-                    cname = colorname(f);
-                    text_bounds(cname, w1, h1);
-                    draw_text(cname, xoff/specscale - w1/2.0, yoff/specscale, (color>>16)&0xFF, (color>>8)&0xFF, color&0xFF);
-                } else {
-                    draw_text(colorname(f), w*1800/h - fw - pw, 1650 - fh, (color>>16)&0xFF, (color>>8)&0xFF, color&0xFF);
-                }
-                draw_text("", 0, 0, 255, 255, 255, 255);
+            if(newhud) {
+                const char *cname;
+                int w1=0, h1=0;
+                cname = colorname(f);
+                text_bounds(cname, w1, h1);
+                draw_text(cname, xoff/specscale - w1/2.0, yoff/specscale, (color>>16)&0xFF, (color>>8)&0xFF, color&0xFF);
+            } else {
+                draw_text(colorname(f), w*1800/h - fw - pw, 1650 - fh, (color>>16)&0xFF, (color>>8)&0xFF, color&0xFF);
             }
+            draw_text("", 0, 0, 255, 255, 255, 255);
         }
         glPopMatrix();
     }
@@ -1352,11 +1487,14 @@ namespace game
         }
     }
 
-    void gameplayhud(int w, int h)
-    {
+    ICOMMAND(extendedsettings, "", (), executestr("showgui extended_settings"));
+
+    void gameplayhud(int w, int h) {
         holdscreenlock;
 
-        drawspectator(w, h);
+        if(player1->state==CS_SPECTATOR) {
+            drawspectator(w, h);
+        }
 
         fpsent *d = hudplayer();
         if(d->state!=CS_EDITING) {
@@ -1373,9 +1511,6 @@ namespace game
             }
         }
 
-        int gamemode = game::gamemode;
-        int conw = int(w/staticscale), conh = int(h/staticscale);
-
         if(ammobar && !m_edit && !m_insta &&
            d->state!=CS_DEAD && d->state!=CS_SPECTATOR &&
            !(ammobardisablewithgui && framehasgui)) {
@@ -1383,138 +1518,11 @@ namespace game
         }
 
         if(gameclock && !m_edit && !(gameclockdisablewithgui && framehasgui)) {
-            char buf[10];
-            int millis = max(game::maplimit-lastmillis, 0);
-            int secs = millis/1000;
-            int mins = secs/60;
-            secs %= 60;
-            snprintf(buf, 10, "%d:%02d", mins, secs);
-
-            int r = gameclockcolor_r,
-                g = gameclockcolor_g,
-                b = gameclockcolor_b,
-                a = gameclockcolor_a;
-            float gameclockscale = (1 + gameclocksize/10.0)*h/1080.0;
-
-            glPushMatrix();
-            glScalef(staticscale*gameclockscale, staticscale*gameclockscale, 1);
-
-            int tw = 0, th = 0;
-            float xoff = 0.0;
-            float yoff = gameclockoffset_y*conh/1000;
-            if(gameclockoffset_reverse_x) {
-                text_bounds(buf, tw, th);
-                xoff = (1000 - gameclockoffset_x)*conw/1000;
-                draw_text(buf, xoff/gameclockscale - tw, yoff/gameclockscale, r, g, b, a);
-            } else {
-                xoff = gameclockoffset_x*conw/1000;
-                draw_text(buf, xoff/gameclockscale, yoff/gameclockscale, r, g, b, a);
-            }
-
-            glPopMatrix();
+            drawclock(w, h);
         }
 
         if(hudscores && !m_edit && !(hudscoresdisablewithgui && framehasgui)) {
-
-            vector<fpsent *> bestplayers;
-            vector<scoregroup *> bestgroups;
-            int grsz = 0;
-
-            if(m_teammode) { grsz = groupplayers(); bestgroups = getscoregroups(); }
-            else { getbestplayers(bestplayers,1); grsz = bestplayers.length(); }
-
-            float scorescale = (1 + hudscoressize/10.0)*h/1080.0;
-            float xoff = hudscoresoffset_reverse_x ? (1000 - hudscoresoffset_x)*conw/1000 : hudscoresoffset_x*conw/1000;
-            float yoff = hudscoresoffset_y*conh/1000;
-            int r1 = hudscoresplayercolor_r,
-                g1 = hudscoresplayercolor_g,
-                b1 = hudscoresplayercolor_b,
-                a1 = hudscoresplayercolor_a;
-
-            int r2 = hudscoresenemycolor_r,
-                g2 = hudscoresenemycolor_g,
-                b2 = hudscoresenemycolor_b,
-                a2 = hudscoresenemycolor_a;
-
-            int scoresep = 40*scorescale*staticscale;
-
-            if(grsz) {
-                char buff1[5], buff2[5];
-                int isbest=1, tw1=0, th1=0, tw2=0, th2=0;
-                fpsent* currentplayer = (player1->state == CS_SPECTATOR) ? followingplayer() : player1;
-                if(!currentplayer) return;
-
-                if(m_teammode) isbest = ! strcmp(currentplayer->team, bestgroups[0]->team);
-                else isbest = currentplayer == bestplayers[0];
-
-                glPushMatrix();
-                glScalef(staticscale*scorescale, staticscale*scorescale, 1);
-
-                if(isbest) {
-                    int frags=0;
-                    if(m_teammode) frags = bestgroups[0]->score;
-                    else frags = bestplayers[0]->frags;
-                    frags = limitscore(frags);
-
-                    snprintf(buff1, 5, "%d", frags);
-                    text_bounds(buff1, tw1, th1);
-
-                    if(grsz > 1) {
-                        int frags2=0;
-                        if(m_teammode) frags2 = bestgroups[1]->score;
-                        else frags2 = bestplayers[1]->frags;
-                        frags2 = limitscore(frags2);
-
-                        snprintf(buff2, 5, "%d", frags2);
-                        text_bounds(buff2, tw2, th2);
-                    }
-                    if(hudscoresoffset_reverse_x) {
-                        float addoffset = grsz > 1 ? tw1 + tw2 + scoresep : tw1;
-                        draw_text(buff1, xoff/scorescale - addoffset, yoff/scorescale, r1, g1, b1, a1);
-                        if(grsz > 1) {
-                            draw_text(buff2, xoff/scorescale - tw2, yoff/scorescale, r2, g2, b2, a2);
-                        }
-                    } else {
-                        draw_text(buff1, xoff/scorescale, yoff/scorescale, r1, g1, b1, a1);
-                        if(grsz > 1) {
-                            draw_text(buff2, xoff/scorescale + tw1 + scoresep, yoff/scorescale, r2, g2, b2, a2);
-                        }
-                    }
-                } else {
-                    int frags=0, frags2=0;
-                    if(m_teammode) frags = bestgroups[0]->score;
-                    else frags = bestplayers[0]->frags;
-                    frags = limitscore(frags);
-
-                    snprintf(buff1, 5, "%d", frags);
-                    text_bounds(buff1, tw1, th1);
-
-                    if(m_teammode) {
-                        loopk(grsz) {
-                            if( ! strcmp(bestgroups[k]->team, currentplayer->team))
-                                frags2 = bestgroups[k]->score;
-                        }
-                    } else {
-                        frags2 = currentplayer->frags;
-                    }
-                    frags2 = limitscore(frags2);
-
-                    snprintf(buff2, 5, "%d", frags2);
-                    text_bounds(buff2, tw2, th2);
-
-                    if(hudscoresoffset_reverse_x) {
-                        float addoffset =  tw1 + tw2 + scoresep;
-                        draw_text(buff1, xoff/scorescale - addoffset, yoff/scorescale, r1, g1, b1, a1);
-
-                        draw_text(buff2, xoff/scorescale - tw2, yoff/scorescale, r2, g2, b2, a2);
-                    } else {
-                        draw_text(buff1, xoff/scorescale, yoff/scorescale, r2, g2, b2, a2);
-                        draw_text(buff2, xoff/scorescale + tw1 + scoresep, yoff/scorescale, r1, g1, b1, a1);
-                    }
-                }
-
-                glPopMatrix();
-            }
+            drawscores(w,h);
         }
     }
 
