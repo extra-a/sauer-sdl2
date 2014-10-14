@@ -1084,11 +1084,9 @@ namespace game
             r = 0, g = 255, b = 127, a = 255;
         } else if(chp > 100) {
             r = 127, g = 255, b = 0, a = 255;
-        } else if(chp > 60) {
-            r = 255, g = 255, b = 0, a = 255;
-        } else if(chp > 30) {
+        } else if(chp > 50) {
             r = 255, g = 127, b = 0, a = 255;
-        }  else {
+        } else {
             r = 255, g = 0, b = 0, a = 255;
         }
     }
