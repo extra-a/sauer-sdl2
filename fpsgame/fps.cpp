@@ -59,6 +59,10 @@ namespace game
         return s >= 0 ? min(9999, s) : max(-999, s);
     }
 
+    static inline int limitammo(int s) {
+        return s >= 0 ? min(999, s) : 0;
+    }
+
     void taunt()
     {
         if(player1->state!=CS_ALIVE || player1->physstate<PHYS_SLOPE) return;
@@ -922,13 +926,14 @@ namespace game
     XIDENTHOOK(ammobar, IDF_EXTENDED);
     VARP(ammobardisablewithgui, 0, 0, 1);
     XIDENTHOOK(ammobardisablewithgui, IDF_EXTENDED);
+    VARP(ammobarfilterempty, 0, 0, 1);
+    XIDENTHOOK(ammobarfilterempty, IDF_EXTENDED);
+
     VARP(ammobarsize, 1, 5, 30);
     XIDENTHOOK(ammobarsize, IDF_EXTENDED);
-    VARP(ammobaroffset_x, 0, 950, 1000);
+    VARP(ammobaroffset_x, 0, 300, 1000);
     XIDENTHOOK(ammobaroffset_x, IDF_EXTENDED);
-    VARP(ammobaroffset_reverse_x, 0, 0, 1);
-    XIDENTHOOK(ammobaroffset_reverse_x, IDF_EXTENDED);
-    VARP(ammobaroffset_y, 0, 410, 1000);
+    VARP(ammobaroffset_y, 0, 500, 1000);
     XIDENTHOOK(ammobaroffset_y, IDF_EXTENDED);
     VARP(ammobarhorizontal, 0, 0, 1);
     XIDENTHOOK(ammobarhorizontal, IDF_EXTENDED);
@@ -991,35 +996,53 @@ namespace game
         float xoff = ammobaroffset_x*conw/1000;
         float yoff = ammobaroffset_y*conh/1000;
         float vsep = 10*ammobarscale*staticscale;
-        float vgap = 10*ammobarscale*staticscale;
         float hsep = 60*ammobarscale*staticscale;
         float textsep = 20*ammobarscale*staticscale;
-        int tw, th, pw, ph, textw;
+        int pw = 0, ph = 0;
 
         holdscreenlock;
         glPushMatrix();
         glScalef(staticscale*ammobarscale, staticscale*ammobarscale, 1);
 
+        int szx = 0, szy = 0;
+        text_bounds("999", pw, ph);
+
+        if(ammobarhorizontal) {
+            szy = ph;
+            szx = NWEAPONS * (ph + pw + textsep + hsep) - hsep;
+        } else {
+            szx = ph + textsep + pw;
+            szy = NWEAPONS * (ph + vsep + vsep) - 2*vsep;
+        }
+
+        xoff -= szx/2.0 * ammobarscale;
+        yoff -= szy/2.0 * ammobarscale;
+
         for(int i = 0, xpos = 0, ypos = 0; i < NWEAPONS; i++) {
+            if(ammobarfilterempty && d->ammo[i+1] == 0) {
+                if(ammobarhorizontal) {
+                    xpos += ph + pw + textsep + hsep;
+                } else {
+                    ypos += ph + vsep + vsep;
+                }
+                continue;
+            }
             snprintf(buff, 10, "%d", d->ammo[i+1]);
-            text_bounds(buff, tw, th);
-            text_bounds("00", pw, ph);
-            textw = tw > pw ? tw : pw;
             draw_text("", 0, 0, 255, 255, 255, 255);
             if(ammobarselectedbg && i+1 == d->gunselect) {
                 drawselectedammobg(xoff/ammobarscale + xpos - textsep/2.0,
                                    yoff/ammobarscale + ypos - vsep/2.0,
-                                   th + textw + textsep + textsep,
-                                   th + vsep);
+                                   ph + pw + textsep + textsep,
+                                   ph + vsep);
             }
-            drawicon(HICON_FIST+icons[i], xoff/ammobarscale + xpos, yoff/ammobarscale + ypos, th);
+            drawicon(HICON_FIST+icons[i], xoff/ammobarscale + xpos, yoff/ammobarscale + ypos, ph);
             if(coloredammo) getammocolor(d, i+1, r, g, b, a);
             if(ammobarhorizontal) {
-                draw_text(buff, xoff/ammobarscale + xpos + th + textsep, yoff/ammobarscale + ypos, r, g, b, a);
-                xpos += th + textw + textsep + hsep;
+                draw_text(buff, xoff/ammobarscale + xpos + ph + textsep, yoff/ammobarscale + ypos, r, g, b, a);
+                xpos += ph + pw + textsep + hsep;
             } else {
-                draw_text(buff, xoff/ammobarscale + xpos + th + textsep, yoff/ammobarscale + ypos, r, g, b, a);
-                ypos += th + vsep + vgap;
+                draw_text(buff, xoff/ammobarscale + xpos + ph + textsep, yoff/ammobarscale + ypos, r, g, b, a);
+                ypos += ph + vsep + vsep;
             }
         }
         glPopMatrix();

@@ -5,8 +5,8 @@ const char *hud_old =
 "hudold = [\n"
     "ammobar 0\n"
     "ammobardisablewithgui 0\n"
+    "ammobarfilterempty 0\n"
     "ammobarhorizontal 0\n"
-    "ammobaroffset_reverse_x 0\n"
     "ammobaroffset_x 950\n"
     "ammobaroffset_y 410\n"
     "ammobarselectedbg 1\n"
@@ -160,6 +160,7 @@ const char *extended_settings_gui =
     "guicheckbox \"Disable with GUI\" ammobardisablewithgui\n"
     "]\n"
     "guicheckbox \"Horizontal ammobar\" ammobarhorizontal\n"
+    "guicheckbox \"Don't show empty weapons\" ammobarfilterempty\n"
     "guistrut 1\n"
 
     "guitext \"Size:\" 0\n"
@@ -167,7 +168,6 @@ const char *extended_settings_gui =
     "guistrut 1\n"
     
     "guitext \"Offset (X/Y):\" 0\n"
-    "guicheckbox \"Use reverse X offset\" ammobaroffset_reverse_x\n"
     "guislider ammobaroffset_x\n"
     "guislider ammobaroffset_y\n"
     "guistrut 1\n"
