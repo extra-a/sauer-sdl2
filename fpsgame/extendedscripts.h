@@ -61,6 +61,65 @@ const char *hud_old =
     "newhud_spectatorsize 5\n"
 "]\n";
 
+const char *hud_new1 =
+"hudnew1 = [\n"
+    "ammobar 1\n"
+    "ammobardisablewithgui 1\n"
+    "ammobarfilterempty 1\n"
+    "ammobarhorizontal 0\n"
+    "ammobaroffset_x 36\n"
+    "ammobaroffset_y 500\n"
+    "ammobarselectedbg 1\n"
+    "ammobarselectedcolor_a 150\n"
+    "ammobarselectedcolor_b 255\n"
+    "ammobarselectedcolor_g 200\n"
+    "ammobarselectedcolor_r 100\n"
+    "ammobarsize 10\n"
+    "gameclock 1\n"
+    "gameclockcolor_a 255\n"
+    "gameclockcolor_b 255\n"
+    "gameclockcolor_g 255\n"
+    "gameclockcolor_r 255\n"
+    "gameclockdisablewithgui 0\n"
+    "gameclockoffset_reverse_x 0\n"
+    "gameclockoffset_x 780\n"
+    "gameclockoffset_y 960\n"
+    "gameclocksize 15\n"
+    "hudscores 1\n"
+    "hudscoresdisablewithgui 1\n"
+    "hudscoresenemycolor_a 255\n"
+    "hudscoresenemycolor_b 0\n"
+    "hudscoresenemycolor_g 0\n"
+    "hudscoresenemycolor_r 255\n"
+    "hudscoresoffset_reverse_x 1\n"
+    "hudscoresoffset_x 10\n"
+    "hudscoresoffset_y 800\n"
+    "hudscoresplayercolor_a 255\n"
+    "hudscoresplayercolor_b 255\n"
+    "hudscoresplayercolor_g 255\n"
+    "hudscoresplayercolor_r 0\n"
+    "hudscoressize 10\n"
+    "newhud 1\n"
+    "newhud_ammoiconssize 60\n"
+    "newhud_ammopos_x 580\n"
+    "newhud_ammopos_y 960\n"
+    "newhud_ammosize 30\n"
+    "newhud_hpiconssize 60\n"
+    "newhud_hppos_x 420\n"
+    "newhud_hppos_y 960\n"
+    "newhud_hpssize 30\n"
+    "newhud_itemspos_reverse_x 1\n"
+    "newhud_itemspos_x 10\n"
+    "newhud_itemspos_y 870\n"
+    "newhud_itemssize 14\n"
+    "newhud_miniconoffset 0\n"
+    "newhud_miniconsize 6\n"
+    "newhud_miniconwidth 30\n"
+    "newhud_spectatorpos_x 500\n"
+    "newhud_spectatorpos_y 110\n"
+    "newhud_spectatorsize 5\n"
+
+"]\n";
 
 const char *extended_settings_gui =
 "newgui extended_settings [\n"
@@ -96,7 +155,13 @@ const char *extended_settings_gui =
     "]\n"
     "guicheckbox \"Show accuracy\" showacc\n"
 
-    "guitab \"Clock\"\n"
+    "guitab \"Predefined HUDs\"\n"
+
+    "guibutton \"Default HUD\" \"hudold\" \n"
+    "guibutton \"New HUD\" \"hudnew1\"\n"
+
+
+    "guitab \"HudClock\"\n"
 
     "guilist [\n"
     "guicheckbox \"Show clock\" gameclock\n"
@@ -137,7 +202,7 @@ const char *extended_settings_gui =
     "guislider hudscoresoffset_y\n"
     "guistrut 1\n"
 
-    "guitab \"Scores Colors\"\n"
+    "guitab \"HudScores#2\"\n"
 
     "guitext \"Player color (^f3R^f~/^f0G^f~/^f1B^f~/^f4A^f~):\" 0\n"
     "guislider hudscoresplayercolor_r\n"
@@ -220,7 +285,7 @@ const char *extended_settings_gui =
 
 "] \"Settings\"\n";
 
-const char *game_scripts[] = { extended_settings_gui, hud_old, 0 };
+const char *game_scripts[] = { extended_settings_gui, hud_old, hud_new1, 0 };
 
 
 #endif
