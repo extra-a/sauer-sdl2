@@ -75,7 +75,7 @@ HVARP(confilter, 0, 0x7FFFFFF, 0x7FFFFFF);
 HVARP(fullconfilter, 0, 0x7FFFFFF, 0x7FFFFFF);
 HVARP(miniconfilter, 0, 0, 0x7FFFFFF);
 
-VARP(newhud_miniconsize, 0, 6, 100);
+VARP(newhud_miniconsize, 0, 6, 10);
 XIDENTHOOK(newhud_miniconsize, IDF_EXTENDED);
 VARP(newhud_miniconwidth, 0, 30, 100);
 XIDENTHOOK(newhud_miniconwidth, IDF_EXTENDED);

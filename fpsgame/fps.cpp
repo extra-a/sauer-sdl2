@@ -1135,11 +1135,11 @@ namespace game
 
     VARP(newhud_hpssize, 0, 30, 50);
     XIDENTHOOK(newhud_hpssize, IDF_EXTENDED);
-    VARP(newhud_hpiconssize, 0, 50, 200);
+    VARP(newhud_hpiconssize, 0, 60, 200);
     XIDENTHOOK(newhud_hpiconssize, IDF_EXTENDED);
-    VARP(newhud_hppos_x, 0, 350, 1000);
+    VARP(newhud_hppos_x, 0, 420, 1000);
     XIDENTHOOK(newhud_hppos_x, IDF_EXTENDED);
-    VARP(newhud_hppos_y, 0, 910, 1000);
+    VARP(newhud_hppos_y, 0, 960, 1000);
     XIDENTHOOK(newhud_hppos_y, IDF_EXTENDED);
 
     void drawnewhudhp(fpsent *d, int w, int h) {
@@ -1177,11 +1177,11 @@ namespace game
 
     VARP(newhud_ammosize, 0, 30, 50);
     XIDENTHOOK(newhud_ammosize, IDF_EXTENDED);
-    VARP(newhud_ammoiconssize, 0, 50, 200);
+    VARP(newhud_ammoiconssize, 0, 60, 200);
     XIDENTHOOK(newhud_ammoiconssize, IDF_EXTENDED);
-    VARP(newhud_ammopos_x, 0, 550, 1000);
+    VARP(newhud_ammopos_x, 0, 580, 1000);
     XIDENTHOOK(newhud_ammopos_x, IDF_EXTENDED);
-    VARP(newhud_ammopos_y, 0, 910, 1000);
+    VARP(newhud_ammopos_y, 0, 960, 1000);
     XIDENTHOOK(newhud_ammopos_y, IDF_EXTENDED);
 
     void drawnewhudammo(fpsent *d, int w, int h) {
@@ -1414,9 +1414,8 @@ namespace game
     XIDENTHOOK(newhud_spectatorsize, IDF_EXTENDED);
     VARP(newhud_spectatorpos_x, 0, 500, 1000);
     XIDENTHOOK(newhud_spectatorpos_x, IDF_EXTENDED);
-    VARP(newhud_spectatorpos_y, 0, 50, 1000);
+    VARP(newhud_spectatorpos_y, 0, 110, 1000);
     XIDENTHOOK(newhud_spectatorpos_y, IDF_EXTENDED);
-
 
     void drawspectator(int w, int h) {
         holdscreenlock;
