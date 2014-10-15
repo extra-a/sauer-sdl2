@@ -1280,7 +1280,7 @@ namespace game
 
         if(gameclockoffset_start_x == 1) {
             xoff = (1000 - gameclockoffset_x)*conw/1000;
-            xpos = xoff/gameclockscale - tw;
+            xpos = xoff/gameclockscale - tw - 2.0 * borderx;
         } else if(gameclockoffset_start_x == 0) {
             xoff = gameclockoffset_x*conw/1000;
             xpos = xoff/gameclockscale - tw/2.0;
@@ -1290,7 +1290,7 @@ namespace game
         }
         ypos = yoff/gameclockscale - th/2.0;
 
-        drawacoloredquad(xpos - borderx,
+        drawacoloredquad(xpos,
                          ypos,
                          tw + 2.0*borderx,
                          th,
@@ -1298,7 +1298,7 @@ namespace game
                          (GLubyte)gameclockcolorbg_g,
                          (GLubyte)gameclockcolorbg_b,
                          (GLubyte)gameclockcolorbg_a);
-        draw_text(buf, xpos, ypos, r, g, b, a);
+        draw_text(buf, xpos + borderx, ypos, r, g, b, a);
         draw_text("", 0, 0, 255, 255, 255, 255);
 
         glPopMatrix();
@@ -1429,7 +1429,7 @@ namespace game
                 if(hudscoresoffset_reverse_x) {
                     fw = max(tw1,tw2);
                     float addoffset = grsz > 1 ? fw + fw + scoresep : fw;
-                    drawacoloredquad(xoff/scorescale - addoffset - borderx,
+                    drawacoloredquad(xoff/scorescale - addoffset - 2.0 * borderx,
                                      yoff/scorescale - th1/2.0,
                                      fw + 2.0*borderx,
                                      th1,
@@ -1437,10 +1437,10 @@ namespace game
                                      (GLubyte)bgg1,
                                      (GLubyte)bgb1,
                                      (GLubyte)bga1);
-                    draw_text(buff1, xoff/scorescale - addoffset + (fw-tw1)/2.0,
+                    draw_text(buff1, xoff/scorescale - addoffset - borderx + (fw-tw1)/2.0,
                               yoff/scorescale - th1/2.0, r1, g1, b1, a1);
                     if(grsz > 1) {
-                        drawacoloredquad(xoff/scorescale - fw - borderx,
+                        drawacoloredquad(xoff/scorescale - fw - 2.0 * borderx,
                                          yoff/scorescale - th2/2.0,
                                          fw + 2.0*borderx,
                                          th2,
@@ -1448,12 +1448,12 @@ namespace game
                                          (GLubyte)bgg2,
                                          (GLubyte)bgb2,
                                          (GLubyte)bga2);
-                        draw_text(buff2, xoff/scorescale - fw + (fw-tw2)/2.0,
+                        draw_text(buff2, xoff/scorescale - fw - borderx + (fw-tw2)/2.0,
                                   yoff/scorescale - th2/2.0, r2, g2, b2, a2);
                     }
                 } else {
                     fw = max(tw1,tw2);
-                    drawacoloredquad(xoff/scorescale - borderx,
+                    drawacoloredquad(xoff/scorescale,
                                      yoff/scorescale - th1/2.0,
                                      fw + 2.0*borderx,
                                      th1,
@@ -1461,10 +1461,10 @@ namespace game
                                      (GLubyte)bgg1,
                                      (GLubyte)bgb1,
                                      (GLubyte)bga1);
-                    draw_text(buff1, xoff/scorescale + (fw-tw1)/2.0,
+                    draw_text(buff1, xoff/scorescale + borderx + (fw-tw1)/2.0,
                               yoff/scorescale - th1/2.0, r1, g1, b1, a1);
                     if(grsz > 1) {
-                        drawacoloredquad(xoff/scorescale + fw + scoresep - borderx,
+                        drawacoloredquad(xoff/scorescale + fw + scoresep,
                                          yoff/scorescale - th2/2.0,
                                          fw + 2.0*borderx,
                                          th2,
@@ -1472,7 +1472,7 @@ namespace game
                                          (GLubyte)bgg2,
                                          (GLubyte)bgb2,
                                          (GLubyte)bga2);
-                        draw_text(buff2, xoff/scorescale + fw + scoresep + (fw-tw2)/2.0,
+                        draw_text(buff2, xoff/scorescale + fw + scoresep + borderx + (fw-tw2)/2.0,
                                   yoff/scorescale - th2/2.0, r2, g2, b2, a2);
                     }
                 }
@@ -1501,7 +1501,7 @@ namespace game
                 if(hudscoresoffset_reverse_x) {
                     fw = max(tw1,tw2);
                     float addoffset =  fw + fw + scoresep;
-                    drawacoloredquad(xoff/scorescale - addoffset - borderx,
+                    drawacoloredquad(xoff/scorescale - addoffset - 2.0 * borderx,
                                      yoff/scorescale - th1/2.0,
                                      fw + 2.0*borderx,
                                      th1,
@@ -1509,9 +1509,9 @@ namespace game
                                      (GLubyte)bgg2,
                                      (GLubyte)bgb2,
                                      (GLubyte)bga2);
-                    draw_text(buff1, xoff/scorescale - addoffset + (fw-tw1)/2.0,
+                    draw_text(buff1, xoff/scorescale - addoffset  - borderx + (fw-tw1)/2.0,
                               yoff/scorescale - th1/2.0, r2, g2, b2, a2);
-                    drawacoloredquad(xoff/scorescale - fw - borderx,
+                    drawacoloredquad(xoff/scorescale - fw - 2.0 * borderx,
                                      yoff/scorescale - th2/2.0,
                                      fw + 2.0*borderx,
                                      th2,
@@ -1519,11 +1519,11 @@ namespace game
                                      (GLubyte)bgg1,
                                      (GLubyte)bgb1,
                                      (GLubyte)bga1);
-                    draw_text(buff2, xoff/scorescale - fw + (fw-tw2)/2.0,
+                    draw_text(buff2, xoff/scorescale - fw - borderx + (fw-tw2)/2.0,
                               yoff/scorescale - th2/2.0, r1, g1, b1, a1);
                 } else {
                     fw = max(tw1,tw2);
-                    drawacoloredquad(xoff/scorescale - borderx,
+                    drawacoloredquad(xoff/scorescale,
                                      yoff/scorescale - th1/2.0,
                                      fw + 2.0*borderx,
                                      th1,
@@ -1531,9 +1531,9 @@ namespace game
                                      (GLubyte)bgg2,
                                      (GLubyte)bgb2,
                                      (GLubyte)bga2);
-                    draw_text(buff1, xoff/scorescale + (fw-tw1)/2.0,
+                    draw_text(buff1, xoff/scorescale + borderx + (fw-tw1)/2.0,
                               yoff/scorescale - th1/2.0, r2, g2, b2, a2);
-                    drawacoloredquad(xoff/scorescale + fw + scoresep - borderx,
+                    drawacoloredquad(xoff/scorescale + fw + scoresep,
                                      yoff/scorescale - th2/2.0,
                                      fw + 2.0*borderx,
                                      th2,
@@ -1541,7 +1541,7 @@ namespace game
                                      (GLubyte)bgg1,
                                      (GLubyte)bgb1,
                                      (GLubyte)bga1);
-                    draw_text(buff2, xoff/scorescale + fw + scoresep + (fw-tw2)/2.0,
+                    draw_text(buff2, xoff/scorescale + fw + scoresep + borderx + (fw-tw2)/2.0,
                               yoff/scorescale - th2/2.0, r1, g1, b1, a1);
                 }
             }
