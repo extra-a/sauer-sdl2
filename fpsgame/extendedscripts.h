@@ -20,6 +20,8 @@ const char *hud_old =
     "gameclockcolorbg_g 200\n"
     "gameclockcolorbg_r 100\n"
     "ammobarsize 5\n"
+    "coloredammo 0\n"
+    "coloredhealth 0\n"
     "gameclock 0\n"
     "gameclockcolor_a 255\n"
     "gameclockcolor_b 255\n"
@@ -36,6 +38,10 @@ const char *hud_old =
     "hudscoresenemycolor_b 0\n"
     "hudscoresenemycolor_g 0\n"
     "hudscoresenemycolor_r 255\n"
+    "hudscoresenemycolorbg_a 50\n"
+    "hudscoresenemycolorbg_b 85\n"
+    "hudscoresenemycolorbg_g 85\n"
+    "hudscoresenemycolorbg_r 255\n"
     "hudscoresoffset_reverse_x 1\n"
     "hudscoresoffset_x 10\n"
     "hudscoresoffset_y 350\n"
@@ -43,6 +49,10 @@ const char *hud_old =
     "hudscoresplayercolor_b 255\n"
     "hudscoresplayercolor_g 255\n"
     "hudscoresplayercolor_r 0\n"
+    "hudscoresplayercolorbg_a 50\n"
+    "hudscoresplayercolorbg_b 255\n"
+    "hudscoresplayercolorbg_g 255\n"
+    "hudscoresplayercolorbg_r 0\n"
     "hudscoressize 5\n"
     "newhud 0\n"
     "newhud_ammoiconssize 60\n"
@@ -81,6 +91,8 @@ const char *hud_new1 =
     "ammobarselectedcolor_g 200\n"
     "ammobarselectedcolor_r 100\n"
     "ammobarsize 10\n"
+    "coloredammo 1\n"
+    "coloredhealth 1\n"
     "gameclock 1\n"
     "gameclockcolor_a 255\n"
     "gameclockcolor_b 255\n"
@@ -101,6 +113,10 @@ const char *hud_new1 =
     "hudscoresenemycolor_b 0\n"
     "hudscoresenemycolor_g 0\n"
     "hudscoresenemycolor_r 255\n"
+    "hudscoresenemycolorbg_a 50\n"
+    "hudscoresenemycolorbg_b 85\n"
+    "hudscoresenemycolorbg_g 85\n"
+    "hudscoresenemycolorbg_r 255\n"
     "hudscoresoffset_reverse_x 1\n"
     "hudscoresoffset_x 10\n"
     "hudscoresoffset_y 800\n"
@@ -108,6 +124,10 @@ const char *hud_new1 =
     "hudscoresplayercolor_b 255\n"
     "hudscoresplayercolor_g 255\n"
     "hudscoresplayercolor_r 0\n"
+    "hudscoresplayercolorbg_a 50\n"
+    "hudscoresplayercolorbg_b 255\n"
+    "hudscoresplayercolorbg_g 255\n"
+    "hudscoresplayercolorbg_r 0\n"
     "hudscoressize 10\n"
     "newhud 1\n"
     "newhud_ammoiconssize 60\n"
@@ -139,8 +159,6 @@ const char *extended_settings_gui =
     "guicheckbox \"No sparks for hitscan weapons\" reducesparks\n"
     "guicheckbox \"No explosion animation\" reduceexplosions\n"
     "guicheckbox \"No explosion debris\" removeexplosionsdebris\n"
-    "guicheckbox \"Colored health\" coloredhealth\n"
-    "guicheckbox \"Colored ammo\" coloredammo\n"
     "guicheckbox \"Use following player team\" usefollowingplayerteam\n"
     "guicheckbox \"Log players stats on game end\" dumpstatsongameend\n"
     "guicheckbox \"Show servers preview\" showserverpreviews\n"
@@ -148,6 +166,10 @@ const char *extended_settings_gui =
 
     "guitext \"Smoke density (for rockets and grenades):\" 0\n"
     "guislider smokefps\n"
+    "guistrut 1\n"
+
+    "guicheckbox \"Colored health\" coloredhealth\n"
+    "guicheckbox \"Colored ammo\" coloredammo\n"
 
     "guitab \"Scoreboard\"\n"
     "guicheckbox \"Show flags scored\" showflags\n"
@@ -174,8 +196,7 @@ const char *extended_settings_gui =
     "guibutton \"Default HUD\" \"hudold\" \n"
     "guibutton \"New HUD\" \"hudnew1\"\n"
 
-
-    "guitab \"Clock#1\"\n"
+    "guitab \"Clock\"\n"
 
     "guilist [\n"
     "guicheckbox \"Show clock\" gameclock\n"
@@ -214,7 +235,7 @@ const char *extended_settings_gui =
     "guislider gameclockcolorbg_b\n"
     "guislider gameclockcolorbg_a\n"
 
-    "guitab \"Scores#1\"\n"
+    "guitab \"Scores\"\n"
 
     "guilist [\n"
     "guicheckbox \"Show hud scores\" hudscores\n"
@@ -232,20 +253,33 @@ const char *extended_settings_gui =
     "guislider hudscoresoffset_y\n"
     "guistrut 1\n"
 
-    "guitab \"#2\"\n"
-
-    "guitext \"Player color (^f3R^f~/^f0G^f~/^f1B^f~/^f4A^f~):\" 0\n"
+    "guitext \"Player score text color (^f3R^f~/^f0G^f~/^f1B^f~/^f4A^f~):\" 0\n"
     "guislider hudscoresplayercolor_r\n"
     "guislider hudscoresplayercolor_g\n"
     "guislider hudscoresplayercolor_b\n"
     "guislider hudscoresplayercolor_a\n"
+    
+    "guitab \"#2\"\n"
+
+    "guitext \"Player score background color (^f3R^f~/^f0G^f~/^f1B^f~/^f4A^f~):\" 0\n"
+    "guislider hudscoresplayercolorbg_r\n"
+    "guislider hudscoresplayercolorbg_g\n"
+    "guislider hudscoresplayercolorbg_b\n"
+    "guislider hudscoresplayercolorbg_a\n"
     "guistrut 1\n"
 
-    "guitext \"Enemy color (^f3R^f~/^f0G^f~/^f1B^f~/^f4A^f~):\" 0\n"
+    "guitext \"Enemy score text color (^f3R^f~/^f0G^f~/^f1B^f~/^f4A^f~):\" 0\n"
     "guislider hudscoresenemycolor_r\n"
     "guislider hudscoresenemycolor_g\n"
     "guislider hudscoresenemycolor_b\n"
     "guislider hudscoresenemycolor_a\n"
+    "guistrut 1\n"
+
+    "guitext \"Enemy score background color (^f3R^f~/^f0G^f~/^f1B^f~/^f4A^f~):\" 0\n"
+    "guislider hudscoresenemycolorbg_r\n"
+    "guislider hudscoresenemycolorbg_g\n"
+    "guislider hudscoresenemycolorbg_b\n"
+    "guislider hudscoresenemycolorbg_a\n"
 
     "guitab \"Ammobar\"\n"
 
@@ -274,7 +308,7 @@ const char *extended_settings_gui =
     "guislider ammobarselectedcolor_b\n"
     "guislider ammobarselectedcolor_a\n"
 
-    "guitab \"NewHUD#1\"\n"
+    "guitab \"NewHUD\"\n"
     "guititle \"Warning: Settings have effect only when new HUD is enabled\"\n"
     "guicheckbox \"Enable new HUD\" newhud\n"
     "guistrut 1\n"
