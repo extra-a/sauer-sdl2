@@ -155,13 +155,15 @@ const char *extended_settings_gui =
     "]\n"
     "guicheckbox \"Show accuracy\" showacc\n"
 
-    "guitab \"Predefined HUDs\"\n"
+    "guitab \"HUDs\"\n"
 
+    "guititle \"Warning: All current HUD settings will be reset to the selected HUD settings\"\n"
+    "guistrut 1\n"
     "guibutton \"Default HUD\" \"hudold\" \n"
     "guibutton \"New HUD\" \"hudnew1\"\n"
 
 
-    "guitab \"HudClock\"\n"
+    "guitab \"Clock\"\n"
 
     "guilist [\n"
     "guicheckbox \"Show clock\" gameclock\n"
@@ -184,7 +186,7 @@ const char *extended_settings_gui =
     "guislider gameclockcolor_b\n"
     "guislider gameclockcolor_a\n"
 
-    "guitab \"HudScores\"\n"
+    "guitab \"Scores#1\"\n"
 
     "guilist [\n"
     "guicheckbox \"Show hud scores\" hudscores\n"
@@ -202,7 +204,7 @@ const char *extended_settings_gui =
     "guislider hudscoresoffset_y\n"
     "guistrut 1\n"
 
-    "guitab \"HudScores#2\"\n"
+    "guitab \"#2\"\n"
 
     "guitext \"Player color (^f3R^f~/^f0G^f~/^f1B^f~/^f4A^f~):\" 0\n"
     "guislider hudscoresplayercolor_r\n"
@@ -244,8 +246,12 @@ const char *extended_settings_gui =
     "guislider ammobarselectedcolor_b\n"
     "guislider ammobarselectedcolor_a\n"
 
-    "guitab \"New HUD\"\n"
+    "guitab \"New HUD#1\"\n"
+    "guititle \"Warning: Settings have effect only when new HUD is enabled\"\n"
     "guicheckbox \"Enable new HUD\" newhud\n"
+    "guistrut 1\n"
+
+    "guititle \"New HUD HP/Armour settings\"\n"
     "guitext \"HP/Armour size:\" 0\n"
     "guislider newhud_hpssize\n"
     "guitext \"Amour icon size:\" 0\n"
@@ -254,6 +260,12 @@ const char *extended_settings_gui =
     "guislider newhud_hppos_x\n"
     "guislider newhud_hppos_y\n"
 
+    "guitab \"#2\"\n"
+    "guititle \"Warning: Settings have effect only when new HUD is enabled\"\n"
+    "guicheckbox \"Enable new HUD\" newhud\n"
+    "guistrut 1\n"
+    
+    "guititle \"New HUD Ammo settings\"\n"
     "guitext \"Ammo size:\" 0\n"
     "guislider newhud_ammosize\n"
     "guitext \"Ammo icon size:\" 0\n"
@@ -262,20 +274,37 @@ const char *extended_settings_gui =
     "guislider newhud_ammopos_x\n"
     "guislider newhud_ammopos_y\n"
 
-    "guitab \"New HUD#2\"\n"
+    "guitab \"#3\"\n"
+    "guititle \"Warning: Settings have effect only when new HUD is enabled\"\n"
+    "guicheckbox \"Enable new HUD\" newhud\n"
+    "guistrut 1\n"
+    
+    "guititle \"New HUD spectator settings\"\n"
     "guitext \"Spectator size:\" 0\n"
     "guislider newhud_spectatorsize\n"
     "guitext \"Spectator offset (X/Y):\" 0\n"
     "guislider newhud_spectatorpos_x\n"
     "guislider newhud_spectatorpos_y\n"
 
+    "guitab \"#4\"\n"
+    "guititle \"Warning: Settings have effect only when new HUD is enabled\"\n"
+    "guicheckbox \"Enable new HUD\" newhud\n"
+    "guistrut 1\n"
+    
+    "guititle \"New HUD items settings\"\n"
     "guitext \"Item size:\" 0\n"
     "guislider newhud_itemssize\n"
     "guitext \"Item offset (X/Y):\" 0\n"
     "guicheckbox \"Use reverse X offset\" newhud_itemspos_reverse_x\n"
     "guislider newhud_itemspos_x\n"
     "guislider newhud_itemspos_y\n"
-
+    
+    "guitab \"#5\"\n"
+    "guititle \"Warning: Settings have effect only when new HUD is enabled\"\n"
+    "guicheckbox \"Enable new HUD\" newhud\n"
+    "guistrut 1\n"
+    
+    "guititle \"New HUD chat settings\"\n"
     "guitext \"Chat Y offset:\" 0\n"
     "guislider newhud_miniconoffset\n"
     "guitext \"Chat lines:\" 0\n"
@@ -283,7 +312,7 @@ const char *extended_settings_gui =
     "guitext \"Chat width:\" 0\n"
     "guislider newhud_miniconwidth\n"
 
-"] \"Settings\"\n";
+"] \"Settings\" \n";
 
 const char *game_scripts[] = { extended_settings_gui, hud_old, hud_new1, 0 };
 
