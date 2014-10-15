@@ -77,6 +77,82 @@ const char *hud_old =
     "newhud_spectatorsize 5\n"
 "]\n";
 
+const char *hud_old_extended =
+"hudoldextended = [\n"
+
+    "ammobar 1\n"
+    "ammobardisablewithgui 1\n"
+    "ammobarfilterempty 1\n"
+    "ammobarhorizontal 0\n"
+    "ammobaroffset_x 30\n"
+    "ammobaroffset_y 500\n"
+    "ammobarselectedbg 1\n"
+    "ammobarselectedcolor_a 150\n"
+    "ammobarselectedcolor_b 255\n"
+    "ammobarselectedcolor_g 200\n"
+    "ammobarselectedcolor_r 100\n"
+    "gameclockcolorbg_a 50\n"
+    "gameclockcolorbg_b 255\n"
+    "gameclockcolorbg_g 200\n"
+    "gameclockcolorbg_r 100\n"
+    "ammobarsize 5\n"
+    "coloredammo 1\n"
+    "coloredhealth 1\n"
+    "gameclock 1\n"
+    "gameclockcolor_a 255\n"
+    "gameclockcolor_b 255\n"
+    "gameclockcolor_g 255\n"
+    "gameclockcolor_r 255\n"
+    "gameclockdisablewithgui 1\n"
+    "gameclockoffset_start_x 1\n"
+    "gameclockoffset_x 10\n"
+    "gameclockoffset_y 300\n"
+    "gameclocksize 5\n"
+    "hudscores 1\n"
+    "hudscoresdisablewithgui 1\n"
+    "hudscoresenemycolor_a 255\n"
+    "hudscoresenemycolor_b 0\n"
+    "hudscoresenemycolor_g 0\n"
+    "hudscoresenemycolor_r 255\n"
+    "hudscoresenemycolorbg_a 50\n"
+    "hudscoresenemycolorbg_b 85\n"
+    "hudscoresenemycolorbg_g 85\n"
+    "hudscoresenemycolorbg_r 255\n"
+    "hudscoresoffset_reverse_x 1\n"
+    "hudscoresoffset_x 10\n"
+    "hudscoresoffset_y 350\n"
+    "hudscoresplayercolor_a 255\n"
+    "hudscoresplayercolor_b 255\n"
+    "hudscoresplayercolor_g 255\n"
+    "hudscoresplayercolor_r 0\n"
+    "hudscoresplayercolorbg_a 50\n"
+    "hudscoresplayercolorbg_b 255\n"
+    "hudscoresplayercolorbg_g 255\n"
+    "hudscoresplayercolorbg_r 0\n"
+    "hudscoressize 5\n"
+    "newhud 0\n"
+    "newhud_ammoiconssize 60\n"
+    "newhud_ammopos_x 580\n"
+    "newhud_ammopos_y 960\n"
+    "newhud_ammosize 30\n"
+    "newhud_hpiconssize 60\n"
+    "newhud_hppos_x 420\n"
+    "newhud_hppos_y 960\n"
+    "newhud_hpssize 30\n"
+    "newhud_itemspos_reverse_x 1\n"
+    "newhud_itemspos_x 10\n"
+    "newhud_itemspos_y 870\n"
+    "newhud_itemssize 14\n"
+    "newhud_miniconoffset 0\n"
+    "newhud_miniconsize 6\n"
+    "newhud_miniconwidth 30\n"
+    "newhud_spectatorpos_start_x 0\n"
+    "newhud_spectatorpos_x 500\n"
+    "newhud_spectatorpos_y 110\n"
+    "newhud_spectatorsdisablewithgui 1\n"
+    "newhud_spectatorsize 5\n"
+"]\n";
+
 const char *hud_new1 =
 "hudnew1 = [\n"
     "ammobar 1\n"
@@ -171,7 +247,9 @@ const char *extended_settings_gui =
     "guicheckbox \"Colored health\" coloredhealth\n"
     "guicheckbox \"Colored ammo\" coloredammo\n"
 
+
     "guitab \"Scoreboard\"\n"
+
     "guicheckbox \"Show flags scored\" showflags\n"
     "guilist [\n"
     "guicheckbox \"Show frags in all modes\" showfrags\n"
@@ -194,7 +272,40 @@ const char *extended_settings_gui =
     "guititle \"Warning: All current HUD settings will be reset to the selected HUD settings\"\n"
     "guistrut 1\n"
     "guibutton \"Default HUD\" \"hudold\" \n"
+    "guistrut 1\n"
+    "guibutton \"Default extended HUD\" \"hudoldextended\" \n"
+    "guistrut 1\n"
     "guibutton \"New HUD\" \"hudnew1\"\n"
+    "guistrut 1\n"
+
+
+    "guitab \"Ammobar\"\n"
+
+    "guilist [\n"
+    "guicheckbox \"Show ammobar\" ammobar\n"
+    "guibar\n"
+    "guicheckbox \"Disable with GUI\" ammobardisablewithgui\n"
+    "]\n"
+    "guicheckbox \"Horizontal ammobar\" ammobarhorizontal\n"
+    "guicheckbox \"Transparent empty weapons\" ammobarfilterempty\n"
+    "guistrut 1\n"
+
+    "guitext \"Size:\" 0\n"
+    "guislider ammobarsize\n"
+    "guistrut 1\n"
+
+    "guitext \"Offset (X/Y):\" 0\n"
+    "guislider ammobaroffset_x\n"
+    "guislider ammobaroffset_y\n"
+    "guistrut 1\n"
+
+    "guicheckbox \"Draw selected gun background\" ammobarselectedbg\n"
+    "guitext \"Selected gun background (^f3R^f~/^f0G^f~/^f1B^f~/^f4A^f~):\" 0\n"
+    "guislider ammobarselectedcolor_r\n"
+    "guislider ammobarselectedcolor_g\n"
+    "guislider ammobarselectedcolor_b\n"
+    "guislider ammobarselectedcolor_a\n"
+
 
     "guitab \"Clock\"\n"
 
@@ -235,6 +346,7 @@ const char *extended_settings_gui =
     "guislider gameclockcolorbg_b\n"
     "guislider gameclockcolorbg_a\n"
 
+
     "guitab \"Scores\"\n"
 
     "guilist [\n"
@@ -258,7 +370,8 @@ const char *extended_settings_gui =
     "guislider hudscoresplayercolor_g\n"
     "guislider hudscoresplayercolor_b\n"
     "guislider hudscoresplayercolor_a\n"
-    
+
+
     "guitab \"#2\"\n"
 
     "guitext \"Player score background color (^f3R^f~/^f0G^f~/^f1B^f~/^f4A^f~):\" 0\n"
@@ -281,34 +394,9 @@ const char *extended_settings_gui =
     "guislider hudscoresenemycolorbg_b\n"
     "guislider hudscoresenemycolorbg_a\n"
 
-    "guitab \"Ammobar\"\n"
-
-    "guilist [\n"
-    "guicheckbox \"Show ammobar\" ammobar\n"
-    "guibar\n"
-    "guicheckbox \"Disable with GUI\" ammobardisablewithgui\n"
-    "]\n"
-    "guicheckbox \"Horizontal ammobar\" ammobarhorizontal\n"
-    "guicheckbox \"Transparent empty weapons\" ammobarfilterempty\n"
-    "guistrut 1\n"
-
-    "guitext \"Size:\" 0\n"
-    "guislider ammobarsize\n"
-    "guistrut 1\n"
-    
-    "guitext \"Offset (X/Y):\" 0\n"
-    "guislider ammobaroffset_x\n"
-    "guislider ammobaroffset_y\n"
-    "guistrut 1\n"
-
-    "guicheckbox \"Draw selected gun background\" ammobarselectedbg\n"
-    "guitext \"Selected gun background (^f3R^f~/^f0G^f~/^f1B^f~/^f4A^f~):\" 0\n"
-    "guislider ammobarselectedcolor_r\n"
-    "guislider ammobarselectedcolor_g\n"
-    "guislider ammobarselectedcolor_b\n"
-    "guislider ammobarselectedcolor_a\n"
 
     "guitab \"NewHUD\"\n"
+
     "guititle \"Warning: Settings have effect only when new HUD is enabled\"\n"
     "guicheckbox \"Enable new HUD\" newhud\n"
     "guistrut 1\n"
@@ -322,7 +410,9 @@ const char *extended_settings_gui =
     "guislider newhud_hppos_x\n"
     "guislider newhud_hppos_y\n"
 
+
     "guitab \"#2\"\n"
+
     "guititle \"Warning: Settings have effect only when new HUD is enabled\"\n"
     "guicheckbox \"Enable new HUD\" newhud\n"
     "guistrut 1\n"
@@ -338,7 +428,9 @@ const char *extended_settings_gui =
     "guislider newhud_ammopos_x\n"
     "guislider newhud_ammopos_y\n"
 
+
     "guitab \"#3\"\n"
+
     "guititle \"Warning: Settings have effect only when new HUD is enabled\"\n"
     "guicheckbox \"Enable new HUD\" newhud\n"
     "guistrut 1\n"
@@ -362,7 +454,9 @@ const char *extended_settings_gui =
     "guislider newhud_spectatorpos_x\n"
     "guislider newhud_spectatorpos_y\n"
 
+
     "guitab \"#4\"\n"
+
     "guititle \"Warning: Settings have effect only when new HUD is enabled\"\n"
     "guicheckbox \"Enable new HUD\" newhud\n"
     "guistrut 1\n"
@@ -376,8 +470,10 @@ const char *extended_settings_gui =
     "guicheckbox \"Use reverse X offset\" newhud_itemspos_reverse_x\n"
     "guislider newhud_itemspos_x\n"
     "guislider newhud_itemspos_y\n"
+
     
     "guitab \"#5\"\n"
+
     "guititle \"Warning: Settings have effect only when new HUD is enabled\"\n"
     "guicheckbox \"Enable new HUD\" newhud\n"
     "guistrut 1\n"
@@ -392,7 +488,7 @@ const char *extended_settings_gui =
 
 "] \"Settings\" \n";
 
-const char *game_scripts[] = { extended_settings_gui, hud_old, hud_new1, 0 };
+const char *game_scripts[] = { extended_settings_gui, hud_old, hud_old_extended, hud_new1, 0 };
 
 
 #endif
