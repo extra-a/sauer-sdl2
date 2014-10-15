@@ -1222,8 +1222,8 @@ namespace game
     XIDENTHOOK(gameclocksize, IDF_EXTENDED);
     VARP(gameclockoffset_x, 0, 10, 1000);
     XIDENTHOOK(gameclockoffset_x, IDF_EXTENDED);
-    VARP(gameclockoffset_reverse_x, 0, 1, 1);
-    XIDENTHOOK(gameclockoffset_reverse_x, IDF_EXTENDED);
+    VARP(gameclockoffset_start_x, -1, 1, 1);
+    XIDENTHOOK(gameclockoffset_start_x, IDF_EXTENDED);
     VARP(gameclockoffset_y, 0, 300, 1000);
     XIDENTHOOK(gameclockoffset_y, IDF_EXTENDED);
     VARP(gameclockcolor_r, 0, 255, 255);
@@ -1259,10 +1259,14 @@ namespace game
         int tw = 0, th = 0;
         float xoff = 0.0;
         float yoff = gameclockoffset_y*conh/1000;
-        if(gameclockoffset_reverse_x) {
+        if(gameclockoffset_start_x == 1) {
             text_bounds(buf, tw, th);
             xoff = (1000 - gameclockoffset_x)*conw/1000;
             draw_text(buf, xoff/gameclockscale - tw, yoff/gameclockscale - th/2.0, r, g, b, a);
+        } else if(gameclockoffset_start_x == 0) {
+            text_bounds(buf, tw, th);
+            xoff = gameclockoffset_x*conw/1000;
+            draw_text(buf, xoff/gameclockscale - tw/2.0, yoff/gameclockscale - th/2.0, r, g, b, a);
         } else {
             text_bounds(buf, tw, th);
             xoff = gameclockoffset_x*conw/1000;
@@ -1411,10 +1415,14 @@ namespace game
         }
     }
 
+    VARP(newhud_spectatorsdisablewithgui, 0, 1, 1);
+    XIDENTHOOK(newhud_spectatorsdisablewithgui, IDF_EXTENDED);
     VARP(newhud_spectatorsize, 0, 5, 30);
     XIDENTHOOK(newhud_spectatorsize, IDF_EXTENDED);
     VARP(newhud_spectatorpos_x, 0, 500, 1000);
     XIDENTHOOK(newhud_spectatorpos_x, IDF_EXTENDED);
+    VARP(newhud_spectatorpos_start_x, -1, 0, 1);
+    XIDENTHOOK(newhud_spectatorpos_start_x, IDF_EXTENDED);
     VARP(newhud_spectatorpos_y, 0, 110, 1000);
     XIDENTHOOK(newhud_spectatorpos_y, IDF_EXTENDED);
 
@@ -1455,7 +1463,17 @@ namespace game
                 int w1=0, h1=0;
                 cname = colorname(f);
                 text_bounds(cname, w1, h1);
-                draw_text(cname, xoff/specscale - w1/2.0, yoff/specscale, (color>>16)&0xFF, (color>>8)&0xFF, color&0xFF);
+                if(newhud_spectatorpos_start_x == 0) {
+                    draw_text(cname, xoff/specscale - w1/2.0, yoff/specscale,
+                              (color>>16)&0xFF, (color>>8)&0xFF, color&0xFF);
+                } else if(newhud_spectatorpos_start_x == 1) {
+                    xoff = (1000 - newhud_spectatorpos_x)*conw/1000;
+                    draw_text(cname, xoff/specscale - w1, yoff/specscale,
+                              (color>>16)&0xFF, (color>>8)&0xFF, color&0xFF);
+                } else {
+                    draw_text(cname, xoff/specscale, yoff/specscale,
+                              (color>>16)&0xFF, (color>>8)&0xFF, color&0xFF);
+                }
             } else {
                 draw_text(colorname(f), w*1800/h - fw - pw, 1650 - fh, (color>>16)&0xFF, (color>>8)&0xFF, color&0xFF);
             }
@@ -1501,7 +1519,8 @@ namespace game
     void gameplayhud(int w, int h) {
         holdscreenlock;
 
-        if(player1->state==CS_SPECTATOR) {
+        if(player1->state==CS_SPECTATOR &&
+           !(newhud && newhud_spectatorsdisablewithgui && framehasgui)) {
             drawspectator(w, h);
         }
 
