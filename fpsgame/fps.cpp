@@ -967,6 +967,7 @@ namespace game
         holdscreenlock;
         glPushMatrix();
         glScalef(staticscale*ammobarscale, staticscale*ammobarscale, 1);
+        draw_text("", 0, 0, 255, 255, 255, 255);
 
         int szx = 0, szy = 0;
         text_bounds("999", pw, ph);
@@ -1153,6 +1154,7 @@ namespace game
 
         glPushMatrix();
         glScalef(staticscale*hpscale, staticscale*hpscale, 1);
+        draw_text("", 0, 0, 255, 255, 255, 255);
 
         char buff[10];
         int r = 255, g = 255, b = 255, a = 255, tw = 0, th = 0;
@@ -1198,6 +1200,7 @@ namespace game
 
         glPushMatrix();
         glScalef(staticscale*ammoscale, staticscale*ammoscale, 1);
+        draw_text("", 0, 0, 255, 255, 255, 255);
 
         char buff[10];
         snprintf(buff, 10, "%d", d->ammo[d->gunselect]);
@@ -1220,12 +1223,14 @@ namespace game
     XIDENTHOOK(gameclockdisablewithgui, IDF_EXTENDED);
     VARP(gameclocksize, 1, 5, 30);
     XIDENTHOOK(gameclocksize, IDF_EXTENDED);
+
     VARP(gameclockoffset_x, 0, 10, 1000);
     XIDENTHOOK(gameclockoffset_x, IDF_EXTENDED);
     VARP(gameclockoffset_start_x, -1, 1, 1);
     XIDENTHOOK(gameclockoffset_start_x, IDF_EXTENDED);
     VARP(gameclockoffset_y, 0, 300, 1000);
     XIDENTHOOK(gameclockoffset_y, IDF_EXTENDED);
+
     VARP(gameclockcolor_r, 0, 255, 255);
     XIDENTHOOK(gameclockcolor_r, IDF_EXTENDED);
     VARP(gameclockcolor_g, 0, 255, 255);
@@ -1234,6 +1239,16 @@ namespace game
     XIDENTHOOK(gameclockcolor_b, IDF_EXTENDED);
     VARP(gameclockcolor_a, 0, 255, 255);
     XIDENTHOOK(gameclockcolor_a, IDF_EXTENDED);
+
+    VARP(gameclockcolorbg_r, 0, 100, 255);
+    XIDENTHOOK(gameclockcolorbg_r, IDF_EXTENDED);
+    VARP(gameclockcolorbg_g, 0, 200, 255);
+    XIDENTHOOK(gameclockcolorbg_g, IDF_EXTENDED);
+    VARP(gameclockcolorbg_b, 0, 255, 255);
+    XIDENTHOOK(gameclockcolorbg_b, IDF_EXTENDED);
+    VARP(gameclockcolorbg_a, 0, 50, 255);
+    XIDENTHOOK(gameclockcolorbg_a, IDF_EXTENDED);
+
 
     void drawclock(int w, int h) {
         int conw = int(w/staticscale), conh = int(h/staticscale);
@@ -1255,23 +1270,36 @@ namespace game
 
         glPushMatrix();
         glScalef(staticscale*gameclockscale, staticscale*gameclockscale, 1);
+        draw_text("", 0, 0, 255, 255, 255, 255);
 
         int tw = 0, th = 0;
-        float xoff = 0.0;
+        float xoff = 0.0, xpos = 0.0, ypos = 0.0;
         float yoff = gameclockoffset_y*conh/1000;
+        float borderx = 10.0*staticscale*gameclockscale;
+        text_bounds(buf, tw, th);
+
         if(gameclockoffset_start_x == 1) {
-            text_bounds(buf, tw, th);
             xoff = (1000 - gameclockoffset_x)*conw/1000;
-            draw_text(buf, xoff/gameclockscale - tw, yoff/gameclockscale - th/2.0, r, g, b, a);
+            xpos = xoff/gameclockscale - tw;
         } else if(gameclockoffset_start_x == 0) {
-            text_bounds(buf, tw, th);
             xoff = gameclockoffset_x*conw/1000;
-            draw_text(buf, xoff/gameclockscale - tw/2.0, yoff/gameclockscale - th/2.0, r, g, b, a);
+            xpos = xoff/gameclockscale - tw/2.0;
         } else {
-            text_bounds(buf, tw, th);
             xoff = gameclockoffset_x*conw/1000;
-            draw_text(buf, xoff/gameclockscale, yoff/gameclockscale - th/2.0, r, g, b, a);
+            xpos = xoff/gameclockscale;
         }
+        ypos = yoff/gameclockscale - th/2.0;
+
+        drawacoloredquad(xpos - borderx,
+                         ypos,
+                         tw + 2.0*borderx,
+                         th,
+                         (GLubyte)gameclockcolorbg_r,
+                         (GLubyte)gameclockcolorbg_g,
+                         (GLubyte)gameclockcolorbg_b,
+                         (GLubyte)gameclockcolorbg_a);
+        draw_text(buf, xpos, ypos, r, g, b, a);
+        draw_text("", 0, 0, 255, 255, 255, 255);
 
         glPopMatrix();
     }
@@ -1348,6 +1376,7 @@ namespace game
 
             glPushMatrix();
             glScalef(staticscale*scorescale, staticscale*scorescale, 1);
+            draw_text("", 0, 0, 255, 255, 255, 255);
 
             if(isbest) {
                 int frags=0;
@@ -1411,6 +1440,7 @@ namespace game
                     draw_text(buff2, xoff/scorescale + tw1 + scoresep, yoff/scorescale - th2/2.0, r1, g1, b1, a1);
                 }
             }
+            draw_text("", 0, 0, 255, 255, 255, 255);
             glPopMatrix();
         }
     }
@@ -1443,6 +1473,7 @@ namespace game
             glScalef(h/1800.0f, h/1800.0f, 1);
         }
 
+        draw_text("", 0, 0, 255, 255, 255, 255);
         int pw, ph, tw, th, fw, fh;
         text_bounds("  ", pw, ph);
         text_bounds("SPECTATOR", tw, th);
@@ -1477,8 +1508,8 @@ namespace game
             } else {
                 draw_text(colorname(f), w*1800/h - fw - pw, 1650 - fh, (color>>16)&0xFF, (color>>8)&0xFF, color&0xFF);
             }
-            draw_text("", 0, 0, 255, 255, 255, 255);
         }
+        draw_text("", 0, 0, 255, 255, 255, 255);
         glPopMatrix();
     }
 
@@ -1505,6 +1536,7 @@ namespace game
             int tw = 0, th = 0;
             text_bounds(buff, tw, th);
             glScalef(staticscale*itemsscale, staticscale*itemsscale, 1);
+            draw_text("", 0, 0, 255, 255, 255, 255);
             if(newhud_itemspos_reverse_x) {
                 drawicon(HICON_QUAD, xoff/itemsscale - th, yoff/itemsscale - th/2.0, th);
             } else {

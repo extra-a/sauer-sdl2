@@ -15,6 +15,10 @@ const char *hud_old =
     "ammobarselectedcolor_b 255\n"
     "ammobarselectedcolor_g 200\n"
     "ammobarselectedcolor_r 100\n"
+    "gameclockcolorbg_a 50\n"
+    "gameclockcolorbg_b 255\n"
+    "gameclockcolorbg_g 200\n"
+    "gameclockcolorbg_r 100\n"
     "ammobarsize 5\n"
     "gameclock 0\n"
     "gameclockcolor_a 255\n"
@@ -82,6 +86,10 @@ const char *hud_new1 =
     "gameclockcolor_b 255\n"
     "gameclockcolor_g 255\n"
     "gameclockcolor_r 255\n"
+    "gameclockcolorbg_a 50\n"
+    "gameclockcolorbg_b 255\n"
+    "gameclockcolorbg_g 200\n"
+    "gameclockcolorbg_r 100\n"
     "gameclockdisablewithgui 0\n"
     "gameclockoffset_start_x -1\n"
     "gameclockoffset_x 780\n"
@@ -167,7 +175,7 @@ const char *extended_settings_gui =
     "guibutton \"New HUD\" \"hudnew1\"\n"
 
 
-    "guitab \"Clock\"\n"
+    "guitab \"Clock#1\"\n"
 
     "guilist [\n"
     "guicheckbox \"Show clock\" gameclock\n"
@@ -190,13 +198,21 @@ const char *extended_settings_gui =
     "]\n"
     "guislider gameclockoffset_x\n"
     "guislider gameclockoffset_y\n"
-    "guistrut 1\n"
 
-    "guitext \"Color (^f3R^f~/^f0G^f~/^f1B^f~/^f4A^f~):\" 0\n"
+    "guitab \"#2\"\n"
+
+    "guitext \"Clock text color (^f3R^f~/^f0G^f~/^f1B^f~/^f4A^f~):\" 0\n"
     "guislider gameclockcolor_r\n"
     "guislider gameclockcolor_g\n"
     "guislider gameclockcolor_b\n"
     "guislider gameclockcolor_a\n"
+    "guistrut 1\n"
+
+    "guitext \"Clock background color (^f3R^f~/^f0G^f~/^f1B^f~/^f4A^f~):\" 0\n"
+    "guislider gameclockcolorbg_r\n"
+    "guislider gameclockcolorbg_g\n"
+    "guislider gameclockcolorbg_b\n"
+    "guislider gameclockcolorbg_a\n"
 
     "guitab \"Scores#1\"\n"
 
