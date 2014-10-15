@@ -962,7 +962,7 @@ namespace game
         float vsep = 10*ammobarscale*staticscale;
         float hsep = 60*ammobarscale*staticscale;
         float textsep = 20*ammobarscale*staticscale;
-        int pw = 0, ph = 0;
+        int pw = 0, ph = 0, tw = 0, th = 0;
 
         holdscreenlock;
         glPushMatrix();
@@ -983,15 +983,8 @@ namespace game
         yoff -= szy/2.0 * ammobarscale;
 
         for(int i = 0, xpos = 0, ypos = 0; i < NWEAPONS; i++) {
-            if(ammobarfilterempty && d->ammo[i+1] == 0) {
-                if(ammobarhorizontal) {
-                    xpos += ph + pw + textsep + hsep;
-                } else {
-                    ypos += ph + vsep + vsep;
-                }
-                continue;
-            }
-            snprintf(buff, 10, "%d", d->ammo[i+1]);
+            snprintf(buff, 10, "%d", limitammo(d->ammo[i+1]));
+            text_bounds(buff, tw, th);
             draw_text("", 0, 0, 255, 255, 255, 255);
             if(ammobarselectedbg && i+1 == d->gunselect) {
                 drawselectedammobg(xoff/ammobarscale + xpos - textsep/2.0,
@@ -999,16 +992,26 @@ namespace game
                                    ph + pw + textsep + textsep,
                                    ph + vsep);
             }
+            if(ammobarfilterempty && d->ammo[i+1] == 0) {
+                draw_text("", 0, 0, 255, 255, 255, 85);
+            }
             drawicon(HICON_FIST+icons[i], xoff/ammobarscale + xpos, yoff/ammobarscale + ypos, ph);
             if(coloredammo) getammocolor(d, i+1, r, g, b, a);
             if(ammobarhorizontal) {
-                draw_text(buff, xoff/ammobarscale + xpos + ph + textsep, yoff/ammobarscale + ypos, r, g, b, a);
+                if( !(ammobarfilterempty && d->ammo[i+1] == 0)) {
+                    draw_text(buff, xoff/ammobarscale + xpos + ph + textsep + (pw-tw)/2.0,
+                              yoff/ammobarscale + ypos, r, g, b, a);
+                }
                 xpos += ph + pw + textsep + hsep;
             } else {
-                draw_text(buff, xoff/ammobarscale + xpos + ph + textsep, yoff/ammobarscale + ypos, r, g, b, a);
+                if( !(ammobarfilterempty && d->ammo[i+1] == 0)) {
+                    draw_text(buff, xoff/ammobarscale + xpos + ph + textsep + (pw-tw)/2.0,
+                              yoff/ammobarscale + ypos, r, g, b, a);
+                }
                 ypos += ph + vsep + vsep;
             }
         }
+        draw_text("", 0, 0, 255, 255, 255, 255);
         glPopMatrix();
         #undef NWEAPONS
     }

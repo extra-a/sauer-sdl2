@@ -225,7 +225,7 @@ const char *extended_settings_gui =
     "guicheckbox \"Disable with GUI\" ammobardisablewithgui\n"
     "]\n"
     "guicheckbox \"Horizontal ammobar\" ammobarhorizontal\n"
-    "guicheckbox \"Don't show empty weapons\" ammobarfilterempty\n"
+    "guicheckbox \"Transparent empty weapons\" ammobarfilterempty\n"
     "guistrut 1\n"
 
     "guitext \"Size:\" 0\n"
