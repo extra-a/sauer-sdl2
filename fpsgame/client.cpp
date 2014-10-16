@@ -1791,19 +1791,22 @@ namespace game
 
     void adddmg(fpsent *target, fpsent *from, int damage, int gun) {
         if(gun == 2 && (damage != 30 || (from->quadmillis && damage != 120))) {
-            gun = 3;
+            gun = from->lastprojectile;
         }
         if(gun == 4 && (damage != 100 || (from->quadmillis && damage != 400))) {
-            gun = 3;
+            gun = from->lastprojectile;
         }
         if(gun == 6 && (damage != 35 || (from->quadmillis && damage != 140))) {
-            gun = 3;
+            gun = from->lastprojectile;
         }
         if(target && !isdamgeignored(target, from) && gun >= 0 && gun < MAXWEAPONS) {
             target->detaileddamagereceived[gun] += damage;
         }
         if(from && !isdamgeignored(target, from) && gun >= 0 && gun < MAXWEAPONS) {
             from->detaileddamagedealt[gun] += damage;
+            if(gun == 3 || gun == 5) {
+                from->lastprojectile = gun;
+            }
         }
     }
 

@@ -850,6 +850,7 @@ struct fpsent : dynent, fpsstate
     int detaileddamagedealt[MAXWEAPONS];
     int detaileddamagetotal[MAXWEAPONS];
     int detaileddamagereceived[MAXWEAPONS];
+    int lastprojectile;
     struct extplayerinfo extdata;
     editinfo *edit;
     float deltayaw, deltapitch, deltaroll, newyaw, newpitch, newroll;
@@ -866,6 +867,7 @@ struct fpsent : dynent, fpsstate
     {
         name[0] = team[0] = info[0] = 0;
         respawn();
+        lastprojectile = 3;
         loopi(MAXWEAPONS) {
             detaileddamagedealt[i] = 0;
             detaileddamagetotal[i] = 0;
