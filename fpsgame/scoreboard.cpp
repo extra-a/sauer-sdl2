@@ -64,7 +64,7 @@ namespace game
 
     double getweaponaccuracy(int gun, fpsent* f = NULL) {
         double total = max(1.0, (double)getgundamagetotal(gun, f));
-        return (getgundamagedealt(gun, f) / total) * 100;
+        return min(100.0, (getgundamagedealt(gun, f) / total) * 100.0);
     }
     
 
