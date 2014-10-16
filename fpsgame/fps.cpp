@@ -1148,6 +1148,8 @@ namespace game
         glPopMatrix();
     }
 
+    VARP(newhud_hpdisableininsta, 0, 0, 1);
+    XIDENTHOOK(newhud_hpdisableininsta, IDF_EXTENDED);
     VARP(newhud_hpssize, 0, 30, 50);
     XIDENTHOOK(newhud_hpssize, IDF_EXTENDED);
     VARP(newhud_hpiconssize, 0, 60, 200);
@@ -1158,6 +1160,8 @@ namespace game
     XIDENTHOOK(newhud_hppos_y, IDF_EXTENDED);
 
     void drawnewhudhp(fpsent *d, int w, int h) {
+        if(m_insta && newhud_hpdisableininsta) return;
+
         holdscreenlock;
 
         int conw = int(w/staticscale), conh = int(h/staticscale);
