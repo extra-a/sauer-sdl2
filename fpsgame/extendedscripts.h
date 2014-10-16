@@ -318,12 +318,14 @@ const char *hud_new2 =
 const char *extended_settings_gui =
 "newgui extended_settings [\n"
 
+    "guicheckbox \"Show servers preview\" showserverpreviews\n"
+    "guicheckbox \"Use following player team\" usefollowingplayerteam\n"
+    "guicheckbox \"Log players stats on game end\" dumpstatsongameend\n"
+    "guistrut 1\n"
+
     "guicheckbox \"No sparks for hitscan weapons\" reducesparks\n"
     "guicheckbox \"No explosion animation\" reduceexplosions\n"
     "guicheckbox \"No explosion debris\" removeexplosionsdebris\n"
-    "guicheckbox \"Use following player team\" usefollowingplayerteam\n"
-    "guicheckbox \"Log players stats on game end\" dumpstatsongameend\n"
-    "guicheckbox \"Show servers preview\" showserverpreviews\n"
     "guistrut 1\n"
 
     "guitext \"Smoke density (for rockets and grenades):\" 0\n"
@@ -505,6 +507,8 @@ const char *extended_settings_gui =
     "guislider newhud_hpssize\n"
     "guitext \"Amour icon size:\" 0\n"
     "guislider newhud_hpiconssize\n"
+    "guistrut 1\n"
+
     "guitext \"HP/Armour offset (X/Y):\" 0\n"
     "guislider newhud_hppos_x\n"
     "guislider newhud_hppos_y\n"
