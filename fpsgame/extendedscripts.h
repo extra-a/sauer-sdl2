@@ -3,7 +3,6 @@
 
 const char *hud_old =
 "hudold = [\n"
-
     "ammobar 0\n"
     "ammobardisableininsta 1\n"
     "ammobardisablewithgui 0\n"
@@ -235,6 +234,83 @@ const char *hud_new1 =
 
 "]\n";
 
+const char *hud_new2 =
+"hudnew2 = [\n"
+    "ammobar 1\n"
+    "ammobardisableininsta 0\n"
+    "ammobardisablewithgui 0\n"
+    "ammobarfilterempty 1\n"
+    "ammobarhorizontal 1\n"
+    "ammobaroffset_start_x 0\n"
+    "ammobaroffset_x 500\n"
+    "ammobaroffset_y 900\n"
+    "ammobarselectedcolor_a 150\n"
+    "ammobarselectedcolor_b 255\n"
+    "ammobarselectedcolor_g 200\n"
+    "ammobarselectedcolor_r 100\n"
+    "ammobarsize 10\n"
+    "coloredammo 1\n"
+    "coloredhealth 1\n"
+    "gameclock 1\n"
+    "gameclockcolor_a 255\n"
+    "gameclockcolor_b 255\n"
+    "gameclockcolor_g 255\n"
+    "gameclockcolor_r 255\n"
+    "gameclockcolorbg_a 50\n"
+    "gameclockcolorbg_b 255\n"
+    "gameclockcolorbg_g 200\n"
+    "gameclockcolorbg_r 100\n"
+    "gameclockdisablewithgui 0\n"
+    "gameclockoffset_start_x 1\n"
+    "gameclockoffset_x 620\n"
+    "gameclockoffset_y 970\n"
+    "gameclocksize 10\n"
+    "hudscores 1\n"
+    "hudscoresdisablewithgui 0\n"
+    "hudscoresenemycolor_a 255\n"
+    "hudscoresenemycolor_b 0\n"
+    "hudscoresenemycolor_g 0\n"
+    "hudscoresenemycolor_r 255\n"
+    "hudscoresenemycolorbg_a 50\n"
+    "hudscoresenemycolorbg_b 85\n"
+    "hudscoresenemycolorbg_g 85\n"
+    "hudscoresenemycolorbg_r 255\n"
+    "hudscoresoffset_reverse_x 0\n"
+    "hudscoresoffset_x 620\n"
+    "hudscoresoffset_y 970\n"
+    "hudscoresplayercolor_a 255\n"
+    "hudscoresplayercolor_b 255\n"
+    "hudscoresplayercolor_g 255\n"
+    "hudscoresplayercolor_r 0\n"
+    "hudscoresplayercolorbg_a 50\n"
+    "hudscoresplayercolorbg_b 255\n"
+    "hudscoresplayercolorbg_g 255\n"
+    "hudscoresplayercolorbg_r 0\n"
+    "hudscoressize 10\n"
+    "newhud 1\n"
+    "newhud_ammodisable 1\n"
+    "newhud_ammoiconssize 60\n"
+    "newhud_ammopos_x 580\n"
+    "newhud_ammopos_y 960\n"
+    "newhud_ammosize 30\n"
+    "newhud_hpiconssize 60\n"
+    "newhud_hppos_x 500\n"
+    "newhud_hppos_y 970\n"
+    "newhud_hpssize 30\n"
+    "newhud_itemspos_reverse_x 1\n"
+    "newhud_itemspos_x 10\n"
+    "newhud_itemspos_y 870\n"
+    "newhud_itemssize 14\n"
+    "newhud_miniconoffset 0\n"
+    "newhud_miniconsize 6\n"
+    "newhud_miniconwidth 28\n"
+    "newhud_spectatorpos_start_x 0\n"
+    "newhud_spectatorpos_x 500\n"
+    "newhud_spectatorpos_y 110\n"
+    "newhud_spectatorsdisablewithgui 1\n"
+    "newhud_spectatorsize 5\n"
+"]\n";
+
 const char *extended_settings_gui =
 "newgui extended_settings [\n"
 
@@ -281,7 +357,9 @@ const char *extended_settings_gui =
     "guistrut 1\n"
     "guibutton \"Default extended HUD\" \"hudoldextended\" \n"
     "guistrut 1\n"
-    "guibutton \"New HUD\" \"hudnew1\"\n"
+    "guibutton \"New customisable HUD (example1)\" \"hudnew1\"\n"
+    "guistrut 1\n"
+    "guibutton \"New customisable HUD (example2)\" \"hudnew2\"\n"
     "guistrut 1\n"
 
 
@@ -505,7 +583,12 @@ const char *extended_settings_gui =
 
 "] \"Settings\" \n";
 
-const char *game_scripts[] = { extended_settings_gui, hud_old, hud_old_extended, hud_new1, 0 };
+const char *game_scripts[] = { extended_settings_gui,
+                               hud_old,
+                               hud_old_extended,
+                               hud_new1,
+                               hud_new2,
+                               0 };
 
 
 #endif
