@@ -4,6 +4,10 @@
 #include "cube.h"
 #include "world.h"
 
+#ifdef WIN32
+#define snprintf _snprintf
+#endif
+
 #ifndef STANDALONE
 
 #include "octa.h"
