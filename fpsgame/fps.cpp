@@ -890,6 +890,9 @@ namespace game
     XIDENTHOOK(ammobar, IDF_EXTENDED);
     VARP(ammobardisablewithgui, 0, 0, 1);
     XIDENTHOOK(ammobardisablewithgui, IDF_EXTENDED);
+    VARP(ammobardisableininsta, 0, 0, 1);
+    XIDENTHOOK(ammobardisableininsta, IDF_EXTENDED);
+
     VARP(ammobarfilterempty, 0, 0, 1);
     XIDENTHOOK(ammobarfilterempty, IDF_EXTENDED);
 
@@ -1177,7 +1180,8 @@ namespace game
         glPopMatrix();
     }
 
-
+    VARP(newhud_ammodisable, 0, 0, 1);
+    XIDENTHOOK(newhud_ammodisable, IDF_EXTENDED);
     VARP(newhud_ammosize, 0, 30, 50);
     XIDENTHOOK(newhud_ammosize, IDF_EXTENDED);
     VARP(newhud_ammoiconssize, 0, 60, 200);
@@ -1188,7 +1192,7 @@ namespace game
     XIDENTHOOK(newhud_ammopos_y, IDF_EXTENDED);
 
     void drawnewhudammo(fpsent *d, int w, int h) {
-        if(d->state==CS_DEAD) return;
+        if(d->state==CS_DEAD || newhud_ammodisable) return;
         holdscreenlock;
 
         int conw = int(w/staticscale), conh = int(h/staticscale);
@@ -1676,9 +1680,9 @@ namespace game
             }
         }
 
-        if(ammobar && !m_edit && !m_insta &&
-           d->state!=CS_DEAD && d->state!=CS_SPECTATOR &&
-           !(ammobardisablewithgui && framehasgui)) {
+        if(ammobar && !m_edit && d->state!=CS_DEAD && d->state!=CS_SPECTATOR &&
+           ! (ammobardisablewithgui && framehasgui) &&
+           ! (m_insta && ammobardisableininsta)) {
             drawammobar(d, w, h);
         }
 

@@ -5,6 +5,7 @@ const char *hud_old =
 "hudold = [\n"
 
     "ammobar 0\n"
+    "ammobardisableininsta 1\n"
     "ammobardisablewithgui 0\n"
     "ammobarfilterempty 0\n"
     "ammobarhorizontal 0\n"
@@ -55,6 +56,7 @@ const char *hud_old =
     "hudscoresplayercolorbg_r 0\n"
     "hudscoressize 5\n"
     "newhud 0\n"
+    "newhud_ammodisable 0\n"
     "newhud_ammoiconssize 60\n"
     "newhud_ammopos_x 580\n"
     "newhud_ammopos_y 960\n"
@@ -81,6 +83,7 @@ const char *hud_old_extended =
 "hudoldextended = [\n"
 
     "ammobar 1\n"
+    "ammobardisableininsta 1\n"
     "ammobardisablewithgui 1\n"
     "ammobarfilterempty 1\n"
     "ammobarhorizontal 0\n"
@@ -131,6 +134,7 @@ const char *hud_old_extended =
     "hudscoresplayercolorbg_r 0\n"
     "hudscoressize 5\n"
     "newhud 0\n"
+    "newhud_ammodisable 0\n"
     "newhud_ammoiconssize 60\n"
     "newhud_ammopos_x 580\n"
     "newhud_ammopos_y 960\n"
@@ -156,6 +160,7 @@ const char *hud_old_extended =
 const char *hud_new1 =
 "hudnew1 = [\n"
     "ammobar 1\n"
+    "ammobardisableininsta 1\n"
     "ammobardisablewithgui 1\n"
     "ammobarfilterempty 1\n"
     "ammobarhorizontal 0\n"
@@ -206,6 +211,7 @@ const char *hud_new1 =
     "hudscoresplayercolorbg_r 0\n"
     "hudscoressize 10\n"
     "newhud 1\n"
+    "newhud_ammodisable 0\n"
     "newhud_ammoiconssize 60\n"
     "newhud_ammopos_x 580\n"
     "newhud_ammopos_y 960\n"
@@ -283,6 +289,8 @@ const char *extended_settings_gui =
 
     "guilist [\n"
     "guicheckbox \"Show ammobar\" ammobar\n"
+    "guibar\n"
+    "guicheckbox \"Don't show in insta modes\" ammobardisableininsta\n"
     "guibar\n"
     "guicheckbox \"Disable with GUI\" ammobardisablewithgui\n"
     "]\n"
@@ -418,6 +426,7 @@ const char *extended_settings_gui =
     "guistrut 1\n"
     
     "guititle \"New HUD Ammo settings\"\n"
+    "guicheckbox \"Disable Ammo drawing\" newhud_ammodisable\n"
     "guitext \"Ammo size:\" 0\n"
     "guislider newhud_ammosize\n"
     "guitext \"Ammo icon size:\" 0\n"
