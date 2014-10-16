@@ -898,15 +898,18 @@ namespace game
 
     VARP(ammobarsize, 1, 5, 30);
     XIDENTHOOK(ammobarsize, IDF_EXTENDED);
-    VARP(ammobaroffset_x, 0, 30, 1000);
+    VARP(ammobaroffset_x, 0, 10, 1000);
     XIDENTHOOK(ammobaroffset_x, IDF_EXTENDED);
+
+    VARP(ammobaroffset_start_x, -1, -1, 1);
+    XIDENTHOOK(ammobaroffset_start_x, IDF_EXTENDED);
+
+
     VARP(ammobaroffset_y, 0, 500, 1000);
     XIDENTHOOK(ammobaroffset_y, IDF_EXTENDED);
     VARP(ammobarhorizontal, 0, 0, 1);
     XIDENTHOOK(ammobarhorizontal, IDF_EXTENDED);
 
-    VARP(ammobarselectedbg, 0, 1, 1);
-    XIDENTHOOK(ammobarselectedbg, IDF_EXTENDED);
     VARP(ammobarselectedcolor_r, 0, 100, 255);
     XIDENTHOOK(ammobarselectedcolor_r, IDF_EXTENDED);
     VARP(ammobarselectedcolor_g, 0, 200, 255);
@@ -960,7 +963,7 @@ namespace game
         int r = 255, g = 255, b = 255, a = 255;
         char buff[10];
         float ammobarscale = (1 + ammobarsize/10.0)*h/1080.0;
-        float xoff = ammobaroffset_x*conw/1000;
+        float xoff = 0.0;
         float yoff = ammobaroffset_y*conh/1000;
         float vsep = 10*ammobarscale*staticscale;
         float hsep = 60*ammobarscale*staticscale;
@@ -977,39 +980,46 @@ namespace game
 
         if(ammobarhorizontal) {
             szy = ph;
-            szx = NWEAPONS * (ph + pw + textsep + hsep) - hsep;
+            szx = NWEAPONS * (ph + pw + 2.0 * textsep + hsep) - hsep;
         } else {
-            szx = ph + textsep + pw;
+            szx = ph + 2.0 * textsep + pw;
             szy = NWEAPONS * (ph + vsep + vsep) - 2*vsep;
         }
 
-        xoff -= szx/2.0 * ammobarscale;
+        if(ammobaroffset_start_x == 1) {
+            xoff = (1000-ammobaroffset_x)*conw/1000 - szx * ammobarscale;
+        } else if(ammobaroffset_start_x == 0) {
+            xoff = ammobaroffset_x*conw/1000 - szx/2.0 * ammobarscale;
+        } else {
+            xoff = ammobaroffset_x*conw/1000;
+        }
+
         yoff -= szy/2.0 * ammobarscale;
 
         for(int i = 0, xpos = 0, ypos = 0; i < NWEAPONS; i++) {
             snprintf(buff, 10, "%d", limitammo(d->ammo[i+1]));
             text_bounds(buff, tw, th);
             draw_text("", 0, 0, 255, 255, 255, 255);
-            if(ammobarselectedbg && i+1 == d->gunselect) {
-                drawselectedammobg(xoff/ammobarscale + xpos - textsep/2.0,
+            if(i+1 == d->gunselect) {
+                drawselectedammobg(xoff/ammobarscale + xpos,
                                    yoff/ammobarscale + ypos - vsep/2.0,
-                                   ph + pw + textsep + textsep,
+                                   ph + pw + 2.0*textsep,
                                    ph + vsep);
             }
             if(ammobarfilterempty && d->ammo[i+1] == 0) {
                 draw_text("", 0, 0, 255, 255, 255, 85);
             }
-            drawicon(HICON_FIST+icons[i], xoff/ammobarscale + xpos, yoff/ammobarscale + ypos, ph);
+            drawicon(HICON_FIST+icons[i], xoff/ammobarscale + xpos + textsep/2.0, yoff/ammobarscale + ypos, ph);
             if(coloredammo) getammocolor(d, i+1, r, g, b, a);
             if(ammobarhorizontal) {
                 if( !(ammobarfilterempty && d->ammo[i+1] == 0)) {
-                    draw_text(buff, xoff/ammobarscale + xpos + ph + textsep + (pw-tw)/2.0,
+                    draw_text(buff, xoff/ammobarscale + xpos + ph + 1.5*textsep + (pw-tw)/2.0,
                               yoff/ammobarscale + ypos, r, g, b, a);
                 }
-                xpos += ph + pw + textsep + hsep;
+                xpos += ph + pw + 2.0 * textsep + hsep;
             } else {
                 if( !(ammobarfilterempty && d->ammo[i+1] == 0)) {
-                    draw_text(buff, xoff/ammobarscale + xpos + ph + textsep + (pw-tw)/2.0,
+                    draw_text(buff, xoff/ammobarscale + xpos + ph + 1.5*textsep + (pw-tw)/2.0,
                               yoff/ammobarscale + ypos, r, g, b, a);
                 }
                 ypos += ph + vsep + vsep;
