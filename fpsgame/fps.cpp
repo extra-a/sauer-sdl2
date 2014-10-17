@@ -1570,6 +1570,8 @@ namespace game
 
     VARP(newhud_spectatorsdisablewithgui, 0, 1, 1);
     XIDENTHOOK(newhud_spectatorsdisablewithgui, IDF_EXTENDED);
+    VARP(newhud_spectatorsnocolor, 0, 0, 1);
+    XIDENTHOOK(newhud_spectatorsnocolor, IDF_EXTENDED);
     VARP(newhud_spectatorsize, 0, 5, 30);
     XIDENTHOOK(newhud_spectatorsize, IDF_EXTENDED);
     VARP(newhud_spectatorpos_x, 0, 500, 1000);
@@ -1609,8 +1611,10 @@ namespace game
         if(f) {
             int color = f->state!=CS_DEAD ? 0xFFFFFF : 0x606060;
             if(f->privilege) {
-                color = f->privilege>=PRIV_ADMIN ? 0xFF8000 : 0x40FF80;
-                if(f->state==CS_DEAD) color = (color>>1)&0x7F7F7F;
+                if(!newhud || !newhud_spectatorsnocolor) {
+                    color = f->privilege>=PRIV_ADMIN ? 0xFF8000 : 0x40FF80;
+                    if(f->state==CS_DEAD) color = (color>>1)&0x7F7F7F;
+                }
             }
             if(newhud) {
                 const char *cname;

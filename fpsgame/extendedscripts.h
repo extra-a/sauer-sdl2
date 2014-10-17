@@ -76,12 +76,12 @@ const char *hud_old =
     "newhud_spectatorpos_x 500\n"
     "newhud_spectatorpos_y 110\n"
     "newhud_spectatorsdisablewithgui 1\n"
+    "newhud_spectatorsnocolor 1\n"
     "newhud_spectatorsize 5\n"
 "]\n";
 
 const char *hud_old_extended =
 "hudoldextended = [\n"
-
     "ammobar 1\n"
     "ammobardisableininsta 1\n"
     "ammobardisablewithgui 1\n"
@@ -155,6 +155,7 @@ const char *hud_old_extended =
     "newhud_spectatorpos_x 500\n"
     "newhud_spectatorpos_y 110\n"
     "newhud_spectatorsdisablewithgui 1\n"
+    "newhud_spectatorsnocolor 1\n"
     "newhud_spectatorsize 5\n"
 "]\n";
 
@@ -233,8 +234,8 @@ const char *hud_new1 =
     "newhud_spectatorpos_x 500\n"
     "newhud_spectatorpos_y 110\n"
     "newhud_spectatorsdisablewithgui 1\n"
+    "newhud_spectatorsnocolor 1\n"
     "newhud_spectatorsize 5\n"
-
 "]\n";
 
 const char *hud_new2 =
@@ -312,6 +313,7 @@ const char *hud_new2 =
     "newhud_spectatorpos_x 500\n"
     "newhud_spectatorpos_y 110\n"
     "newhud_spectatorsdisablewithgui 1\n"
+    "newhud_spectatorsnocolor 1\n"
     "newhud_spectatorsize 5\n"
 "]\n";
 
@@ -541,6 +543,7 @@ const char *extended_settings_gui =
     
     "guititle \"New HUD spectator settings\"\n"
     "guicheckbox \"Disable with GUI\" newhud_spectatorsdisablewithgui\n"
+    "guicheckbox \"No privilege colors\" newhud_spectatorsnocolor\n"
     "guitext \"Spectator size:\" 0\n"
     "guislider newhud_spectatorsize\n"
     "guistrut 1\n"
