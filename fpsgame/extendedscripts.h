@@ -253,7 +253,7 @@ const char *hud_new1 =
 const char *hud_new2 =
 "hudnew2 = [\n"
     "ammobar 1\n"
-    "ammobardisableininsta 0\n"
+    "ammobardisableininsta 1\n"
     "ammobardisablewithgui 0\n"
     "ammobarfilterempty 1\n"
     "ammobarhorizontal 1\n"
