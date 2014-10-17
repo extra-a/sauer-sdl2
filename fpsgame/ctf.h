@@ -507,7 +507,7 @@ struct ctfclientmode : clientmode
         float hsep = 20*itemsscale*staticscale;
 
         glPushMatrix();
-        if(newhud) {
+        if(newhud && !(newhud_itemsdisablewithgui && framehasgui)) {
             glScalef(staticscale*itemsscale, staticscale*itemsscale, 1);
             char buff[10];
             int tw = 0, th = 0, tw2=0, th2=0, x = 0, secs = 0;
@@ -539,7 +539,7 @@ struct ctfclientmode : clientmode
                     break;
                 }
             }
-        } else {
+        } else if(!newhud) {
             if(d->state == CS_ALIVE) {
                 glScalef(h/1800.0f, h/1800.0f, 1);
                 loopv(flags) if(flags[i].owner == d)

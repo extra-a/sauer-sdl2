@@ -1570,7 +1570,7 @@ namespace game
 
     VARP(newhud_spectatorsdisablewithgui, 0, 1, 1);
     XIDENTHOOK(newhud_spectatorsdisablewithgui, IDF_EXTENDED);
-    VARP(newhud_spectatorsnocolor, 0, 0, 1);
+    VARP(newhud_spectatorsnocolor, 0, 1, 1);
     XIDENTHOOK(newhud_spectatorsnocolor, IDF_EXTENDED);
     VARP(newhud_spectatorsize, 0, 5, 30);
     XIDENTHOOK(newhud_spectatorsize, IDF_EXTENDED);
@@ -1640,6 +1640,8 @@ namespace game
         glPopMatrix();
     }
 
+    VARP(newhud_itemsdisablewithgui, 0, 0, 1);
+    XIDENTHOOK(newhud_itemsdisablewithgui, IDF_EXTENDED);
     VARP(newhud_itemssize, 0, 20, 30);
     XIDENTHOOK(newhud_itemssize, IDF_EXTENDED);
     VARP(newhud_itemspos_x, 0, 10, 1000);
@@ -1650,6 +1652,7 @@ namespace game
     XIDENTHOOK(newhud_itemspos_y, IDF_EXTENDED);
 
     void drawnewhuditems(fpsent *d, int w, int h) {
+        if(newhud_itemsdisablewithgui && framehasgui) return;
         if(d->quadmillis) {
             holdscreenlock;
             char buff[10];

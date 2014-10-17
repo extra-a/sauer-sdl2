@@ -21,6 +21,8 @@ namespace game
     extern int newhud_itemspos_y;
     extern int newhud_itemspos_reverse_x;
 
+    extern int newhud_itemsdisablewithgui;
+
     ENetSocket extinfosock = ENET_SOCKET_NULL;
 
     ENetSocket getextsock()

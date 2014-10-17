@@ -455,7 +455,7 @@ struct collectclientmode : clientmode
         float hsep = 20*itemsscale*staticscale;
 
         glPushMatrix();
-        if(newhud) {
+        if(newhud && !(newhud_itemsdisablewithgui && framehasgui)) {
             glScalef(staticscale*itemsscale, staticscale*itemsscale, 1);
             if(d->state == CS_ALIVE && d->tokens > 0) {
                 char buff[10];
@@ -473,7 +473,7 @@ struct collectclientmode : clientmode
                     draw_text(buff, x + th + hsep, yoff/itemsscale - th/2.0, r, g, b, a);
                 }
             }
-        } else {
+        } else if(!newhud) {
             glScalef(h/1800.0f, h/1800.0f, 1);
             if(d->state == CS_ALIVE && d->tokens > 0) {
                 int x = HICON_X + 3*HICON_STEP + (d->quadmillis ? HICON_SIZE + HICON_SPACE : 0);
