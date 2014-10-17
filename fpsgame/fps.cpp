@@ -1150,6 +1150,9 @@ namespace game
 
     VARP(newhud_hpdisableininsta, 0, 0, 1);
     XIDENTHOOK(newhud_hpdisableininsta, IDF_EXTENDED);
+    VARP(newhud_hpdisablewithgui, 0, 0, 1);
+    XIDENTHOOK(newhud_hpdisablewithgui, IDF_EXTENDED);
+
     VARP(newhud_hpssize, 0, 30, 50);
     XIDENTHOOK(newhud_hpssize, IDF_EXTENDED);
     VARP(newhud_hpiconssize, 0, 60, 200);
@@ -1160,7 +1163,9 @@ namespace game
     XIDENTHOOK(newhud_hppos_y, IDF_EXTENDED);
 
     void drawnewhudhp(fpsent *d, int w, int h) {
-        if(m_insta && newhud_hpdisableininsta) return;
+        if((m_insta && newhud_hpdisableininsta) ||
+           (newhud_hpdisablewithgui && framehasgui))
+            return;
 
         holdscreenlock;
 
@@ -1196,6 +1201,11 @@ namespace game
 
     VARP(newhud_ammodisable, 0, 0, 1);
     XIDENTHOOK(newhud_ammodisable, IDF_EXTENDED);
+    VARP(newhud_ammodisableininsta, 0, 0, 1);
+    XIDENTHOOK(newhud_ammodisableininsta, IDF_EXTENDED);
+    VARP(newhud_ammodisablewithgui, 0, 0, 1);
+    XIDENTHOOK(newhud_ammodisablewithgui, IDF_EXTENDED);
+
     VARP(newhud_ammosize, 0, 30, 50);
     XIDENTHOOK(newhud_ammosize, IDF_EXTENDED);
     VARP(newhud_ammoiconssize, 0, 60, 200);
@@ -1206,7 +1216,11 @@ namespace game
     XIDENTHOOK(newhud_ammopos_y, IDF_EXTENDED);
 
     void drawnewhudammo(fpsent *d, int w, int h) {
-        if(d->state==CS_DEAD || newhud_ammodisable) return;
+        if(d->state==CS_DEAD || newhud_ammodisable ||
+           (m_insta && newhud_ammodisableininsta) ||
+           (newhud_ammodisablewithgui && framehasgui))
+            return;
+
         holdscreenlock;
 
         int conw = int(w/staticscale), conh = int(h/staticscale);
