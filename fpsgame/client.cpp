@@ -1792,6 +1792,12 @@ namespace game
     }
 
     void adddmg(fpsent *target, fpsent *from, int damage, int gun) {
+        if(gun == 0 && (damage != 50 || (from->quadmillis && damage != 200))) {
+            gun = from->lastprojectile;
+        }
+        if(gun == 1 && damage % 10 != 0) {
+            gun = from->lastprojectile;
+        }
         if(gun == 2 && (damage != 30 || (from->quadmillis && damage != 120))) {
             gun = from->lastprojectile;
         }
@@ -1801,14 +1807,14 @@ namespace game
         if(gun == 6 && (damage != 35 || (from->quadmillis && damage != 140))) {
             gun = from->lastprojectile;
         }
+        if(gun == 3 || gun == 5) {
+            gun = from->lastprojectile;
+        }
         if(target && !isdamgeignored(target, from) && gun >= 0 && gun < MAXWEAPONS) {
             target->detaileddamagereceived[gun] += damage;
         }
         if(from && !isdamgeignored(target, from) && gun >= 0 && gun < MAXWEAPONS) {
             from->detaileddamagedealt[gun] += damage;
-            if(gun == 3 || gun == 5) {
-                from->lastprojectile = gun;
-            }
         }
     }
 
@@ -1816,6 +1822,9 @@ namespace game
         if(from && gun >= 0 && gun < MAXWEAPONS) {
             from->detaileddamagetotal[gun] +=
                 guns[gun].damage*(from->quadmillis ? 4 : 1)*guns[gun].rays;
+            if(gun == 3 || gun == 5) {
+                from->lastprojectile = gun;
+            }
         }
     }
 

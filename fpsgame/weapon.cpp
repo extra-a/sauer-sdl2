@@ -834,6 +834,9 @@ namespace game
         if(d && gun >= 0 && gun < MAXWEAPONS) {
             d->detaileddamagetotal[gun] +=
                 guns[gun].damage*(d->quadmillis ? 4 : 1)*guns[gun].rays;
+            if(gun == 3 || gun == 5) {
+                d->lastprojectile = gun;
+            }
         }
     }
 
