@@ -1201,7 +1201,7 @@ namespace game
 
     VARP(newhud_ammodisable, 0, 0, 1);
     XIDENTHOOK(newhud_ammodisable, IDF_EXTENDED);
-    VARP(newhud_ammodisableininsta, 0, 0, 1);
+    VARP(newhud_ammodisableininsta, -1, 0, 1);
     XIDENTHOOK(newhud_ammodisableininsta, IDF_EXTENDED);
     VARP(newhud_ammodisablewithgui, 0, 0, 1);
     XIDENTHOOK(newhud_ammodisablewithgui, IDF_EXTENDED);
@@ -1217,7 +1217,8 @@ namespace game
 
     void drawnewhudammo(fpsent *d, int w, int h) {
         if(d->state==CS_DEAD || newhud_ammodisable ||
-           (m_insta && newhud_ammodisableininsta) ||
+           (m_insta && newhud_ammodisableininsta == 1) ||
+           (!m_insta && newhud_ammodisableininsta == -1) ||
            (newhud_ammodisablewithgui && framehasgui))
             return;
 
