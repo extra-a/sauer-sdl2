@@ -1404,33 +1404,16 @@ namespace game
         float scorescale = (1 + hudscoressize/10.0)*h/1080.0;
         float xoff = hudscoresoffset_reverse_x ? (1000 - hudscoresoffset_x)*conw/1000 : hudscoresoffset_x*conw/1000;
         float yoff = hudscoresoffset_y*conh/1000;
-
-        int r1 = hudscoresplayercolor_r,
-            g1 = hudscoresplayercolor_g,
-            b1 = hudscoresplayercolor_b,
-            a1 = hudscoresplayercolor_a;
-
-        int r2 = hudscoresenemycolor_r,
-            g2 = hudscoresenemycolor_g,
-            b2 = hudscoresenemycolor_b,
-            a2 = hudscoresenemycolor_a;
-
-        int bgr1 = hudscoresplayercolorbg_r,
-            bgg1 = hudscoresplayercolorbg_g,
-            bgb1 = hudscoresplayercolorbg_b,
-            bga1 = hudscoresplayercolorbg_a;
-
-        int bgr2 = hudscoresenemycolorbg_r,
-            bgg2 = hudscoresenemycolorbg_g,
-            bgb2 = hudscoresenemycolorbg_b,
-            bga2 = hudscoresenemycolorbg_a;
-
-        int scoresep = 40*scorescale*staticscale;
+        float scoresep = 40*scorescale*staticscale;
         float borderx = scoresep/2.0;
+
+        int r1, g1, b1, a1, r2, g2, b2, a2,
+            bgr1, bgg1, bgb1, bga1, bgr2, bgg2, bgb2, bga2;
+        int tw1=0, th1=0, tw2=0, th2=0;
 
         if(grsz) {
             char buff1[5], buff2[5];
-            int isbest=1, tw1=0, th1=0, tw2=0, th2=0, fw=0;
+            int isbest=1;
             fpsent* currentplayer = (player1->state == CS_SPECTATOR) ? followingplayer() : player1;
             if(!currentplayer) return;
 
@@ -1442,7 +1425,7 @@ namespace game
             draw_text("", 0, 0, 255, 255, 255, 255);
 
             if(isbest) {
-                int frags=0;
+                int frags=0, frags2=0;
                 if(m_teammode) frags = bestgroups[0]->score;
                 else frags = bestplayers[0]->frags;
                 frags = limitscore(frags);
@@ -1451,64 +1434,36 @@ namespace game
                 text_bounds(buff1, tw1, th1);
 
                 if(grsz > 1) {
-                    int frags2=0;
                     if(m_teammode) frags2 = bestgroups[1]->score;
                     else frags2 = bestplayers[1]->frags;
                     frags2 = limitscore(frags2);
 
                     snprintf(buff2, 5, "%d", frags2);
                     text_bounds(buff2, tw2, th2);
-                }
-                if(hudscoresoffset_reverse_x) {
-                    fw = max(tw1,tw2);
-                    float addoffset = grsz > 1 ? fw + fw + scoresep : fw;
-                    drawacoloredquad(xoff/scorescale - addoffset - 2.0 * borderx,
-                                     yoff/scorescale - th1/2.0,
-                                     fw + 2.0*borderx,
-                                     th1,
-                                     (GLubyte)bgr1,
-                                     (GLubyte)bgg1,
-                                     (GLubyte)bgb1,
-                                     (GLubyte)bga1);
-                    draw_text(buff1, xoff/scorescale - addoffset - borderx + (fw-tw1)/2.0,
-                              yoff/scorescale - th1/2.0, r1, g1, b1, a1);
-                    if(grsz > 1) {
-                        drawacoloredquad(xoff/scorescale - fw - 2.0 * borderx,
-                                         yoff/scorescale - th2/2.0,
-                                         fw + 2.0*borderx,
-                                         th2,
-                                         (GLubyte)bgr2,
-                                         (GLubyte)bgg2,
-                                         (GLubyte)bgb2,
-                                         (GLubyte)bga2);
-                        draw_text(buff2, xoff/scorescale - fw - borderx + (fw-tw2)/2.0,
-                                  yoff/scorescale - th2/2.0, r2, g2, b2, a2);
-                    }
                 } else {
-                    fw = max(tw1,tw2);
-                    drawacoloredquad(xoff/scorescale,
-                                     yoff/scorescale - th1/2.0,
-                                     fw + 2.0*borderx,
-                                     th1,
-                                     (GLubyte)bgr1,
-                                     (GLubyte)bgg1,
-                                     (GLubyte)bgb1,
-                                     (GLubyte)bga1);
-                    draw_text(buff1, xoff/scorescale + borderx + (fw-tw1)/2.0,
-                              yoff/scorescale - th1/2.0, r1, g1, b1, a1);
-                    if(grsz > 1) {
-                        drawacoloredquad(xoff/scorescale + fw + scoresep,
-                                         yoff/scorescale - th2/2.0,
-                                         fw + 2.0*borderx,
-                                         th2,
-                                         (GLubyte)bgr2,
-                                         (GLubyte)bgg2,
-                                         (GLubyte)bgb2,
-                                         (GLubyte)bga2);
-                        draw_text(buff2, xoff/scorescale + fw + scoresep + borderx + (fw-tw2)/2.0,
-                                  yoff/scorescale - th2/2.0, r2, g2, b2, a2);
-                    }
+                    snprintf(buff2, 5, " ");
+                    text_bounds(buff2, tw2, th2);
                 }
+
+                r1 = hudscoresplayercolor_r;
+                g1 = hudscoresplayercolor_g;
+                b1 = hudscoresplayercolor_b;
+                a1 = hudscoresplayercolor_a;
+
+                r2 = hudscoresenemycolor_r;
+                g2 = hudscoresenemycolor_g;
+                b2 = hudscoresenemycolor_b;
+                a2 = hudscoresenemycolor_a;
+
+                bgr1 = hudscoresplayercolorbg_r;
+                bgg1 = hudscoresplayercolorbg_g;
+                bgb1 = hudscoresplayercolorbg_b;
+                bga1 = hudscoresplayercolorbg_a;
+
+                bgr2 = hudscoresenemycolorbg_r;
+                bgg2 = hudscoresenemycolorbg_g;
+                bgb2 = hudscoresenemycolorbg_b;
+                bga2 = hudscoresenemycolorbg_a;
             } else {
                 int frags=0, frags2=0;
                 if(m_teammode) frags = bestgroups[0]->score;
@@ -1531,53 +1486,57 @@ namespace game
                 snprintf(buff2, 5, "%d", frags2);
                 text_bounds(buff2, tw2, th2);
 
-                if(hudscoresoffset_reverse_x) {
-                    fw = max(tw1,tw2);
-                    float addoffset =  fw + fw + scoresep;
-                    drawacoloredquad(xoff/scorescale - addoffset - 2.0 * borderx,
-                                     yoff/scorescale - th1/2.0,
-                                     fw + 2.0*borderx,
-                                     th1,
-                                     (GLubyte)bgr2,
-                                     (GLubyte)bgg2,
-                                     (GLubyte)bgb2,
-                                     (GLubyte)bga2);
-                    draw_text(buff1, xoff/scorescale - addoffset  - borderx + (fw-tw1)/2.0,
-                              yoff/scorescale - th1/2.0, r2, g2, b2, a2);
-                    drawacoloredquad(xoff/scorescale - fw - 2.0 * borderx,
-                                     yoff/scorescale - th2/2.0,
-                                     fw + 2.0*borderx,
-                                     th2,
-                                     (GLubyte)bgr1,
-                                     (GLubyte)bgg1,
-                                     (GLubyte)bgb1,
-                                     (GLubyte)bga1);
-                    draw_text(buff2, xoff/scorescale - fw - borderx + (fw-tw2)/2.0,
-                              yoff/scorescale - th2/2.0, r1, g1, b1, a1);
-                } else {
-                    fw = max(tw1,tw2);
-                    drawacoloredquad(xoff/scorescale,
-                                     yoff/scorescale - th1/2.0,
-                                     fw + 2.0*borderx,
-                                     th1,
-                                     (GLubyte)bgr2,
-                                     (GLubyte)bgg2,
-                                     (GLubyte)bgb2,
-                                     (GLubyte)bga2);
-                    draw_text(buff1, xoff/scorescale + borderx + (fw-tw1)/2.0,
-                              yoff/scorescale - th1/2.0, r2, g2, b2, a2);
-                    drawacoloredquad(xoff/scorescale + fw + scoresep,
-                                     yoff/scorescale - th2/2.0,
-                                     fw + 2.0*borderx,
-                                     th2,
-                                     (GLubyte)bgr1,
-                                     (GLubyte)bgg1,
-                                     (GLubyte)bgb1,
-                                     (GLubyte)bga1);
-                    draw_text(buff2, xoff/scorescale + fw + scoresep + borderx + (fw-tw2)/2.0,
-                              yoff/scorescale - th2/2.0, r1, g1, b1, a1);
-                }
+                r2 = hudscoresplayercolor_r;
+                g2 = hudscoresplayercolor_g;
+                b2 = hudscoresplayercolor_b;
+                a2 = hudscoresplayercolor_a;
+
+                r1 = hudscoresenemycolor_r;
+                g1 = hudscoresenemycolor_g;
+                b1 = hudscoresenemycolor_b;
+                a1 = hudscoresenemycolor_a;
+
+                bgr2 = hudscoresplayercolorbg_r;
+                bgg2 = hudscoresplayercolorbg_g;
+                bgb2 = hudscoresplayercolorbg_b;
+                bga2 = hudscoresplayercolorbg_a;
+
+                bgr1 = hudscoresenemycolorbg_r;
+                bgg1 = hudscoresenemycolorbg_g;
+                bgb1 = hudscoresenemycolorbg_b;
+                bga1 = hudscoresenemycolorbg_a;
             }
+            int fw = 0, fh = 0;
+            text_bounds("00", fw, fh);
+            fw = max(fw, max(tw1, tw2));
+
+            float addoffset = 0.0;
+            if(hudscoresoffset_reverse_x) {
+                addoffset = 2.0 * fw + 2.0 * borderx + scoresep;
+            }
+            xoff -= addoffset*scorescale;
+
+            drawacoloredquad(xoff/scorescale,
+                             yoff/scorescale - th1/2.0,
+                             fw + 2.0*borderx,
+                             th1,
+                             (GLubyte)bgr1,
+                             (GLubyte)bgg1,
+                             (GLubyte)bgb1,
+                             (GLubyte)bga1);
+            draw_text(buff1, xoff/scorescale + borderx + (fw-tw1)/2.0,
+                      yoff/scorescale - th1/2.0, r1, g1, b1, a1);
+            drawacoloredquad(xoff/scorescale + fw + scoresep,
+                             yoff/scorescale - th2/2.0,
+                             fw + 2.0*borderx,
+                             th2,
+                             (GLubyte)bgr2,
+                             (GLubyte)bgg2,
+                             (GLubyte)bgb2,
+                             (GLubyte)bga2);
+            draw_text(buff2, xoff/scorescale + fw + scoresep + borderx + (fw-tw2)/2.0,
+                      yoff/scorescale - th2/2.0, r2, g2, b2, a2);
+
             draw_text("", 0, 0, 255, 255, 255, 255);
             glPopMatrix();
         }
