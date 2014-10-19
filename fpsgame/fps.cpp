@@ -1650,6 +1650,101 @@ namespace game
         }
     }
 
+    VARP(lagometer, 0, 0, 1);
+    XIDENTHOOK(lagometer, IDF_EXTENDED);
+    VARP(lagometernobg, 0, 0, 1);
+    XIDENTHOOK(lagometernobg, IDF_EXTENDED);
+    VARP(lagometerdisablewithgui, 0, 1, 1);
+    XIDENTHOOK(lagometerdisablewithgui, IDF_EXTENDED);
+
+    VARP(lagometershowping, 0, 1, 1);
+    XIDENTHOOK(lagometershowping, IDF_EXTENDED);
+    VARP(lagometeronlypingself, 0, 1, 1);
+    XIDENTHOOK(lagometeronlypingself, IDF_EXTENDED);
+    VARP(lagometerpingsz, 100, 150, 200);
+    XIDENTHOOK(lagometerpingsz, IDF_EXTENDED);
+
+    VARP(lagometerpos_x, 0, 10, 1000);
+    XIDENTHOOK(lagometerpos_x, IDF_EXTENDED);
+    VARP(lagometerpos_reverse_x, 0, 1, 1);
+    XIDENTHOOK(lagometerpos_reverse_x, IDF_EXTENDED);
+    VARP(lagometerpos_y, 0, 500, 1000);
+    XIDENTHOOK(lagometerpos_y, IDF_EXTENDED);
+
+    VARP(lagometerlen, 100, 100, LAGMETERDATASIZE);
+    XIDENTHOOK(lagometerlen, IDF_EXTENDED);
+    VARP(lagometerheight, 50, 100, 300);
+    XIDENTHOOK(lagometerheight, IDF_EXTENDED);
+    VARP(lagometercolsz, 1, 1, 3);
+    XIDENTHOOK(lagometercolsz, IDF_EXTENDED);
+
+    void drawlagmeter(int w, int h) {
+        fpsent* d = (player1->state == CS_SPECTATOR) ? followingplayer() : player1;
+        if(!d || (lagometerdisablewithgui && framehasgui)) return;
+
+        holdscreenlock;
+        int conw = int(w/staticscale), conh = int(h/staticscale);
+
+        float xoff = lagometerpos_reverse_x ? (1000-lagometerpos_x)*conw/1000 : lagometerpos_x*conw/1000;
+        float yoff = lagometerpos_y*conh/1000;
+        float xpsz = lagometerlen/staticscale;
+        float ypsz = lagometerheight/staticscale;
+
+        glPushMatrix();
+        glScalef(staticscale, staticscale, 1);
+        if(lagometerpos_reverse_x) {
+            xoff -= lagometerlen*lagometercolsz/staticscale;
+        }
+        yoff -= ypsz/2.0;
+        if( !(d == player1 && lagometeronlypingself)) {
+            if(!lagometernobg) {
+                drawacoloredquad(xoff,
+                                 yoff,
+                                 xpsz*lagometercolsz,
+                                 ypsz,
+                                 (GLubyte)255,
+                                 (GLubyte)255,
+                                 (GLubyte)255,
+                                 (GLubyte)50);
+            }
+            float ch = 0.0;
+            int len = min(d->lagdata.pj.len, lagometerlen);
+            loopi(len) {
+                ch = min(100, d->lagdata.pj[i])/staticscale * lagometerheight/100.0;
+                drawacoloredquad(xoff + (i*lagometercolsz)/staticscale,
+                                 yoff + ypsz - ch,
+                                 lagometercolsz/staticscale,
+                                 ch,
+                                 (GLubyte)0,
+                                 (GLubyte)0,
+                                 (GLubyte)255,
+                                 (GLubyte)127);
+            }
+        }
+        if(lagometershowping) {
+            char buff[5];
+            glPushMatrix();
+            float scale = lagometerpingsz/100.0;
+            glScalef(scale, scale, 1);
+            int w1=0, h1=0;
+            snprintf(buff, 5, "%d", d->ping);
+            text_bounds(buff, w1, h1);
+            if(d == player1 && lagometeronlypingself) {
+                int gap = h1/4;
+                if(lagometerpos_reverse_x) {
+                    gap = xpsz*lagometercolsz/scale - w1 - h1/4;
+                }
+                draw_text(buff, xoff/scale + gap,
+                          (yoff + ypsz/2.0)/scale - h1/2, 255, 255, 255, 255);
+            } else {
+                draw_text(buff, (xoff + xpsz*lagometercolsz)/scale - w1 - h1/4 ,
+                          yoff/scale, 255, 255, 255, 255);
+            }
+            glPopMatrix();
+        }
+        glPopMatrix();
+    }
+
     ICOMMAND(extendedsettings, "", (), executestr("showgui extended_settings"));
 
     void gameplayhud(int w, int h) {
@@ -1686,7 +1781,11 @@ namespace game
         }
 
         if(hudscores && !m_edit && !(hudscoresdisablewithgui && framehasgui)) {
-            drawscores(w,h);
+            drawscores(w, h);
+        }
+
+        if(lagometer) {
+            drawlagmeter(w, h);
         }
     }
 

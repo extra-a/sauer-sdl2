@@ -832,6 +832,15 @@ struct extplayerinfo
     }
 };
 
+#define LAGMETERDATASIZE 300
+struct lagmeterdata
+{
+    struct reversequeue<int, LAGMETERDATASIZE> pj;
+    void addpj(int newpj) {
+        pj.add(newpj);
+    }
+};
+
 #define MAXWEAPONS 7
 struct fpsent : dynent, fpsstate
 {
@@ -852,6 +861,7 @@ struct fpsent : dynent, fpsstate
     int detaileddamagereceived[MAXWEAPONS];
     int lastprojectile;
     struct extplayerinfo extdata;
+    struct lagmeterdata lagdata;
     editinfo *edit;
     float deltayaw, deltapitch, deltaroll, newyaw, newpitch, newroll;
     int smoothmillis;

@@ -373,6 +373,41 @@ const char *extended_settings_gui =
     "]\n"
     "guicheckbox \"Show accuracy\" showacc\n"
 
+    "guitab \"Lagometer\"\n"
+
+    "guilist [\n"
+    "guicheckbox \"Show lagomter\" lagometer\n"
+    "guibar\n"
+    "guicheckbox \"Disable background\" lagometernobg\n"
+    "guibar\n"
+    "guicheckbox \"Disable with GUI\" lagometerdisablewithgui\n"
+    "]\n"
+    "guilist [\n"
+    "guicheckbox \"Show ping in lagomter\" lagometershowping\n"
+    "guibar\n"
+    "guicheckbox \"Only ping in self lagometer\" lagometeronlypingself\n"
+    "]\n"
+    "guistrut 1\n"
+
+    "guitext \"Offset (X/Y):\" 0\n"
+    "guicheckbox \"Use reverse X offset\" lagometerpos_reverse_x\n"
+    "guislider lagometerpos_x\n"
+    "guislider lagometerpos_y\n"
+    "guistrut 1\n"
+
+    "guitext \"Lagometer number of columns:\" 0\n"
+    "guislider lagometerlen\n"
+    "guitext \"Lagometer column width:\" 0\n"
+    "guislider lagometercolsz\n"
+    "guistrut 1\n"
+
+    "guitext \"Lagometer height:\" 0\n"
+    "guislider lagometerheight\n"
+    "guitext \"Lagometer ping size:\" 0\n"
+    "guislider lagometerpingsz\n"
+    "guistrut 1\n"
+
+
     "guitab \"HUDs\"\n"
 
     "guititle \"Warning: All current HUD settings will be reset to the selected HUD settings\"\n"
@@ -448,6 +483,7 @@ const char *extended_settings_gui =
     "]\n"
     "guislider gameclockoffset_x\n"
     "guislider gameclockoffset_y\n"
+
 
     "guitab \"#2\"\n"
 
