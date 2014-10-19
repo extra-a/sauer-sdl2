@@ -352,6 +352,11 @@ const char *extended_settings_gui =
 
     "guicheckbox \"Colored health\" coloredhealth\n"
     "guicheckbox \"Colored ammo\" coloredammo\n"
+    "guistrut 1\n"
+
+    "guitext \"Position package delay (less values are smoothing network lags):\" 0\n"
+    "guislider positionpackagedelay\n"
+    "guistrut 1\n"
 
 
     "guitab \"Scoreboard\"\n"

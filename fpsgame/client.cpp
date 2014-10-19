@@ -1584,10 +1584,13 @@ namespace game
         return true;
     }
 
+    VARP(positionpackagedelay, 10, 33, 33);
+    XIDENTHOOK(positionpackagedelay, IDF_EXTENDED);
+
     void c2sinfo(bool force) // send update to the server
     {
         static int lastupdate = -1000;
-        bool positionupdate = totalmillis - lastupdate >= 33 || force;
+        bool positionupdate = totalmillis - lastupdate >= positionpackagedelay || force;
         if(positionupdate)
         {
             lastupdate = totalmillis;
@@ -1642,6 +1645,7 @@ namespace game
             else      d->o.x += dx<0 ? r-fx : -(r-fx);
         }
         int lagtime = totalmillis-d->lastupdate;
+        d->lagdata.addpj(lagtime);
         if(lagtime)
         {
             if(d->state!=CS_SPAWNING && d->lastupdate) d->plag = (d->plag*5+lagtime)/6;
