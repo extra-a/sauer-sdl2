@@ -1666,8 +1666,8 @@ namespace game
 
     VARP(lagometerpos_x, 0, 10, 1000);
     XIDENTHOOK(lagometerpos_x, IDF_EXTENDED);
-    VARP(lagometerpos_reverse_x, 0, 1, 1);
-    XIDENTHOOK(lagometerpos_reverse_x, IDF_EXTENDED);
+    VARP(lagometerpos_start_x, -1, 1, 1);
+    XIDENTHOOK(lagometerpos_start_x, IDF_EXTENDED);
     VARP(lagometerpos_y, 0, 500, 1000);
     XIDENTHOOK(lagometerpos_y, IDF_EXTENDED);
 
@@ -1685,15 +1685,17 @@ namespace game
         holdscreenlock;
         int conw = int(w/staticscale), conh = int(h/staticscale);
 
-        float xoff = lagometerpos_reverse_x ? (1000-lagometerpos_x)*conw/1000 : lagometerpos_x*conw/1000;
+        float xoff = lagometerpos_start_x == 1 ? (1000-lagometerpos_x)*conw/1000 : lagometerpos_x*conw/1000;
         float yoff = lagometerpos_y*conh/1000;
         float xpsz = lagometerlen/staticscale;
         float ypsz = lagometerheight/staticscale;
 
         glPushMatrix();
         glScalef(staticscale, staticscale, 1);
-        if(lagometerpos_reverse_x) {
+        if(lagometerpos_start_x == 1) {
             xoff -= lagometerlen*lagometercolsz/staticscale;
+        } else if(lagometerpos_start_x == 0) {
+            xoff -= lagometerlen*lagometercolsz/staticscale/2.0;
         }
         yoff -= ypsz/2.0;
         if( !(d == player1 && lagometeronlypingself)) {
@@ -1731,8 +1733,10 @@ namespace game
             text_bounds(buff, w1, h1);
             if(d == player1 && lagometeronlypingself) {
                 int gap = h1/4;
-                if(lagometerpos_reverse_x) {
+                if(lagometerpos_start_x == 1) {
                     gap = xpsz*lagometercolsz/scale - w1 - h1/4;
+                } else if(lagometerpos_start_x == 0) {
+                    gap = xpsz*lagometercolsz/scale - w1/2.0;
                 }
                 draw_text(buff, xoff/scale + gap,
                           (yoff + ypsz/2.0)/scale - h1/2, 255, 255, 255, 255);

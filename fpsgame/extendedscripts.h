@@ -378,6 +378,7 @@ const char *extended_settings_gui =
     "]\n"
     "guicheckbox \"Show accuracy\" showacc\n"
 
+
     "guitab \"Lagometer\"\n"
 
     "guilist [\n"
@@ -395,7 +396,15 @@ const char *extended_settings_gui =
     "guistrut 1\n"
 
     "guitext \"Offset (X/Y):\" 0\n"
-    "guicheckbox \"Use reverse X offset\" lagometerpos_reverse_x\n"
+    "guilist [\n"
+    "guitext \"X offset start\"\n"
+    "guibar\n"
+    "guiradio \"Left\" lagometerpos_start_x -1 \"lagometerpos_start_x -1\"\n"
+    "guibar\n"
+    "guiradio \"Center\" lagometerpos_start_x 0 \"lagometerpos_start_x 0\"\n"
+    "guibar\n"
+    "guiradio \"Right\" lagometerpos_start_x 1 \"lagometerpos_start_x 1\"\n"
+    "]\n"
     "guislider lagometerpos_x\n"
     "guislider lagometerpos_y\n"
     "guistrut 1\n"
