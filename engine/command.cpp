@@ -2283,9 +2283,9 @@ void writecfg(const char *name)
         if(id.flags&IDF_PERSIST){
         	stream* t=id.flags&IDF_EXTENDED?extf:f;
         	switch(id.type){
-            case ID_VAR: t->printf("%s %d\n", escapeid(id), *id.storage.i); break;
-            case ID_FVAR: t->printf("%s %s\n", escapeid(id), floatstr(*id.storage.f)); break;
-            case ID_SVAR: t->printf("%s %s\n", escapeid(id), escapestring(*id.storage.s)); break;
+                case ID_VAR: t->printf("%s %d\n", escapeid(id), *id.storage.i); break;
+                case ID_FVAR: t->printf("%s %s\n", escapeid(id), floatstr(*id.storage.f)); break;
+                case ID_SVAR: t->printf("%s %s\n", escapeid(id), escapestring(*id.storage.s)); break;
         	}
         }
     }
@@ -2315,6 +2315,51 @@ void writecfg(const char *name)
 }
 
 COMMAND(writecfg, "s");
+
+void writeextendedcfg(const char *name)
+{
+    stream *extf = openutf8file(path(name && name[0] ? name : "extendedconfig.cfg", true), "w");
+    if(!extf) return;
+    vector<ident *> ids;
+    enumerate(idents, ident, id, ids.add(&id));
+    ids.sort(sortidents);
+    loopv(ids)
+    {
+        ident &id = *ids[i];
+        if(id.flags&IDF_PERSIST && id.flags&IDF_EXTENDED) {
+            stream* t=extf;
+            switch(id.type) {
+            case ID_VAR: t->printf("%s %d\n", escapeid(id), *id.storage.i); break;
+            case ID_FVAR: t->printf("%s %s\n", escapeid(id), floatstr(*id.storage.f)); break;
+            case ID_SVAR: t->printf("%s %s\n", escapeid(id), escapestring(*id.storage.s)); break;
+            }
+        }
+    }
+    extf->printf("\n");
+    loopv(ids)
+    {
+        ident &id = *ids[i];
+        if(id.type==ID_ALIAS && id.flags&IDF_PERSIST && id.flags&IDF_EXTENDED
+           && !(id.flags&IDF_OVERRIDDEN)) {
+            stream* t=extf;
+            switch(id.valtype)
+                {
+                case VAL_STR:
+                    if(!id.val.s[0]) break;
+                    if(!validateblock(id.val.s))
+                        { t->printf("%s = %s\n", escapeid(id), escapestring(id.val.s)); break; }
+                case VAL_FLOAT:
+                case VAL_INT: 
+                    t->printf("%s = [%s]\n", escapeid(id), id.getstr()); break;
+                }
+        }
+    }
+    extf->printf("\n");
+    delete extf;
+}
+
+COMMAND(writeextendedcfg, "s");
+
 #endif
 
 // below the commands that implement a small imperative language. thanks to the semantics of
