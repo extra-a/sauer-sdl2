@@ -1645,10 +1645,12 @@ namespace game
             else      d->o.x += dx<0 ? r-fx : -(r-fx);
         }
         int lagtime = totalmillis-d->lastupdate;
-        d->lagdata.addpj(lagtime);
         if(lagtime)
         {
-            if(d->state!=CS_SPAWNING && d->lastupdate) d->plag = (d->plag*5+lagtime)/6;
+            if(d->state!=CS_SPAWNING && d->lastupdate) {
+                d->plag = (d->plag*5+lagtime)/6;
+                d->lagdata.addpj(lagtime);
+            }
             d->lastupdate = totalmillis;
         }
     }
