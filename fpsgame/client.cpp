@@ -1584,7 +1584,7 @@ namespace game
         return true;
     }
 
-    VARP(positionpackagedelay, 10, 33, 33);
+    VARP(positionpackagedelay, 8, 33, 33);
     XIDENTHOOK(positionpackagedelay, IDF_EXTENDED);
 
     void c2sinfo(bool force) // send update to the server
