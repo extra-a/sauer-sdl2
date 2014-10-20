@@ -1584,13 +1584,13 @@ namespace game
         return true;
     }
 
-    VARP(positionpackagedelay, 8, 33, 33);
-    XIDENTHOOK(positionpackagedelay, IDF_EXTENDED);
+    VARP(positionpacketdelay, 8, 33, 33);
+    XIDENTHOOK(positionpacketdelay, IDF_EXTENDED);
 
     void c2sinfo(bool force) // send update to the server
     {
         static int lastupdate = -1000;
-        bool positionupdate = totalmillis - lastupdate >= positionpackagedelay || force;
+        bool positionupdate = totalmillis - lastupdate >= positionpacketdelay || force;
         if(positionupdate)
         {
             lastupdate = totalmillis;

@@ -372,8 +372,8 @@ const char *extended_settings_gui =
     "guicheckbox \"Colored ammo\" coloredammo\n"
     "guistrut 1\n"
 
-    "guitext \"Position package delay (less values are smoothing network lags):\" 0\n"
-    "guislider positionpackagedelay\n"
+    "guitext \"Position packet delay (less values are smoothing network lags):\" 0\n"
+    "guislider positionpacketdelay\n"
     "guistrut 1\n"
 
 
