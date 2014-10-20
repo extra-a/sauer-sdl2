@@ -333,6 +333,24 @@ const char *hud_new2 =
     "newhud_spectatorsize 5\n"
 "]\n";
 
+
+const char *resetlagometer =
+"resetlagometer = [\n"
+    "lagometer 0\n"
+    "lagometercolsz 1\n"
+    "lagometerdisablewithgui 1\n"
+    "lagometerheight 100\n"
+    "lagometerlen 100\n"
+    "lagometernobg 0\n"
+    "lagometeronlypingself 1\n"
+    "lagometerpingsz 150\n"
+    "lagometerpos_start_x 1\n"
+    "lagometerpos_x 10\n"
+    "lagometerpos_y 500\n"
+    "lagometershowping 1\n"
+"]\n";
+
+
 const char *extended_settings_gui =
 "newgui extended_settings [\n"
 
@@ -433,6 +451,8 @@ const char *extended_settings_gui =
     "guibutton \"New customisable HUD (example1)\" \"hudnew1\"\n"
     "guistrut 1\n"
     "guibutton \"New customisable HUD (example2)\" \"hudnew2\"\n"
+    "guistrut 1\n"
+    "guibutton \"Reset lagometer settings\" \"resetlagometer\"\n"
     "guistrut 1\n"
 
 
@@ -685,6 +705,7 @@ const char *game_scripts[] = { extended_settings_gui,
                                hud_old_extended,
                                hud_new1,
                                hud_new2,
+                               resetlagometer,
                                0 };
 
 
