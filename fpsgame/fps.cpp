@@ -1348,8 +1348,8 @@ namespace game
 
     VARP(hudscoresoffset_x, 0, 10, 1000);
     XIDENTHOOK(hudscoresoffset_x, IDF_EXTENDED);
-    VARP(hudscoresoffset_reverse_x, 0, 1, 1);
-    XIDENTHOOK(hudscoresoffset_reverse_x, IDF_EXTENDED);
+    VARP(hudscoresoffset_start_x, -1, 1, 1);
+    XIDENTHOOK(hudscoresoffset_start_x, IDF_EXTENDED);
     VARP(hudscoresoffset_y, 0, 350, 1000);
     XIDENTHOOK(hudscoresoffset_y, IDF_EXTENDED);
 
@@ -1402,7 +1402,7 @@ namespace game
         else { getbestplayers(bestplayers,1); grsz = bestplayers.length(); }
 
         float scorescale = (1 + hudscoressize/10.0)*h/1080.0;
-        float xoff = hudscoresoffset_reverse_x ? (1000 - hudscoresoffset_x)*conw/1000 : hudscoresoffset_x*conw/1000;
+        float xoff = hudscoresoffset_start_x == 1 ? (1000 - hudscoresoffset_x)*conw/1000 : hudscoresoffset_x*conw/1000;
         float yoff = hudscoresoffset_y*conh/1000;
         float scoresep = 40*scorescale*staticscale;
         float borderx = scoresep/2.0;
@@ -1511,8 +1511,10 @@ namespace game
             fw = max(fw, max(tw1, tw2));
 
             float addoffset = 0.0;
-            if(hudscoresoffset_reverse_x) {
+            if(hudscoresoffset_start_x == 1) {
                 addoffset = 2.0 * fw + 2.0 * borderx + scoresep;
+            } else if(hudscoresoffset_start_x == 0) {
+                addoffset = (2.0 * fw + 2.0 * borderx + scoresep)/2.0;
             }
             xoff -= addoffset*scorescale;
 
