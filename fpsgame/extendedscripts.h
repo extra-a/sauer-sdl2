@@ -519,7 +519,7 @@ const char *extended_settings_gui =
     "guislider gameclockoffset_y\n"
 
 
-    "guitab \"#2\"\n"
+    "guitab \"2\"\n"
 
     "guitext \"Clock text color (^f3R^f~/^f0G^f~/^f1B^f~/^f4A^f~):\" 0\n"
     "guislider gameclockcolor_r\n"
@@ -568,7 +568,7 @@ const char *extended_settings_gui =
     "guislider hudscoresplayercolor_a\n"
 
 
-    "guitab \"#2\"\n"
+    "guitab \"2\"\n"
 
     "guitext \"Player score background color (^f3R^f~/^f0G^f~/^f1B^f~/^f4A^f~):\" 0\n"
     "guislider hudscoresplayercolorbg_r\n"
@@ -615,7 +615,7 @@ const char *extended_settings_gui =
     "guislider newhud_hppos_y\n"
 
 
-    "guitab \"#2\"\n"
+    "guitab \"2\"\n"
 
     "guititle \"Warning: Settings have effect only when new HUD is enabled\"\n"
     "guicheckbox \"Enable new HUD\" newhud\n"
@@ -647,7 +647,7 @@ const char *extended_settings_gui =
     "guislider newhud_ammopos_y\n"
 
 
-    "guitab \"#3\"\n"
+    "guitab \"3\"\n"
 
     "guititle \"Warning: Settings have effect only when new HUD is enabled\"\n"
     "guicheckbox \"Enable new HUD\" newhud\n"
@@ -674,7 +674,7 @@ const char *extended_settings_gui =
     "guislider newhud_spectatorpos_y\n"
 
 
-    "guitab \"#4\"\n"
+    "guitab \"4\"\n"
 
     "guititle \"Warning: Settings have effect only when new HUD is enabled\"\n"
     "guicheckbox \"Enable new HUD\" newhud\n"
@@ -692,7 +692,7 @@ const char *extended_settings_gui =
     "guislider newhud_itemspos_y\n"
 
     
-    "guitab \"#5\"\n"
+    "guitab \"5\"\n"
 
     "guititle \"Warning: Settings have effect only when new HUD is enabled\"\n"
     "guicheckbox \"Enable new HUD\" newhud\n"
