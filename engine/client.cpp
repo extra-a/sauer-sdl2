@@ -22,7 +22,8 @@ void setrate(int rate);
 VARF(rate, 0, 0, 1024, setrate(rate));
 
 void throttle();
-VARF(disable_enet_limits, 0, 0, 1, { throttle(); setrate(rate); } );
+VARFP(disable_enet_limits, 0, 0, 1, { throttle(); setrate(rate); } );
+XIDENTHOOK(disable_enet_limits, IDF_EXTENDED);
 
 void setrate(int rate)
 {
