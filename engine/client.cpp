@@ -6,6 +6,11 @@ ENetHost *clienthost = NULL;
 ENetPeer *curpeer = NULL, *connpeer = NULL;
 int connmillis = 0, connattempts = 0, discmillis = 0;
 
+
+int getpacketloss() {
+    return curpeer ? curpeer->packetsLost : 0;
+}
+
 bool multiplayer(bool msg)
 {
     bool val = curpeer || hasnonlocalclients(); 
@@ -13,25 +18,37 @@ bool multiplayer(bool msg)
     return val;
 }
 
-void setrate(int rate)
-{
-   if(!curpeer) return;
-   enet_host_bandwidth_limit(clienthost, rate*1024, rate*1024);
-}
-
+void setrate(int rate);
 VARF(rate, 0, 0, 1024, setrate(rate));
 
 void throttle();
+VARF(disable_enet_limits, 0, 0, 1, { throttle(); setrate(rate); } );
+
+void setrate(int rate)
+{
+   if(!curpeer) return;
+   if(disable_enet_limits) {
+       enet_host_bandwidth_limit(clienthost, 0, 0);
+   } else {
+       enet_host_bandwidth_limit(clienthost, rate*1024, rate*1024);
+   }
+}
+
 
 VARF(throttle_interval, 0, 5, 30, throttle());
 VARF(throttle_accel,    0, 2, 32, throttle());
 VARF(throttle_decel,    0, 2, 32, throttle());
 
+
 void throttle()
 {
     if(!curpeer) return;
     ASSERT(ENET_PEER_PACKET_THROTTLE_SCALE==32);
-    enet_peer_throttle_configure(curpeer, throttle_interval*1000, throttle_accel, throttle_decel);
+    if(disable_enet_limits) {
+        enet_peer_throttle_configure(curpeer, 1000, 32, 0);
+    } else {
+        enet_peer_throttle_configure(curpeer, throttle_interval*1000, throttle_accel, throttle_decel);
+    }
 }
 
 bool isconnected(bool attempt, bool local)

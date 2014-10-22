@@ -2,6 +2,7 @@
 #include "extendedscripts.h"
 
 extern int newhud;
+extern int getpacketloss();
 float staticscale = 0.33;
 
 namespace game
@@ -1731,7 +1732,12 @@ namespace game
             float scale = lagometerpingsz/100.0;
             glScalef(scale, scale, 1);
             int w1=0, h1=0;
-            snprintf(buff, 5, "%d", d->ping);
+            int pl = getpacketloss();
+            if(pl && d == player1) {
+                snprintf(buff, 5, "%d %d", d->ping, pl);
+            } else {
+                snprintf(buff, 5, "%d", d->ping);
+            }
             text_bounds(buff, w1, h1);
             if(d == player1 && lagometeronlypingself) {
                 int gap = h1/4;

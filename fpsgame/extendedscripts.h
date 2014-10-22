@@ -372,9 +372,9 @@ const char *extended_settings_gui =
     "guicheckbox \"Colored ammo\" coloredammo\n"
     "guistrut 1\n"
 
-    "guitext \"Position packet delay (less values are smoothing network lags):\" 0\n"
+    "guitext \"Position packet delay (less values are smoothing client's position lags):\" 0\n"
     "guislider positionpacketdelay\n"
-    "guistrut 1\n"
+    "guicheckbox \"Disable enet limits (fixes unnecessary client's position packet drops)\" disable_enet_limits\n"
 
 
     "guitab \"Scoreboard\"\n"
@@ -505,7 +505,7 @@ const char *extended_settings_gui =
     "guislider gameclocksize\n"
     "guistrut 1\n"
 
-    "guitext \"Offset (X/Y)^f~:\" 0\n"
+    "guitext \"Offset (X/Y):\" 0\n"
     "guilist [\n"
     "guitext \"X offset start\"\n"
     "guibar\n"
@@ -547,7 +547,7 @@ const char *extended_settings_gui =
     "guislider hudscoressize\n"
     "guistrut 1\n"
 
-    "guitext \"Offset (X/Y)^f~:\" 0\n"
+    "guitext \"Offset (X/Y):\" 0\n"
     "guilist [\n"
     "guitext \"X offset start\"\n"
     "guibar\n"
