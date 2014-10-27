@@ -881,6 +881,31 @@ static void checkmousemotion(int &dx, int &dy)
     }
 }
 
+void checkunfocused(SDL_Event event) {
+    static bool hasalt = false;
+
+    if(event.key.state != SDL_PRESSED) {
+        hasalt = false;
+        return;
+    }
+
+    if(event.key.keysym.sym == SDLK_LALT || event.key.keysym.sym == SDLK_RALT) {
+        hasalt = true;
+        return;
+    }
+
+    if(hasalt && event.key.keysym.sym == SDLK_RETURN) {
+        hasalt = false;
+        isentered = false;
+        isfocused = false;
+        inputhandling(false);
+        SDL_MinimizeWindow(screen);
+        return;
+    }
+
+    hasalt = false;
+}
+
 void checkinput()
 {
     SDL_Event event;
@@ -906,6 +931,7 @@ void checkinput()
 
             case SDL_KEYDOWN:
             case SDL_KEYUP:
+                checkunfocused(event);
                 if(keyrepeatmask || !event.key.repeat)
                     processkey(event.key.keysym.sym, event.key.state==SDL_PRESSED);
                 break;
