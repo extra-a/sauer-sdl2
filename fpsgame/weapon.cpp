@@ -592,6 +592,20 @@ namespace game
     VARP(muzzleflash, 0, 1, 1);
     VARP(muzzlelight, 0, 1, 1);
 
+    VARP(rifletrailcolor_r, 0, 40, 255);
+    XIDENTHOOK(rifletrailcolor_r, IDF_EXTENDED);
+    VARP(rifletrailcolor_g, 0, 40, 255);
+    XIDENTHOOK(rifletrailcolor_g, IDF_EXTENDED);
+    VARP(rifletrailcolor_b, 0, 40, 255);
+    XIDENTHOOK(rifletrailcolor_b, IDF_EXTENDED);
+    VARP(rifletrailtime, 0, 500, 500);
+    XIDENTHOOK(rifletrailtime, IDF_EXTENDED);
+    VARP(rifletrailsize, 0, 60, 60);
+    XIDENTHOOK(rifletrailsize, IDF_EXTENDED);
+    VARP(rifletrailgravity, 0, 20, 20);
+    XIDENTHOOK(rifletrailgravity, IDF_EXTENDED);
+
+
     void shoteffects(int gun, const vec &from, const vec &to, fpsent *d, bool local, int id, int prevaction)     // create visual effect from a shot
     {
         int sound = guns[gun].sound, pspeed = 25;
@@ -653,7 +667,8 @@ namespace game
 
             case GUN_RIFLE:
                 if(!reducesparks) particle_splash(PART_SPARK, 200, 250, to, 0xB49B4B, 0.24f);
-                particle_trail(PART_SMOKE, 500, hudgunorigin(gun, from, to, d), to, 0x404040, 0.6f, 20);
+                int color = (rifletrailcolor_r << 16) + (rifletrailcolor_g << 8) + rifletrailcolor_b;
+                particle_trail(PART_SMOKE, rifletrailtime, hudgunorigin(gun, from, to, d), to, color, rifletrailsize/100.0f, rifletrailgravity);
                 if(muzzleflash && d->muzzle.x >= 0)
                     particle_flare(d->muzzle, d->muzzle, 150, PART_MUZZLE_FLASH3, 0xFFFFFF, 1.25f, d);
                 if(!local) adddecal(DECAL_BULLET, to, vec(from).sub(to).normalize(), 3.0f);

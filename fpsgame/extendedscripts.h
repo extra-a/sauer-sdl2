@@ -43,7 +43,7 @@ const char *hud_old =
     "hudscoresenemycolorbg_b 85\n"
     "hudscoresenemycolorbg_g 85\n"
     "hudscoresenemycolorbg_r 255\n"
-    "hudscoresoffset_offset_x 1\n"
+    "hudscoresoffset_start_x 1\n"
     "hudscoresoffset_x 10\n"
     "hudscoresoffset_y 350\n"
     "hudscoresplayercolor_a 255\n"
@@ -55,6 +55,18 @@ const char *hud_old =
     "hudscoresplayercolorbg_g 255\n"
     "hudscoresplayercolorbg_r 0\n"
     "hudscoressize 5\n"
+    "lagometer 0\n"
+    "lagometercolsz 1\n"
+    "lagometerdisablewithgui 1\n"
+    "lagometerheight 100\n"
+    "lagometerlen 100\n"
+    "lagometernobg 0\n"
+    "lagometeronlypingself 1\n"
+    "lagometerpingsz 150\n"
+    "lagometerpos_start_x 1\n"
+    "lagometerpos_x 10\n"
+    "lagometerpos_y 500\n"
+    "lagometershowping 1\n"
     "newhud 0\n"
     "newhud_ammodisable 0\n"
     "newhud_ammodisableininsta 0\n"
@@ -83,6 +95,7 @@ const char *hud_old =
     "newhud_spectatorsdisablewithgui 1\n"
     "newhud_spectatorsnocolor 1\n"
     "newhud_spectatorsize 5\n"
+    "newhud_sysoutoffset 0\n"
 "]\n";
 
 const char *hud_old_extended =
@@ -139,6 +152,18 @@ const char *hud_old_extended =
     "hudscoresplayercolorbg_g 255\n"
     "hudscoresplayercolorbg_r 0\n"
     "hudscoressize 5\n"
+    "lagometer 0\n"
+    "lagometercolsz 1\n"
+    "lagometerdisablewithgui 1\n"
+    "lagometerheight 100\n"
+    "lagometerlen 100\n"
+    "lagometernobg 0\n"
+    "lagometeronlypingself 1\n"
+    "lagometerpingsz 150\n"
+    "lagometerpos_start_x 1\n"
+    "lagometerpos_x 10\n"
+    "lagometerpos_y 500\n"
+    "lagometershowping 1\n"
     "newhud 0\n"
     "newhud_ammodisable 0\n"
     "newhud_ammodisableininsta 0\n"
@@ -167,6 +192,7 @@ const char *hud_old_extended =
     "newhud_spectatorsdisablewithgui 1\n"
     "newhud_spectatorsnocolor 1\n"
     "newhud_spectatorsize 5\n"
+    "newhud_sysoutoffset 0\n"
 "]\n";
 
 const char *hud_new1 =
@@ -223,6 +249,18 @@ const char *hud_new1 =
     "hudscoresplayercolorbg_g 255\n"
     "hudscoresplayercolorbg_r 0\n"
     "hudscoressize 10\n"
+    "lagometer 0\n"
+    "lagometercolsz 1\n"
+    "lagometerdisablewithgui 1\n"
+    "lagometerheight 100\n"
+    "lagometerlen 100\n"
+    "lagometernobg 0\n"
+    "lagometeronlypingself 1\n"
+    "lagometerpingsz 150\n"
+    "lagometerpos_start_x 1\n"
+    "lagometerpos_x 10\n"
+    "lagometerpos_y 500\n"
+    "lagometershowping 1\n"
     "newhud 1\n"
     "newhud_ammodisable 0\n"
     "newhud_ammodisableininsta 0\n"
@@ -251,6 +289,7 @@ const char *hud_new1 =
     "newhud_spectatorsdisablewithgui 1\n"
     "newhud_spectatorsnocolor 1\n"
     "newhud_spectatorsize 5\n"
+    "newhud_sysoutoffset 0\n"
 "]\n";
 
 const char *hud_new2 =
@@ -307,6 +346,18 @@ const char *hud_new2 =
     "hudscoresplayercolorbg_g 255\n"
     "hudscoresplayercolorbg_r 0\n"
     "hudscoressize 10\n"
+    "lagometer 0\n"
+    "lagometercolsz 1\n"
+    "lagometerdisablewithgui 1\n"
+    "lagometerheight 100\n"
+    "lagometerlen 100\n"
+    "lagometernobg 0\n"
+    "lagometeronlypingself 1\n"
+    "lagometerpingsz 150\n"
+    "lagometerpos_start_x 1\n"
+    "lagometerpos_x 10\n"
+    "lagometerpos_y 500\n"
+    "lagometershowping 1\n"
     "newhud 1\n"
     "newhud_ammodisable 0\n"
     "newhud_ammodisableininsta -1\n"
@@ -335,23 +386,7 @@ const char *hud_new2 =
     "newhud_spectatorsdisablewithgui 1\n"
     "newhud_spectatorsnocolor 1\n"
     "newhud_spectatorsize 5\n"
-"]\n";
-
-
-const char *resetlagometer =
-"resetlagometer = [\n"
-    "lagometer 0\n"
-    "lagometercolsz 1\n"
-    "lagometerdisablewithgui 1\n"
-    "lagometerheight 100\n"
-    "lagometerlen 100\n"
-    "lagometernobg 0\n"
-    "lagometeronlypingself 1\n"
-    "lagometerpingsz 150\n"
-    "lagometerpos_start_x 1\n"
-    "lagometerpos_x 10\n"
-    "lagometerpos_y 500\n"
-    "lagometershowping 1\n"
+    "newhud_sysoutoffset 0\n"
 "]\n";
 
 
@@ -363,26 +398,11 @@ const char *extended_settings_gui =
     "guicheckbox \"Log players stats on game end\" dumpstatsongameend\n"
     "guistrut 1\n"
 
-    "guicheckbox \"No sparks for hitscan weapons\" reducesparks\n"
-    "guicheckbox \"No explosion animation\" reduceexplosions\n"
-    "guicheckbox \"No explosion debris\" removeexplosionsdebris\n"
-    "guistrut 1\n"
-
-    "guitext \"Smoke density (for rockets and grenades):\" 0\n"
-    "guislider smokefps\n"
-    "guistrut 1\n"
-
     "guicheckbox \"Colored health\" coloredhealth\n"
     "guicheckbox \"Colored ammo\" coloredammo\n"
     "guistrut 1\n"
 
-    "guitext \"Position packet delay (less values are smoothing client's position lags):\" 0\n"
-    "guislider positionpacketdelay\n"
-    "guicheckbox \"Disable enet limits (fixes unnecessary client's position packet drops)\" disable_enet_limits\n"
-
-
-    "guitab \"Scoreboard\"\n"
-
+    "guititle \"Scoreboard\"\n"
     "guicheckbox \"Show flags scored\" showflags\n"
     "guilist [\n"
     "guicheckbox \"Show frags in all modes\" showfrags\n"
@@ -399,6 +419,60 @@ const char *extended_settings_gui =
     "guicheckbox \"Net colors\" netdamagecolors\n"
     "]\n"
     "guicheckbox \"Show accuracy\" showacc\n"
+    "guistrut 1\n"
+
+    "guititle \"Networking\"\n"
+    "guitext \"Position packet delay (less values are smoothing client's position lags):\" 0\n"
+    "guislider positionpacketdelay\n"
+    "guicheckbox \"Disable enet limits (fixes unnecessary client's position packet drops)\" disable_enet_limits\n"
+    "guistrut 1\n"
+
+
+    "guitab \"Particles\"\n"
+
+    "guilist [\n"
+    "guicheckbox \"No sparks for hitscan weapons\" reducesparks\n"
+    "guibar\n"
+    "guicheckbox \"No explosion animation\" reduceexplosions\n"
+    "guibar\n"
+    "guicheckbox \"No explosion debris\" removeexplosionsdebris\n"
+    "]\n"
+    "guistrut 1\n"
+
+    "guitext \"Smoke density (for rockets and grenades):\" 0\n"
+    "guislider smokefps\n"
+    "guistrut 1\n"
+
+    "guitext \"Rifle trail color (^f3R^f~/^f0G^f~/^f1B^f~):\" 0\n"
+    "guislider rifletrailcolor_r\n"
+    "guislider rifletrailcolor_g\n"
+    "guislider rifletrailcolor_b\n"
+    "guistrut 1\n"
+
+    "guitext \"Rifle trail time:\" 0\n"
+    "guislider rifletrailtime\n"
+    "guitext \"Rifle trail size:\" 0\n"
+    "guislider rifletrailsize\n"
+    "guitext \"Rifle trail gravity:\" 0\n"
+    "guislider rifletrailgravity\n"
+
+
+    "guitab \"HUDSelect\"\n"
+
+    "guititle \"Warning: All current HUD settings will be reset to the selected HUD settings\"\n"
+    "guistrut 1\n"
+    "guibar\n"
+    "guistrut 1\n"
+    "guibutton \"Default HUD\" \"hudold\" \n"
+    "guistrut 1\n"
+    "guibutton \"Default extended HUD\" \"hudoldextended\" \n"
+    "guistrut 1\n"
+    "guibutton \"New customisable HUD (example1)\" \"hudnew1\"\n"
+    "guistrut 1\n"
+    "guibutton \"New customisable HUD (example2)\" \"hudnew2\"\n"
+    "guistrut 1\n"
+    "guibar\n"
+    "guistrut 1\n"
 
 
     "guitab \"Lagometer\"\n"
@@ -441,22 +515,6 @@ const char *extended_settings_gui =
     "guislider lagometerheight\n"
     "guitext \"Lagometer ping size:\" 0\n"
     "guislider lagometerpingsz\n"
-    "guistrut 1\n"
-
-
-    "guitab \"HUDs\"\n"
-
-    "guititle \"Warning: All current HUD settings will be reset to the selected HUD settings\"\n"
-    "guistrut 1\n"
-    "guibutton \"Default HUD\" \"hudold\" \n"
-    "guistrut 1\n"
-    "guibutton \"Default extended HUD\" \"hudoldextended\" \n"
-    "guistrut 1\n"
-    "guibutton \"New customisable HUD (example1)\" \"hudnew1\"\n"
-    "guistrut 1\n"
-    "guibutton \"New customisable HUD (example2)\" \"hudnew2\"\n"
-    "guistrut 1\n"
-    "guibutton \"Reset lagometer settings\" \"resetlagometer\"\n"
     "guistrut 1\n"
 
 
@@ -509,6 +567,8 @@ const char *extended_settings_gui =
     "guibar\n"
     "guicheckbox \"Disable with GUI\" gameclockdisablewithgui\n"
     "]\n"
+    "guistrut 1\n"
+
     "guitext \"Size:\" 0\n"
     "guislider gameclocksize\n"
     "guistrut 1\n"
@@ -527,7 +587,7 @@ const char *extended_settings_gui =
     "guislider gameclockoffset_y\n"
 
 
-    "guitab \"2\"\n"
+    "guitab \"\"\n"
 
     "guitext \"Clock text color (^f3R^f~/^f0G^f~/^f1B^f~/^f4A^f~):\" 0\n"
     "guislider gameclockcolor_r\n"
@@ -550,6 +610,7 @@ const char *extended_settings_gui =
     "guibar\n"
     "guicheckbox \"Disable with GUI\" hudscoresdisablewithgui\n"
     "]\n"
+    "guistrut 1\n"
 
     "guitext \"Size:\" 0\n"
     "guislider hudscoressize\n"
@@ -576,7 +637,7 @@ const char *extended_settings_gui =
     "guislider hudscoresplayercolor_a\n"
 
 
-    "guitab \"2\"\n"
+    "guitab \"\"\n"
 
     "guitext \"Player score background color (^f3R^f~/^f0G^f~/^f1B^f~/^f4A^f~):\" 0\n"
     "guislider hudscoresplayercolorbg_r\n"
@@ -599,7 +660,7 @@ const char *extended_settings_gui =
     "guislider hudscoresenemycolorbg_a\n"
 
 
-    "guitab \"NewHUD\"\n"
+    "guitab \"HP\"\n"
 
     "guititle \"Warning: Settings have effect only when new HUD is enabled\"\n"
     "guicheckbox \"Enable new HUD\" newhud\n"
@@ -623,7 +684,7 @@ const char *extended_settings_gui =
     "guislider newhud_hppos_y\n"
 
 
-    "guitab \"2\"\n"
+    "guitab \"Ammo\"\n"
 
     "guititle \"Warning: Settings have effect only when new HUD is enabled\"\n"
     "guicheckbox \"Enable new HUD\" newhud\n"
@@ -655,7 +716,7 @@ const char *extended_settings_gui =
     "guislider newhud_ammopos_y\n"
 
 
-    "guitab \"3\"\n"
+    "guitab \"Spec\"\n"
 
     "guititle \"Warning: Settings have effect only when new HUD is enabled\"\n"
     "guicheckbox \"Enable new HUD\" newhud\n"
@@ -682,7 +743,7 @@ const char *extended_settings_gui =
     "guislider newhud_spectatorpos_y\n"
 
 
-    "guitab \"4\"\n"
+    "guitab \"Items\"\n"
 
     "guititle \"Warning: Settings have effect only when new HUD is enabled\"\n"
     "guicheckbox \"Enable new HUD\" newhud\n"
@@ -700,19 +761,29 @@ const char *extended_settings_gui =
     "guislider newhud_itemspos_y\n"
 
     
-    "guitab \"5\"\n"
+    "guitab \"Chat\"\n"
 
     "guititle \"Warning: Settings have effect only when new HUD is enabled\"\n"
     "guicheckbox \"Enable new HUD\" newhud\n"
     "guistrut 1\n"
     
-    "guititle \"New HUD chat settings\"\n"
+    "guititle \"New HUD chat and system output settings\"\n"
     "guitext \"Chat Y offset:\" 0\n"
     "guislider newhud_miniconoffset\n"
+    "guistrut 1\n"
+
     "guitext \"Chat lines:\" 0\n"
     "guislider newhud_miniconsize\n"
+    "guistrut 1\n"
+
     "guitext \"Chat width:\" 0\n"
     "guislider newhud_miniconwidth\n"
+    "guistrut 1\n"
+
+    "guitext \"System output Y offset:\" 0\n"
+    "guislider newhud_sysoutoffset\n"
+    "guistrut 1\n"
+
 
 "] \"Settings\" \n";
 
@@ -721,7 +792,6 @@ const char *game_scripts[] = { extended_settings_gui,
                                hud_old_extended,
                                hud_new1,
                                hud_new2,
-                               resetlagometer,
                                0 };
 
 

@@ -2385,6 +2385,8 @@ VARP(newhud, 0, 0, 1);
 XIDENTHOOK(newhud, IDF_EXTENDED);
 VARP(newhud_miniconoffset, 0, 0, 300);
 XIDENTHOOK(newhud_miniconoffset, IDF_EXTENDED);
+VARP(newhud_sysoutoffset, 0, 0, 1000);
+XIDENTHOOK(newhud_sysoutoffset, IDF_EXTENDED);
 
 void gl_drawhud()
 {
@@ -2455,7 +2457,7 @@ void gl_drawhud()
             glPushMatrix();
             glScalef(conscale, conscale, 1);
 
-            int roffset = 0;
+            int roffset = newhud_sysoutoffset * conh / 1000;
 
             if(!editmode && identexists("gamehud")) {
                 char *gameinfo = executestr("gamehud");
