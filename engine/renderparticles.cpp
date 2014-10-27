@@ -1076,6 +1076,7 @@ static int addedparticles = 0;
 static inline particle *newparticle(const vec &o, const vec &d, int fade, int type, int color, float size, int gravity = 0)
 {
     static particle dummy;
+    if(fade <= 0) return &dummy;
     if(seedemitter) 
     {
         parts[type]->seedemitter(*seedemitter, o, d, fade, size, gravity);
@@ -1147,7 +1148,7 @@ void particle_trail(int type, int fade, const vec &s, const vec &e, int color, f
     {
         p.add(v);
         vec tmp = vec(float(rnd(11)-5), float(rnd(11)-5), float(rnd(11)-5));
-        newparticle(p, tmp, rnd(fade)+fade, type, color, size, gravity);
+        newparticle(p, tmp, fade > 0 ? rnd(fade)+fade : 0, type, color, size, gravity);
     }
 }
 
