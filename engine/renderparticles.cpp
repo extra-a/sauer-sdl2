@@ -1076,7 +1076,6 @@ static int addedparticles = 0;
 static inline particle *newparticle(const vec &o, const vec &d, int fade, int type, int color, float size, int gravity = 0)
 {
     static particle dummy;
-    if(fade <= 0) return &dummy;
     if(seedemitter) 
     {
         parts[type]->seedemitter(*seedemitter, o, d, fade, size, gravity);
