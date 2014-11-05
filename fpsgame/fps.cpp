@@ -1766,17 +1766,19 @@ namespace game
             }
             text_bounds(buff, w1, h1);
             if(d == player1 && lagometeronlypingself) {
-                int gap = h1/4;
+                int gap = 0;
                 if(lagometerpos_start_x == 1) {
-                    gap = xpsz*lagometercolsz/scale - w1 - h1/4;
+                    gap = xpsz*lagometercolsz/scale - w1;
                 } else if(lagometerpos_start_x == 0) {
                     gap = xpsz*lagometercolsz/scale - w1/2.0;
                 }
                 draw_text(buff, xoff/scale + gap,
-                          (yoff + ypsz/2.0)/scale - h1/2, 255, 255, 255, 255);
+                          (yoff + ypsz/2.0)/scale - h1/2,
+                          255, pl ? 0 : 255, pl ? 0 : 255, 255);
             } else {
                 draw_text(buff, (xoff + xpsz*lagometercolsz)/scale - w1 - h1/4 ,
-                          yoff/scale, 255, 255, 255, 255);
+                          yoff/scale,
+                          255, pl ? 0 : 255, pl ? 0 : 255, 255);
             }
             glPopMatrix();
         }
