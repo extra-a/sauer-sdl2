@@ -1352,6 +1352,9 @@ namespace game
     VARP(hudscoresdisablewithgui, 0, 0, 1);
     XIDENTHOOK(hudscoresdisablewithgui, IDF_EXTENDED);
 
+    VARP(hudscoresvertical, 0, 0, 1);
+    XIDENTHOOK(hudscoresvertical, IDF_EXTENDED);
+
     VARP(hudscoressize, 1, 5, 30);
     XIDENTHOOK(hudscoressize, IDF_EXTENDED);
 
@@ -1519,16 +1522,24 @@ namespace game
             text_bounds("00", fw, fh);
             fw = max(fw, max(tw1, tw2));
 
-            float addoffset = 0.0;
+            float addoffset = 0.0, offsety = 0.0;
             if(hudscoresoffset_start_x == 1) {
                 addoffset = 2.0 * fw + 2.0 * borderx + scoresep;
             } else if(hudscoresoffset_start_x == 0) {
                 addoffset = (2.0 * fw + 2.0 * borderx + scoresep)/2.0;
             }
+
+            if(hudscoresvertical) {
+                addoffset /= 2.0;
+                offsety = -fh;
+            } else {
+                offsety = -fh/2.0;
+            }
+
             xoff -= addoffset*scorescale;
 
             drawacoloredquad(xoff/scorescale,
-                             yoff/scorescale - th1/2.0,
+                             yoff/scorescale + offsety,
                              fw + 2.0*borderx,
                              th1,
                              (GLubyte)bgr1,
@@ -1536,17 +1547,24 @@ namespace game
                              (GLubyte)bgb1,
                              (GLubyte)bga1);
             draw_text(buff1, xoff/scorescale + borderx + (fw-tw1)/2.0,
-                      yoff/scorescale - th1/2.0, r1, g1, b1, a1);
-            drawacoloredquad(xoff/scorescale + fw + scoresep,
-                             yoff/scorescale - th2/2.0,
+                      yoff/scorescale + offsety, r1, g1, b1, a1);
+
+            if(!hudscoresvertical) {
+                xoff += (fw + scoresep)*scorescale;
+            } else {
+                offsety = 0;
+            }
+
+            drawacoloredquad(xoff/scorescale,
+                             yoff/scorescale + offsety,
                              fw + 2.0*borderx,
                              th2,
                              (GLubyte)bgr2,
                              (GLubyte)bgg2,
                              (GLubyte)bgb2,
                              (GLubyte)bga2);
-            draw_text(buff2, xoff/scorescale + fw + scoresep + borderx + (fw-tw2)/2.0,
-                      yoff/scorescale - th2/2.0, r2, g2, b2, a2);
+            draw_text(buff2, xoff/scorescale + borderx + (fw-tw2)/2.0,
+                      yoff/scorescale + offsety, r2, g2, b2, a2);
 
             draw_text("", 0, 0, 255, 255, 255, 255);
             glPopMatrix();
