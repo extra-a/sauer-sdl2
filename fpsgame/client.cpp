@@ -460,7 +460,14 @@ namespace game
         if(lastpreviewdata.hasserverdata) {
             string hostname;
             if(enet_address_get_host_ip(&lastpreviewdata.servaddress, hostname, sizeof(hostname)) >= 0) {
+                g->pushlist();
+                g->spring();
                 g->titlef("%s", 0xFFFFFF, NULL, lastpreviewdata.sdata.description);
+                g->titlef("  %d/%d  %d", 0xFFFFFF, NULL,
+                          lastpreviewdata.sdata.nclients,
+                          lastpreviewdata.sdata.maxclients, lastpreviewdata.sdata.ping);
+                g->spring();
+                g->poplist();
                 g->pushlist();
                 g->spring();
                 g->textf("%s", 0xFFFF80, NULL, server::modename(lastpreviewdata.sdata.mode));
