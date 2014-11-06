@@ -2383,10 +2383,29 @@ FVARP(conscale, 1e-3f, 0.33f, 1e3f);
 
 VARP(newhud, 0, 0, 1);
 XIDENTHOOK(newhud, IDF_EXTENDED);
-VARP(newhud_miniconoffset, 0, 0, 300);
+VARP(newhud_miniconoffset, 0, 0, 1000);
 XIDENTHOOK(newhud_miniconoffset, IDF_EXTENDED);
 VARP(newhud_sysoutoffset, 0, 0, 1000);
 XIDENTHOOK(newhud_sysoutoffset, IDF_EXTENDED);
+
+static void drawgamehud(int& roffset, int conw, int conh) {
+    if(!editmode && identexists("gamehud")) {
+        char *gameinfo = executestr("gamehud");
+        if(gameinfo) {
+            if(gameinfo[0]) {
+                int tw, th;
+                text_bounds(gameinfo, tw, th);
+                draw_text(gameinfo, conw - FONTH/2 - tw, conh-FONTH*3/2-roffset);
+                roffset += FONTH;
+            }
+            DELETEA(gameinfo);
+        }
+    }
+
+}
+
+VARP(newhud_sysoutgamehudlast, 0, 0, 1);
+XIDENTHOOK(newhud_sysoutgamehudlast, IDF_EXTENDED);
 
 void gl_drawhud()
 {
@@ -2459,17 +2478,8 @@ void gl_drawhud()
 
             int roffset = newhud_sysoutoffset * conh / 1000;
 
-            if(!editmode && identexists("gamehud")) {
-                char *gameinfo = executestr("gamehud");
-                if(gameinfo) {
-                    if(gameinfo[0]) {
-                        int tw, th;
-                        text_bounds(gameinfo, tw, th);
-                        draw_text(gameinfo, conw - FONTH/2 - tw, conh-FONTH*3/2-roffset);
-                        roffset += FONTH;
-                    }
-                    DELETEA(gameinfo);
-                }
+            if(newhud_sysoutgamehudlast) {
+                drawgamehud(roffset, conw, conh);
             }
 
             if(showfps)
@@ -2515,6 +2525,10 @@ void gl_drawhud()
                     draw_text(buf, conw - FONTH/2 - tw, conh-FONTH*3/2-roffset);
                     roffset += FONTH;
                 }
+            }
+
+            if(!newhud_sysoutgamehudlast) {
+                drawgamehud(roffset, conw, conh);
             }
                        
             if(editmode || showeditstats)

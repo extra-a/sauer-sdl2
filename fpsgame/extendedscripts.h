@@ -96,6 +96,7 @@ const char *hud_old =
     "newhud_spectatorsdisablewithgui 1\n"
     "newhud_spectatorsnocolor 1\n"
     "newhud_spectatorsize 5\n"
+    "newhud_sysoutgamehudlast 0\n"
     "newhud_sysoutoffset 0\n"
 "]\n";
 
@@ -194,6 +195,7 @@ const char *hud_old_extended =
     "newhud_spectatorsdisablewithgui 1\n"
     "newhud_spectatorsnocolor 1\n"
     "newhud_spectatorsize 5\n"
+    "newhud_sysoutgamehudlast 0\n"
     "newhud_sysoutoffset 0\n"
 "]\n";
 
@@ -292,6 +294,7 @@ const char *hud_new1 =
     "newhud_spectatorsdisablewithgui 1\n"
     "newhud_spectatorsnocolor 1\n"
     "newhud_spectatorsize 5\n"
+    "newhud_sysoutgamehudlast 1\n"
     "newhud_sysoutoffset 0\n"
 "]\n";
 
@@ -390,6 +393,7 @@ const char *hud_new2 =
     "newhud_spectatorsdisablewithgui 1\n"
     "newhud_spectatorsnocolor 1\n"
     "newhud_spectatorsize 5\n"
+    "newhud_sysoutgamehudlast 1\n"
     "newhud_sysoutoffset 0\n"
 "]\n";
 
@@ -787,6 +791,7 @@ const char *extended_settings_gui =
 
     "guitext \"System output Y offset:\" 0\n"
     "guislider newhud_sysoutoffset\n"
+    "guicheckbox \"Show game HUD in the last line\" newhud_sysoutgamehudlast\n"
     "guistrut 1\n"
 
 
