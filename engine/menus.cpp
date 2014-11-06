@@ -113,6 +113,9 @@ static bool shouldclearmenu = true, clearlater = false;
 VARP(menudistance,  16, 40,  256);
 VARP(menuautoclose, 32, 120, 4096);
 
+VARP(usenewmainmenu, 0, 1, 1);
+XIDENTHOOK(usenewmainmenu, IDF_EXTENDED);
+
 vec menuinfrontofplayer()
 { 
     vec dir;

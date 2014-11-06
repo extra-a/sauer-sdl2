@@ -801,11 +801,53 @@ const char *extended_settings_gui =
 
 "] \"Settings\" \n";
 
+const char *new_main_menu =
+"if $usenewmainmenu [\n"
+"newgui main [\n"
+"    guilist [\n"
+"        guitext \"name: \" (playermodelicon)\n"
+"        newname = (getname)\n"
+"        guifield newname 15 [name $newname]\n"
+"    ]\n"
+"    guibutton (concat \"model:\" (playermodelname)) [guirolloveraction = (playermodelbutton $playermodel); showgui playermodel] (playermodelicon)\n"
+"    guilist [\n"
+"        guibutton \"crosshair: \" [showgui crosshair] (playermodelicon)\n"
+"        guiimage (getcrosshair) [showgui crosshair] 0.5\n"
+"    ]\n"
+"    guibar\n"
+"    guibutton \"server browser..\"  \"showgui servers\"\n"
+"    if (isconnected) [\n"
+"        guibar\n"
+"        if (|| $editing (m_edit (getmode))) [\n"
+"            guibutton \"editing..\" \"showgui editing\"\n"
+"        ]\n"
+"        guibutton \"vote game mode / map..\" \"showgui gamemode\"\n"
+"        guibutton \"switch team\" [if (strcmp (getteam) \"good\") [team evil] [team good]]\n"
+"        guibutton \"toggle spectator\" [spectator (! (isspectator (getclientnum)))] \"spectator\"\n"
+"        guibutton \"master..\" [showgui master]\n"
+"        guibar\n"
+"        guibutton \"options..\"  \"showgui options\"\n"
+"        guibutton \"new settings..\"  \"showgui extended_settings\"\n"
+"        guibutton \"disconnect\" \"disconnect\"         \"exit\"\n"
+"    ] [\n"
+"        guibutton \"bot match..\"      \"showgui botmatch\"\n"
+"        guibutton \"campaign..\"       \"showgui campaign\"\n"
+"        guibar\n"
+"        guibutton \"options..\"        \"showgui options\"\n"
+"        guibutton \"new settings..\"  \"showgui extended_settings\"\n"
+"        guibutton \"about..\"          \"showgui about\"\n"
+"        guibutton \"quit\"             \"quit\"                 \"exit\"\n"
+"    ]\n"
+"] 0\n"
+"]";
+
+
 const char *game_scripts[] = { extended_settings_gui,
                                hud_old,
                                hud_old_extended,
                                hud_new1,
                                hud_new2,
+                               new_main_menu,
                                0 };
 
 
