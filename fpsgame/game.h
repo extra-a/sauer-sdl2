@@ -775,6 +775,7 @@ struct serverpreviewdata {
 
 #define MAXEXTRETRIES 2
 #define EXTRETRIESINT 1000
+#define EXTREFRESHINT 3000
 struct extplayerinfo
 {
     bool finished;
@@ -784,15 +785,15 @@ struct extplayerinfo
     struct extplayerdata data;
     extplayerinfo() {
         finished = false;
+        needrefresh = false;
         attempts = 0;
         lastattempt = totalmillis;
-        needrefresh = false;
     }
     extplayerinfo(bool refresh) {
         finished = false;
+        needrefresh = refresh;
         attempts = 0;
         lastattempt = totalmillis;
-        needrefresh = refresh;
     }
     void resetextdata() {
         finished = false;
@@ -806,27 +807,29 @@ struct extplayerinfo
     }
     void setextplayerinfo(struct extplayerdata ndata) {
         attempts = 0;
-        data.update(ndata);
         finished = true;
+        data.update(ndata);
     }
     void addattempt() {
         attempts++;
         lastattempt = totalmillis;
     }
     bool needretry() {
-        return (!finished || needrefresh) && lastattempt + EXTRETRIESINT < totalmillis && (attempts <= MAXEXTRETRIES || needrefresh);
+        if(needrefresh) {
+            return lastattempt + EXTREFRESHINT < totalmillis;
+        } else {
+            return !finished && attempts <= MAXEXTRETRIES && lastattempt + EXTRETRIESINT < totalmillis;
+        }
     }
-    bool isset() {
-        return (finished || attempts > MAXEXTRETRIES) && !needrefresh;
+    bool isfinal() {
+        return !needrefresh && (finished || attempts > MAXEXTRETRIES);
     }
     int getextplayerinfo() {
         if(!finished) return -1;
-        if(attempts > MAXEXTRETRIES) return -2;
         return 0;
     }
     int getextplayerinfo(struct extplayerdata& ldata) {
         if(!finished) return -1;
-        if(attempts > MAXEXTRETRIES) return -2;
         ldata.update(data);
         return 0;
     }
@@ -860,6 +863,7 @@ struct fpsent : dynent, fpsstate
     int detaileddamagetotal[MAXWEAPONS];
     int detaileddamagereceived[MAXWEAPONS];
     int lastprojectile;
+    bool extdatawasinit;
     struct extplayerinfo extdata;
     struct lagmeterdata lagdata;
     editinfo *edit;
@@ -878,6 +882,8 @@ struct fpsent : dynent, fpsstate
         name[0] = team[0] = info[0] = 0;
         respawn();
         lastprojectile = 3;
+        extdata.needrefresh = true;
+        extdatawasinit = false;
         loopi(MAXWEAPONS) {
             detaileddamagedealt[i] = 0;
             detaileddamagetotal[i] = 0;

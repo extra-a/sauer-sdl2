@@ -118,9 +118,12 @@ namespace game
             struct extplayerdata extpdata;
             if(!extplayershelper(p, extpdata)) {
                 fpsent *d = getclient(extpdata.cn);
-                if(!d || d->extdata.isset()) continue;
+                if(!d || d->extdata.isfinal()) continue;
                 d->extdata.setextplayerinfo();
-                d->deaths = extpdata.deaths;
+                if(!d->extdatawasinit) {
+                    d->deaths = extpdata.deaths;
+                    d->extdatawasinit = true;
+                }
             }
         }
     }
@@ -1445,10 +1448,17 @@ namespace game
         messagereliable = false;
         messagecn = -1;
         player1->respawn();
+        player1->frags = player1->flags = 0;
+        player1->deaths = 0;
+        player1->totaldamage = 0;
+        player1->totalshots = 0;
+        player1->maxhealth = 100;
+        player1->resetextstats();
         player1->lifesequence = 0;
         player1->state = CS_ALIVE;
         player1->privilege = PRIV_NONE;
         player1->extdata.resetextdata();
+        player1->extdatawasinit = false;
         sendcrc = senditemstoserver = false;
         demoplayback = false;
         gamepaused = false;
