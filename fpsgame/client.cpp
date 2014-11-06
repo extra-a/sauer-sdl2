@@ -119,7 +119,7 @@ namespace game
             if(!extplayershelper(p, extpdata)) {
                 fpsent *d = getclient(extpdata.cn);
                 if(!d || d->extdata.isfinal()) continue;
-                d->extdata.setextplayerinfo();
+                d->extdata.setextplayerinfo(extpdata);
                 if(!d->extdatawasinit) {
                     d->deaths = extpdata.deaths;
                     d->extdatawasinit = true;

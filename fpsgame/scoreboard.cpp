@@ -96,6 +96,8 @@ namespace game
 
     VARP(showacc, 0, 0, 1);
     XIDENTHOOK(showacc, IDF_EXTENDED);
+    VARP(showserveracc, 0, 0, 1);
+    XIDENTHOOK(showserveracc, IDF_EXTENDED);
 
     static hashset<teaminfo> teaminfos;
 
@@ -405,7 +407,11 @@ namespace game
                 g.pushlist();
                 g.strut(6);
                 g.text("acc", fgcolor);
-                loopscoregroup(o, g.textf("%.2lf", 0xFFFFDD, NULL, getweaponaccuracy(-1,o)));
+                if(showserveracc) {
+                    loopscoregroup(o, g.textf("%d", 0xFFFFDD, NULL, (o ? o->extdata.data.acc : 0)));
+                } else {
+                    loopscoregroup(o, g.textf("%.2lf", 0xFFFFDD, NULL, getweaponaccuracy(-1,o)));
+                }
                 g.poplist();
             }
 

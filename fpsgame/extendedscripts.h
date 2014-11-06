@@ -426,7 +426,11 @@ const char *extended_settings_gui =
     "guibar\n"
     "guicheckbox \"Net colors\" netdamagecolors\n"
     "]\n"
+    "guilist [\n"
     "guicheckbox \"Show accuracy\" showacc\n"
+    "guibar\n"
+    "guicheckbox \"Use accuracy from server\" showserveracc\n"
+    "]\n"
     "guistrut 1\n"
 
     "guititle \"Networking\"\n"
