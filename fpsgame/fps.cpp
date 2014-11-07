@@ -1766,8 +1766,10 @@ namespace game
             glScalef(scale, scale, 1);
             int w1=0, h1=0;
             int pl = getpacketloss();
+            bool coloredpl = false;
             if(pl && d == player1) {
                 snprintf(buff, 5, "%d %d", d->ping, pl);
+                coloredpl = true;
             } else {
                 snprintf(buff, 5, "%d", d->ping);
             }
@@ -1781,11 +1783,11 @@ namespace game
                 }
                 draw_text(buff, xoff/scale + gap,
                           (yoff + ypsz/2.0)/scale - h1/2,
-                          255, pl ? 0 : 255, pl ? 0 : 255, 255);
+                          255, coloredpl ? 0 : 255, coloredpl ? 0 : 255, 255);
             } else {
                 draw_text(buff, (xoff + xpsz*lagometercolsz)/scale - w1 - h1/4 ,
                           yoff/scale,
-                          255, pl ? 0 : 255, pl ? 0 : 255, 255);
+                          255, coloredpl ? 0 : 255, coloredpl ? 0 : 255, 255);
             }
             glPopMatrix();
         }
