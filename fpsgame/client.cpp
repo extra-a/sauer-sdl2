@@ -2813,6 +2813,7 @@ static void onconnectseq(g3d_gui *g, playersentry &e) {
 }
 
 VAR(stopplayerssearch, 0, 0, 1);
+static char savedfilter[MAXEXTNAMELENGHT];
 
 bool needsearch = false;
 void showplayersgui(g3d_gui *g, uint *name) {
@@ -2820,7 +2821,7 @@ void showplayersgui(g3d_gui *g, uint *name) {
         needsearch = true;
     }
     vector<serverinfodata *> v = getservers();
-    vector<playersentry> pe;
+    vector<playersentry> p0, pe;
     loopv(v) {
         serverinfodata* s = v[i];
         if(!s) continue;
@@ -2838,24 +2839,50 @@ void showplayersgui(g3d_gui *g, uint *name) {
             if( s->attr.length() >= 1 ) {
                 mode = s->attr[1];
             }
-            pe.add(playersentry(p->players[j].name, s->sdesc, s->name, s->ping, s->numplayers,
+            p0.add(playersentry(p->players[j].name, s->sdesc, s->name, s->ping, s->numplayers,
                                 maxplayers, mode, icon, s->port));
         }
     }
 
+    g->allowautotab(false);
+    g->pushlist();
+    g->textf("Quick filter ", 0xFFFFDD, NULL);
+    const char* filter = g->field("", 0xFFFFFF, MAXEXTNAMELENGHT-1, 0, savedfilter);
+    g->spring();
+    if(g->button("stop updating", 0xFFFFDD, stopplayerssearch ? "radio_on" : "radio_off")&G3D_UP) {
+        stopplayerssearch = !stopplayerssearch;
+    }
+    g->poplist();
+    g->separator();
+
+    if(filter) {
+        strncpy(savedfilter, filter, MAXEXTNAMELENGHT-1);
+    }
+    if(strnlen(savedfilter, MAXEXTNAMELENGHT-1) > 0) {
+        loopv(p0) {
+            if(strstr( p0[i].pname, savedfilter) != NULL) {
+                pe.add( p0[i] );
+            }
+        }
+    } else {
+        pe = p0;
+    }
     pe.sort(playersentrysort);
     int len = pe.length(), k = 0, kt = 0, maxcount = 30;
 
-    g->allowautotab(false);
     loopi( len/maxcount + 1 ) {
-        if(i>0 && k<len) g->tab();
-        g->pushlist();
-        g->spring();
-        if(g->button("stop updating", 0xFFFFDD, stopplayerssearch ? "radio_on" : "radio_off")&G3D_UP) {
-            stopplayerssearch = !stopplayerssearch;
+        if(i>0 && k<len) {
+            g->tab();
+            g->pushlist();
+            g->textf("Quick filter ", 0xFFFFDD, NULL);
+            g->field("", 0xFFFFFF, MAXEXTNAMELENGHT-1, 0, savedfilter);
+            g->spring();
+            if(g->button("stop updating", 0xFFFFDD, stopplayerssearch ? "radio_on" : "radio_off")&G3D_UP) {
+                stopplayerssearch = !stopplayerssearch;
+            }
+            g->poplist();
+            g->separator();
         }
-        g->poplist();
-        g->separator();
 
         g->pushlist();
         g->mergehits(true);
@@ -2864,13 +2891,16 @@ void showplayersgui(g3d_gui *g, uint *name) {
         g->text("name", 0xFFFF80);
         kt = k;
         loopj(maxcount) {
-            if(kt>=len) break;
-            playersentry e = pe[kt];
-            if(g->buttonf("%s", 0xFFFFDD, NULL, e.pname)&G3D_UP) {
-                onconnectseq(g, e);
-                return;
+            if(kt>=len) {
+                g->buttonf(" ", 0xFFFFDD, NULL);
+            } else {
+                playersentry e = pe[kt];
+                if(g->buttonf("%s", 0xFFFFDD, NULL, e.pname)&G3D_UP) {
+                    onconnectseq(g, e);
+                    return;
+                }
+                kt++;
             }
-            kt++;
         }
         g->poplist();
 
@@ -2975,7 +3005,6 @@ void showplayersgui(g3d_gui *g, uint *name) {
         g->poplist();
         g->mergehits(false);
         g->poplist();
-
         k = kt;
     }
     g->allowautotab(true);
