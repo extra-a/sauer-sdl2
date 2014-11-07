@@ -467,9 +467,15 @@ namespace game
                 g->pushlist();
                 g->spring();
                 g->titlef("%s", 0xFFFFFF, NULL, lastpreviewdata.sdata.description);
-                g->titlef("  %d/%d  %d", 0xFFFFFF, NULL,
-                          lastpreviewdata.sdata.nclients,
-                          lastpreviewdata.sdata.maxclients, lastpreviewdata.sdata.ping);
+                if(lastpreviewdata.sdata.nclients>=lastpreviewdata.sdata.maxclients) {
+                    g->titlef("  \f3%d/%d  \f7%d", 0xFFFFFF, NULL,
+                              lastpreviewdata.sdata.nclients,
+                              lastpreviewdata.sdata.maxclients, lastpreviewdata.sdata.ping);
+                } else {
+                    g->titlef("  %d/%d  %d", 0xFFFFFF, NULL,
+                              lastpreviewdata.sdata.nclients,
+                              lastpreviewdata.sdata.maxclients, lastpreviewdata.sdata.ping);
+                }
                 g->spring();
                 g->poplist();
                 g->pushlist();
@@ -2763,19 +2769,30 @@ struct playersentry {
     const char* pname;
     const char* sdesc;
     const char* shost;
-    int sport;
+    int sping, splayers, smaxplayers, smode, sicon, sport;
 
     playersentry() {
         pname = "";
         sdesc = "";
         shost = "";
+        sping = 0;
+        splayers = 0;
+        smaxplayers = 0;
+        smode = 0;
+        sicon = 0;
         sport = 0;
     }
 
-    playersentry(const char* name, const char* desc, const char* host, int port) {
+    playersentry(const char* name, const char* desc, const char* host,
+                 int ping, int players, int maxplayers, int mode, int icon, int port) {
         pname = name;
         sdesc = desc;
         shost = host;
+        sping = ping;
+        splayers = players;
+        smaxplayers = maxplayers;
+        smode = mode;
+        sicon = icon;
         sport = port;
     }
 
@@ -2785,6 +2802,12 @@ bool playersentrysort (const playersentry& p1, const playersentry& p2) {
     int r = strncmp(p1.pname, p2.pname, MAXEXTNAMELENGHT);
     if(r) return r < 0;
     return strncmp(p1.sdesc, p2.sdesc, MAXSERVSTRING) < 0;
+}
+
+static void onconnectseq(g3d_gui *g, playersentry &e) {
+    connectserver(e.shost, e.sport);
+    g->poplist();
+    g->allowautotab(true);
 }
 
 bool needsearch = false;
@@ -2799,35 +2822,146 @@ void showplayersgui(g3d_gui *g, uint *name) {
         if(!p || s->ping == serverinfodata::WAITING) continue;
         p->checkdisconected(DISCONNECTEDINTERVAL);
         loopj(p->nplayers) {
-            pe.add(playersentry(p->players[j].name, s->sdesc, s->name, s->port));
+            int mode = 0, maxplayers = 0, icon = 0;
+            if( s->attr.length() >= 4 ) {
+                maxplayers = s->attr[3];
+                icon = s->attr[4];
+            }
+            if( s->attr.length() >= 1 ) {
+                mode = s->attr[1];
+            }
+            pe.add(playersentry(p->players[j].name, s->sdesc, s->name, s->ping, s->numplayers,
+                                maxplayers, mode, icon, s->port));
         }
     }
 
     pe.sort(playersentrysort);
-    int count = 1;
+    int len = pe.length(), k = 0, kt = 0, maxcount = 30;
+
     g->allowautotab(false);
-    loopv(pe) {
-        playersentry e = pe[i];
-        if(count >= 30) {
-            count = 1;
-            g->tab();
-        }
+    loopi( len/maxcount + 1 ) {
+        if(i>0 && k<len) g->tab();
+
         g->pushlist();
-        if(g->buttonf("%s  ", 0xFFFFDD, NULL, e.pname)&G3D_UP) {
-            connectserver(e.shost, e.sport);
-            g->poplist();
-            g->allowautotab(true);
-            return;
-        };
-        g->spring();
-        if(g->buttonf("%80s (%s:%d)", 0xFFFFDD, NULL, e.sdesc, e.shost, e.sport)&G3D_UP) {
-            connectserver(e.shost, e.sport);
-            g->poplist();
-            g->allowautotab(true);
-            return;
+        g->mergehits(true);
+        g->pushlist();
+        g->strut(20);
+        g->text("name", 0xFFFF80);
+        kt = k;
+        loopj(maxcount) {
+            if(kt>=len) break;
+            playersentry e = pe[kt];
+            if(g->buttonf("%s", 0xFFFFDD, NULL, e.pname)&G3D_UP) {
+                onconnectseq(g, e);
+                return;
+            }
+            kt++;
         }
         g->poplist();
-        count++;
+
+        g->pushlist();
+        g->strut(8);
+        g->text("  ping", 0xFFFF80);
+        kt = k;
+        loopj(maxcount) {
+            if(kt>=len) break;
+            playersentry e = pe[kt];
+            const char *icon = e.splayers >= e.smaxplayers ? "serverfull" : game::mastermodeicon(e.sicon, "serverunk");
+            if(g->buttonf("%d", 0xFFFFDD, icon, e.sping)&G3D_UP) {
+                onconnectseq(g, e);
+                return;
+            }
+            kt++;
+        }
+        g->poplist();
+
+
+        g->pushlist();
+        g->strut(9);
+        g->text("players", 0xFFFF80);
+        kt = k;
+        loopj(maxcount) {
+            if(kt>=len) break;
+            playersentry e = pe[kt];
+            if(e.smaxplayers) {
+                if(g->buttonf(e.splayers >= e.smaxplayers ? "\f3%d/%d " : "%d/%d",
+                              0xFFFFDD, NULL, e.splayers, e.smaxplayers)&G3D_UP) {
+                    onconnectseq(g, e);
+                    return;
+                }
+            } else {
+                if(g->buttonf("%d", 0xFFFFDD, NULL, e.splayers)&G3D_UP) {
+                    onconnectseq(g, e);
+                    return;
+                }
+            }
+            kt++;
+        }
+        g->poplist();
+
+        g->pushlist();
+        g->strut(17);
+        g->text("mode", 0xFFFF80);
+        kt = k;
+        loopj(maxcount) {
+            if(kt>=len) break;
+            playersentry e = pe[kt];
+            if(g->buttonf("%.15s", 0xFFFFDD, NULL, server::modename(e.smode,""))&G3D_UP) {
+                onconnectseq(g, e);
+                return;
+            }
+            kt++;
+        }
+        g->poplist();
+
+        g->pushlist();
+        g->strut(17);
+        g->text("host", 0xFFFF80);
+        kt = k;
+        loopj(maxcount) {
+            if(kt>=len) break;
+            playersentry e = pe[kt];
+            if(g->buttonf("%.15s", 0xFFFFDD, NULL, e.shost)&G3D_UP) {
+                onconnectseq(g, e);
+                return;
+            }
+            kt++;
+        }
+        g->poplist();
+
+        g->pushlist();
+        g->strut(7);
+        g->text("port", 0xFFFF80);
+        kt = k;
+        loopj(maxcount) {
+            if(kt>=len) break;
+            playersentry e = pe[kt];
+            if(g->buttonf("%.5d", 0xFFFFDD, NULL, e.sport)&G3D_UP) {
+                onconnectseq(g, e);
+                return;
+            }
+            kt++;
+        }
+        g->poplist();
+
+        g->pushlist();
+        g->strut(27);
+        g->text("description", 0xFFFF80);
+        kt = k;
+        loopj(maxcount) {
+            if(kt>=len) break;
+            playersentry e = pe[kt];
+            if(g->buttonf("%.25s", 0xFFFFDD, NULL, e.sdesc)&G3D_UP) {
+                onconnectseq(g, e);
+                return;
+            }
+            kt++;
+        }
+        g->poplist();
+        g->mergehits(false);
+        g->poplist();
+
+        k = kt;
     }
     g->allowautotab(true);
 }
