@@ -2816,15 +2816,18 @@ void showplayersgui(g3d_gui *g, uint *name) {
         if(g->buttonf("%s  ", 0xFFFFDD, NULL, e.pname)&G3D_UP) {
             connectserver(e.shost, e.sport);
             g->poplist();
+            g->allowautotab(true);
             return;
         };
         g->spring();
         if(g->buttonf("%80s (%s:%d)", 0xFFFFDD, NULL, e.sdesc, e.shost, e.sport)&G3D_UP) {
             connectserver(e.shost, e.sport);
             g->poplist();
+            g->allowautotab(true);
             return;
         }
         g->poplist();
         count++;
     }
+    g->allowautotab(true);
 }
