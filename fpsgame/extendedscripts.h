@@ -406,10 +406,6 @@ const char *extended_settings_gui =
     "guicheckbox \"Log players stats on game end\" dumpstatsongameend\n"
     "guistrut 1\n"
 
-    "guicheckbox \"Colored health\" coloredhealth\n"
-    "guicheckbox \"Colored ammo\" coloredammo\n"
-    "guistrut 1\n"
-
     "guititle \"Scoreboard\"\n"
     "guicheckbox \"Show flags scored\" showflags\n"
     "guilist [\n"
@@ -486,6 +482,65 @@ const char *extended_settings_gui =
     "guibar\n"
     "guistrut 1\n"
 
+"] \"Settings\" \n";
+
+
+const char *players_menu =
+"newgui players [\n"
+    "guistayopen [\n"
+            "guiplayers ""\n"
+    "]\n"
+"] \n";
+
+
+const char *new_main_menu =
+"if $usenewmainmenu [\n"
+"newgui main [\n"
+"    guilist [\n"
+"        guitext \"name: \" (playermodelicon)\n"
+"        newname = (getname)\n"
+"        guifield newname 15 [name $newname]\n"
+"    ]\n"
+"    guibutton (concat \"model:\" (playermodelname)) [guirolloveraction = (playermodelbutton $playermodel); showgui playermodel] (playermodelicon)\n"
+"    guilist [\n"
+"        guibutton \"crosshair: \" [showgui crosshair] (playermodelicon)\n"
+"        guiimage (getcrosshair) [showgui crosshair] 0.5\n"
+"    ]\n"
+"    guibar\n"
+"    guibutton \"server browser..\"  \"showgui servers\"\n"
+"    guibutton \"players..\"  \"showgui players\"\n"
+"    if (isconnected) [\n"
+"        guibar\n"
+"        if (|| $editing (m_edit (getmode))) [\n"
+"            guibutton \"editing..\" \"showgui editing\"\n"
+"        ]\n"
+"        guibutton \"vote game mode / map..\" \"showgui gamemode\"\n"
+"        guibutton \"switch team\" [if (strcmp (getteam) \"good\") [team evil] [team good]]\n"
+"        guibutton \"toggle spectator\" [spectator (! (isspectator (getclientnum)))] \"spectator\"\n"
+"        guibutton \"master..\" [showgui master]\n"
+"        guibar\n"
+"        guibutton \"options..\"  \"showgui options\"\n"
+"        guibutton \"more options..\"  \"showgui extended_settings\"\n"
+"        guibutton \"hud settings..\"  \"showgui hud_settings\"\n"
+"        guibutton \"disconnect\" \"disconnect\"         \"exit\"\n"
+"    ] [\n"
+"        guibutton \"bot match..\"      \"showgui botmatch\"\n"
+"        guibutton \"campaign..\"       \"showgui campaign\"\n"
+"        guibar\n"
+"        guibutton \"options..\"        \"showgui options\"\n"
+"        guibutton \"more options..\"    \"showgui extended_settings\"\n"
+"        guibutton \"hud settings..\"    \"showgui hud_settings\"\n"
+"        guibutton \"about..\"          \"showgui about\"\n"
+"        guibutton \"quit\"             \"quit\"                 \"exit\"\n"
+"    ]\n"
+"] 0\n"
+"]";
+
+const char *hud_settings_gui =
+"newgui hud_settings [\n"
+    "guicheckbox \"Colored health\" coloredhealth\n"
+    "guicheckbox \"Colored ammo\" coloredammo\n"
+    "guistrut 1\n"
 
     "guitab \"Lagometer\"\n"
 
@@ -729,7 +784,7 @@ const char *extended_settings_gui =
     "guislider newhud_ammopos_y\n"
 
 
-    "guitab \"Spec\"\n"
+    "guitab \"Spectator\"\n"
 
     "guititle \"Warning: Settings have effect only when new HUD is enabled\"\n"
     "guicheckbox \"Enable new HUD\" newhud\n"
@@ -774,22 +829,22 @@ const char *extended_settings_gui =
     "guislider newhud_itemspos_y\n"
 
     
-    "guitab \"Chat\"\n"
+    "guitab \"Minicon\"\n"
 
     "guititle \"Warning: Settings have effect only when new HUD is enabled\"\n"
     "guicheckbox \"Enable new HUD\" newhud\n"
     "guistrut 1\n"
     
     "guititle \"New HUD chat and system output settings\"\n"
-    "guitext \"Chat Y offset:\" 0\n"
+    "guitext \"Minicon Y offset:\" 0\n"
     "guislider newhud_miniconoffset\n"
     "guistrut 1\n"
 
-    "guitext \"Chat lines:\" 0\n"
+    "guitext \"Minicon lines:\" 0\n"
     "guislider newhud_miniconsize\n"
     "guistrut 1\n"
 
-    "guitext \"Chat width:\" 0\n"
+    "guitext \"Minicon width:\" 0\n"
     "guislider newhud_miniconwidth\n"
     "guistrut 1\n"
 
@@ -798,61 +853,10 @@ const char *extended_settings_gui =
     "guicheckbox \"Show game HUD in the last line\" newhud_sysoutgamehudlast\n"
     "guistrut 1\n"
 
-
-"] \"Settings\" \n";
-
-
-const char *players_menu =
-"newgui players [\n"
-    "guistayopen [\n"
-            "guiplayers ""\n"
-    "]\n"
-"] \n";
-
-
-const char *new_main_menu =
-"if $usenewmainmenu [\n"
-"newgui main [\n"
-"    guilist [\n"
-"        guitext \"name: \" (playermodelicon)\n"
-"        newname = (getname)\n"
-"        guifield newname 15 [name $newname]\n"
-"    ]\n"
-"    guibutton (concat \"model:\" (playermodelname)) [guirolloveraction = (playermodelbutton $playermodel); showgui playermodel] (playermodelicon)\n"
-"    guilist [\n"
-"        guibutton \"crosshair: \" [showgui crosshair] (playermodelicon)\n"
-"        guiimage (getcrosshair) [showgui crosshair] 0.5\n"
-"    ]\n"
-"    guibar\n"
-"    guibutton \"server browser..\"  \"showgui servers\"\n"
-"    guibutton \"players..\"  \"showgui players\"\n"
-"    if (isconnected) [\n"
-"        guibar\n"
-"        if (|| $editing (m_edit (getmode))) [\n"
-"            guibutton \"editing..\" \"showgui editing\"\n"
-"        ]\n"
-"        guibutton \"vote game mode / map..\" \"showgui gamemode\"\n"
-"        guibutton \"switch team\" [if (strcmp (getteam) \"good\") [team evil] [team good]]\n"
-"        guibutton \"toggle spectator\" [spectator (! (isspectator (getclientnum)))] \"spectator\"\n"
-"        guibutton \"master..\" [showgui master]\n"
-"        guibar\n"
-"        guibutton \"options..\"  \"showgui options\"\n"
-"        guibutton \"new options..\"  \"showgui extended_settings\"\n"
-"        guibutton \"disconnect\" \"disconnect\"         \"exit\"\n"
-"    ] [\n"
-"        guibutton \"bot match..\"      \"showgui botmatch\"\n"
-"        guibutton \"campaign..\"       \"showgui campaign\"\n"
-"        guibar\n"
-"        guibutton \"options..\"        \"showgui options\"\n"
-"        guibutton \"new options..\"  \"showgui extended_settings\"\n"
-"        guibutton \"about..\"          \"showgui about\"\n"
-"        guibutton \"quit\"             \"quit\"                 \"exit\"\n"
-"    ]\n"
-"] 0\n"
-"]";
-
+"] \"HUD Settings\"\n";
 
 const char *game_scripts[] = { extended_settings_gui,
+                               hud_settings_gui,
                                hud_old,
                                hud_old_extended,
                                hud_new1,
