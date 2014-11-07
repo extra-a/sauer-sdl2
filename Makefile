@@ -453,7 +453,7 @@ fpsgame/entities.o: shared/ents.h shared/command.h shared/iengine.h
 fpsgame/entities.o: shared/igame.h fpsgame/ai.h
 fpsgame/fps.o: fpsgame/game.h shared/cube.h shared/tools.h shared/geom.h
 fpsgame/fps.o: shared/ents.h shared/command.h shared/iengine.h shared/igame.h
-fpsgame/fps.o: fpsgame/ai.h
+fpsgame/fps.o: fpsgame/ai.h fpsgame/extendedscripts.h
 fpsgame/monster.o: fpsgame/game.h shared/cube.h shared/tools.h shared/geom.h
 fpsgame/monster.o: shared/ents.h shared/command.h shared/iengine.h
 fpsgame/monster.o: shared/igame.h fpsgame/ai.h
