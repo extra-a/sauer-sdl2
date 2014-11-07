@@ -2805,14 +2805,20 @@ bool playersentrysort (const playersentry& p1, const playersentry& p2) {
 }
 
 static void onconnectseq(g3d_gui *g, playersentry &e) {
-    connectserver(e.shost, e.sport);
+    g->poplist();
+    g->mergehits(false);
     g->poplist();
     g->allowautotab(true);
+    connectserver(e.shost, e.sport);
 }
+
+VAR(stopplayerssearch, 0, 0, 1);
 
 bool needsearch = false;
 void showplayersgui(g3d_gui *g, uint *name) {
-    needsearch = true;
+    if(!stopplayerssearch) {
+        needsearch = true;
+    }
     vector<serverinfodata *> v = getservers();
     vector<playersentry> pe;
     loopv(v) {
@@ -2820,7 +2826,9 @@ void showplayersgui(g3d_gui *g, uint *name) {
         if(!s) continue;
         serverpreviewdata *p = static_cast<serverpreviewdata *>(s->gameinfo);
         if(!p || s->ping == serverinfodata::WAITING) continue;
-        p->checkdisconected(DISCONNECTEDINTERVAL);
+        if(!stopplayerssearch) {
+            p->checkdisconected(DISCONNECTEDINTERVAL);
+        }
         loopj(p->nplayers) {
             int mode = 0, maxplayers = 0, icon = 0;
             if( s->attr.length() >= 4 ) {
@@ -2841,6 +2849,13 @@ void showplayersgui(g3d_gui *g, uint *name) {
     g->allowautotab(false);
     loopi( len/maxcount + 1 ) {
         if(i>0 && k<len) g->tab();
+        g->pushlist();
+        g->spring();
+        if(g->button("stop updating", 0xFFFFDD, stopplayerssearch ? "radio_on" : "radio_off")&G3D_UP) {
+            stopplayerssearch = !stopplayerssearch;
+        }
+        g->poplist();
+        g->separator();
 
         g->pushlist();
         g->mergehits(true);
