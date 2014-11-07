@@ -391,6 +391,7 @@ static bool isignoredserver(serverinfo *si) {
     return false;
 }
 
+
 static serverinfo *newserver(const char *name, int port, uint ip = ENET_HOST_ANY)
 {
 
@@ -724,6 +725,17 @@ void connectselected()
 
 COMMAND(connectselected, "");
 
+void connectserver(const char* host, int port) {
+    loopv(servers) {
+        serverinfo *s = servers[i];
+        if(!strcmp(s->name, host) && (s->port = port)) {
+            selectedserver = s;
+            connectselected();
+            return;
+        }
+    }
+    selectedserver = NULL;
+}
 
 void clearservers(bool full = false)
 {

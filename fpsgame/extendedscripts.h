@@ -801,6 +801,15 @@ const char *extended_settings_gui =
 
 "] \"Settings\" \n";
 
+
+const char *players_menu =
+"newgui players [\n"
+    "guistayopen [\n"
+            "guiplayers ""\n"
+    "]\n"
+"] \n";
+
+
 const char *new_main_menu =
 "if $usenewmainmenu [\n"
 "newgui main [\n"
@@ -816,6 +825,7 @@ const char *new_main_menu =
 "    ]\n"
 "    guibar\n"
 "    guibutton \"server browser..\"  \"showgui servers\"\n"
+"    guibutton \"players..\"  \"showgui players\"\n"
 "    if (isconnected) [\n"
 "        guibar\n"
 "        if (|| $editing (m_edit (getmode))) [\n"
@@ -827,14 +837,14 @@ const char *new_main_menu =
 "        guibutton \"master..\" [showgui master]\n"
 "        guibar\n"
 "        guibutton \"options..\"  \"showgui options\"\n"
-"        guibutton \"new settings..\"  \"showgui extended_settings\"\n"
+"        guibutton \"new options..\"  \"showgui extended_settings\"\n"
 "        guibutton \"disconnect\" \"disconnect\"         \"exit\"\n"
 "    ] [\n"
 "        guibutton \"bot match..\"      \"showgui botmatch\"\n"
 "        guibutton \"campaign..\"       \"showgui campaign\"\n"
 "        guibar\n"
 "        guibutton \"options..\"        \"showgui options\"\n"
-"        guibutton \"new settings..\"  \"showgui extended_settings\"\n"
+"        guibutton \"new options..\"  \"showgui extended_settings\"\n"
 "        guibutton \"about..\"          \"showgui about\"\n"
 "        guibutton \"quit\"             \"quit\"                 \"exit\"\n"
 "    ]\n"
@@ -847,6 +857,7 @@ const char *game_scripts[] = { extended_settings_gui,
                                hud_old_extended,
                                hud_new1,
                                hud_new2,
+                               players_menu,
                                new_main_menu,
                                0 };
 

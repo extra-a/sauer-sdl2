@@ -640,7 +640,7 @@ namespace game
         enet_socket_send(extsock, &address, &buf, 1);
     }
 
-    #define DISCONNECTEDINTERVAL 5000
+    #define DISCONNECTEDINTERVAL 10000
 
     void checkservergameinfo() {
         ENetSocket extsock = getextsock2();
@@ -671,24 +671,6 @@ namespace game
             }
         }
     }
-
-    int listplayers() {
-        vector<serverinfodata *> v = getservers();
-        loopv(v) {
-            serverinfodata* s = v[i];
-            if(!s) continue;
-            serverpreviewdata *p = static_cast<serverpreviewdata *>(s->gameinfo);
-            if(!p || s->ping == serverinfodata::WAITING) continue;
-            p->checkdisconected(DISCONNECTEDINTERVAL);
-            loopj(p->nplayers) {
-                conoutf("%s(%d) %40s %30s:%d", p->players[j].name, p->players[j].cn, s->sdesc, s->name, s->port);
-            }
-        }
-        return 0;
-    }
-
-    ICOMMAND(listplayers, "", (), intret(listplayers()));
-
 
     extern const char* getcurrentteam();
 
@@ -2775,4 +2757,74 @@ void cleangameinfo(void* p) {
     if(!p) return;
     serverpreviewdata *s = (serverpreviewdata*) p;
     delete s;
+}
+
+struct playersentry {
+    const char* pname;
+    const char* sdesc;
+    const char* shost;
+    int sport;
+
+    playersentry() {
+        pname = "";
+        sdesc = "";
+        shost = "";
+        sport = 0;
+    }
+
+    playersentry(const char* name, const char* desc, const char* host, int port) {
+        pname = name;
+        sdesc = desc;
+        shost = host;
+        sport = port;
+    }
+
+};
+
+bool playersentrysort (const playersentry& p1, const playersentry& p2) {
+    int r = strncmp(p1.pname, p2.pname, MAXEXTNAMELENGHT);
+    if(r) return r < 0;
+    return strncmp(p1.sdesc, p2.sdesc, MAXSERVSTRING) < 0;
+}
+
+bool needsearch = false;
+void showplayersgui(g3d_gui *g, uint *name) {
+    needsearch = true;
+    vector<serverinfodata *> v = getservers();
+    vector<playersentry> pe;
+    loopv(v) {
+        serverinfodata* s = v[i];
+        if(!s) continue;
+        serverpreviewdata *p = static_cast<serverpreviewdata *>(s->gameinfo);
+        if(!p || s->ping == serverinfodata::WAITING) continue;
+        p->checkdisconected(DISCONNECTEDINTERVAL);
+        loopj(p->nplayers) {
+            pe.add(playersentry(p->players[j].name, s->sdesc, s->name, s->port));
+        }
+    }
+
+    pe.sort(playersentrysort);
+    int count = 1;
+    g->allowautotab(false);
+    loopv(pe) {
+        playersentry e = pe[i];
+        if(count >= 30) {
+            count = 1;
+            g->tab();
+        }
+        g->pushlist();
+        if(g->buttonf("%s  ", 0xFFFFDD, NULL, e.pname)&G3D_UP) {
+            connectserver(e.shost, e.sport);
+            g->poplist();
+            return;
+        };
+        g->spring();
+        if(g->buttonf("%80s (%s:%d)", 0xFFFFDD, NULL, e.sdesc, e.shost, e.sport)&G3D_UP) {
+            connectserver(e.shost, e.sport);
+            g->poplist();
+            return;
+        }
+        g->poplist();
+        count++;
+    }
 }

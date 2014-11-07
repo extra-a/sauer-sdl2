@@ -597,4 +597,5 @@ extern void saveservergameinfo(ENetAddress address, void *pdata);
 extern void* getservergameinfo(ENetAddress address);
 extern void forceinitservers();
 extern void refreshservers();
+extern void connectserver(const char* host, int port);
 extern vector<serverinfodata *> getservers();

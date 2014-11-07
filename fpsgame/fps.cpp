@@ -2,6 +2,7 @@
 #include "extendedscripts.h"
 
 extern int getpacketloss();
+extern bool needsearch;
 float staticscale = 0.33;
 
 namespace game
@@ -338,9 +339,6 @@ namespace game
     XIDENTHOOK(dumpstatsongameend, IDF_EXTENDED);
     ICOMMAND(dumpstats, "", (), dumpstats());
 
-    VARP(autoupdateplayerslist, 0, 0, 1);
-    XIDENTHOOK(autoupdateplayerslist, IDF_EXTENDED);
-
     extern void checkseserverinfo();
     extern void checkextinfos();
     extern void checkservergameinfo();
@@ -348,10 +346,11 @@ namespace game
         checkseserverinfo();
         checkextinfos();
         checkservergameinfo();
-        if(autoupdateplayerslist) {
+        if(needsearch) {
             forceinitservers();
             refreshservers();
         }
+        needsearch = false;
     }
 
     extern void checkseek();

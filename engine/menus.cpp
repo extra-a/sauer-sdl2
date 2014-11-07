@@ -566,6 +566,13 @@ void guiservers(uint *header, int *pagemin, int *pagemax)
     }
 }
 
+void guiplayers(uint* name) {
+    extern void showplayersgui(g3d_gui *cgui, uint *name);
+    if(cgui) {
+        showplayersgui(cgui, name);
+    }
+}
+
 void notifywelcome()
 {
     if(guiserversmenu)
@@ -579,6 +586,7 @@ COMMAND(newgui, "ssss");
 COMMAND(guibutton, "sss");
 COMMAND(guitext, "ss");
 COMMAND(guiservers, "eii");
+COMMAND(guiplayers, "e");
 ICOMMAND(cleargui, "i", (int *n), intret(cleargui(*n)));
 COMMAND(showgui, "s");
 COMMAND(hidegui, "s");
