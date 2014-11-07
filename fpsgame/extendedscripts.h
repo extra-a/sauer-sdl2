@@ -482,7 +482,7 @@ const char *extended_settings_gui =
     "guibar\n"
     "guistrut 1\n"
 
-"] \"Settings\" \n";
+"] \"General\" \n";
 
 
 const char *players_menu =
@@ -853,7 +853,7 @@ const char *hud_settings_gui =
     "guicheckbox \"Show game HUD in the last line\" newhud_sysoutgamehudlast\n"
     "guistrut 1\n"
 
-"] \"HUD Settings\"\n";
+"] \"General\"\n";
 
 const char *game_scripts[] = { extended_settings_gui,
                                hud_settings_gui,
