@@ -2804,12 +2804,26 @@ bool playersentrysort (const playersentry& p1, const playersentry& p2) {
     return strncmp(p1.sdesc, p2.sdesc, MAXSERVSTRING) < 0;
 }
 
+extern int showserverpreviews;
+
+static char prevhost[100];
+static int prevport;
+static bool playersserverpreview = false;
+
 static void onconnectseq(g3d_gui *g, playersentry &e) {
     g->poplist();
     g->mergehits(false);
     g->poplist();
     g->allowautotab(true);
-    connectserver(e.shost, e.sport);
+
+    if(showserverpreviews) {
+        playersserverpreview = true;
+        strncpy(prevhost, e.shost, 100);
+        prevport = e.sport;
+        game::setserverpreview(prevhost, prevport);
+    } else {
+        connectserver(e.shost, e.sport);
+    }
 }
 
 VAR(stopplayerssearch, 0, 0, 1);
@@ -2819,6 +2833,26 @@ bool needsearch = false;
 void showplayersgui(g3d_gui *g, uint *name) {
     if(!stopplayerssearch) {
         needsearch = true;
+    }
+    if(playersserverpreview) {
+        g->allowautotab(false);
+        int cmd = game::showserverpreview(g);
+        switch(cmd) {
+        case 0:
+            g->allowautotab(true);
+            return;
+        case 1:
+            g->allowautotab(true);
+            playersserverpreview = false;
+            connectserver(prevhost, prevport);
+            return;
+        case -1:
+            g->allowautotab(true);
+            playersserverpreview = false;
+            return;
+        }
+        g->allowautotab(true);
+        return;
     }
     vector<serverinfodata *> v = getservers();
     vector<playersentry> p0, pe;
