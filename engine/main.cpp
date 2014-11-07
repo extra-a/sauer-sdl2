@@ -1342,9 +1342,11 @@ int main(int argc, char **argv)
         const char **gamescripts = game::getgamescripts();
         if(gamescripts) {
             logoutf("init: extended game scripts");
+            identflags &= ~IDF_PERSIST;
             for (int i = 0; gamescripts[i] != 0; i++)  {
                 executestr(gamescripts[i]);
             }
+            identflags |= IDF_PERSIST;
         }
     }
 
