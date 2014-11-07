@@ -95,7 +95,8 @@ namespace game
     extern void setserverpreview(const char *servername, int serverport);
     extern int showserverpreview(g3d_gui *g);
     extern bool needminimap();
-} 
+    extern void requestgameinfo(ENetAddress address);
+}
  
 namespace server
 {
@@ -127,4 +128,3 @@ namespace server
     extern bool ispaused();
     extern int scaletime(int t);
 }
-

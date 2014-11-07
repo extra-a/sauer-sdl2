@@ -1,7 +1,6 @@
 #include "game.h"
 #include "extendedscripts.h"
 
-extern int newhud;
 extern int getpacketloss();
 float staticscale = 0.33;
 
@@ -339,11 +338,20 @@ namespace game
     XIDENTHOOK(dumpstatsongameend, IDF_EXTENDED);
     ICOMMAND(dumpstats, "", (), dumpstats());
 
-    extern void checkextinfos();
+    VARP(autoupdateplayerslist, 0, 0, 1);
+    XIDENTHOOK(autoupdateplayerslist, IDF_EXTENDED);
+
     extern void checkseserverinfo();
+    extern void checkextinfos();
+    extern void checkservergameinfo();
     void checkgameinfo() {
         checkseserverinfo();
         checkextinfos();
+        checkservergameinfo();
+        if(autoupdateplayerslist) {
+            forceinitservers();
+            refreshservers();
+        }
     }
 
     extern void checkseek();

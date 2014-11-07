@@ -6,7 +6,6 @@
 #define EXT_TEAMSCORE                   2
 #define EXT_VERSION                     105
 
-extern int newhud;
 extern float staticscale;
 
 namespace server
@@ -41,7 +40,7 @@ namespace game
         ENetAddress address = *paddress;
         ENetSocket extsock = getextsock();
         if(extsock == ENET_SOCKET_NULL) return;
-        address.port = address.port+1;
+        address.port = server::serverinfoport(address.port);
         ENetBuffer buf;
         uchar send[MAXTRANS];
         ucharbuf p(send, MAXTRANS);
@@ -102,7 +101,8 @@ namespace game
         const ENetAddress *paddress = connectedpeer();
         if(!paddress) return;
         ENetAddress connectedaddress = *paddress;
-        if(extinfosock == ENET_SOCKET_NULL) return;
+        ENetSocket extsock = getextsock();
+        if(extsock == ENET_SOCKET_NULL) return;
         enet_uint32 events = ENET_SOCKET_WAIT_RECEIVE;
         int s = 0;
         ENetBuffer buf;
@@ -110,10 +110,10 @@ namespace game
         uchar data[MAXTRANS];
         buf.data = data;
         buf.dataLength = sizeof(data);
-        while((s = enet_socket_wait(extinfosock, &events, 0)) >= 0 && events) {
-            int len = enet_socket_receive(extinfosock, &address, &buf, 1);
+        while((s = enet_socket_wait(extsock, &events, 0)) >= 0 && events) {
+            int len = enet_socket_receive(extsock, &address, &buf, 1);
             if(len <= 0 || connectedaddress.host != address.host ||
-               connectedaddress.port+1 != address.port) continue;
+               server::serverinfoport(connectedaddress.port) != address.port) continue;
             ucharbuf p(data, len);
             struct extplayerdata extpdata;
             if(!extplayershelper(p, extpdata)) {
@@ -279,7 +279,7 @@ namespace game
         lastpreviewdata.reset();
         if(enet_address_set_host( &lastpreviewdata.servaddress, servername) < 0) return;
         if(serverport) {
-            lastpreviewdata.servaddress.port = serverport+1;
+            lastpreviewdata.servaddress.port = server::serverinfoport(serverport);
         } else {
             lastpreviewdata.servaddress.port = SAUERBRATEN_SERVINFO_PORT;
         }
@@ -321,6 +321,7 @@ namespace game
                 break;
             case 2:
                 lastpreviewdata.addplayer(pdata);
+                lastpreviewdata.checkdisconected(SERVUPDATEINTERVAL + 2*SERVUPDATETEAMGAP);
                 break;
             case 3:
                 lastpreviewdata.tinfo.update(tdata);
@@ -613,6 +614,81 @@ namespace game
     }
 
     ICOMMAND(demoseek, "ii", (int *min, int *sec), demoseek(*min, *sec));
+
+    ENetSocket extinfosock2 = ENET_SOCKET_NULL;
+
+    ENetSocket getextsock2()
+    {
+        if(extinfosock2 != ENET_SOCKET_NULL) return extinfosock2;
+        extinfosock2 = enet_socket_create(ENET_SOCKET_TYPE_DATAGRAM);
+        enet_socket_set_option(extinfosock2, ENET_SOCKOPT_NONBLOCK, 1);
+        enet_socket_set_option(extinfosock2, ENET_SOCKOPT_BROADCAST, 1);
+        return extinfosock2;
+    }
+
+    void requestgameinfo(ENetAddress address) {
+        ENetSocket extsock = getextsock2();
+        if(!extsock) return;
+        ENetBuffer buf;
+        uchar send[MAXTRANS];
+        ucharbuf p(send, MAXTRANS);
+        putint(p, 0);
+        putint(p, EXT_PLAYERSTATS);
+        putint(p, -1);
+        buf.data = send;
+        buf.dataLength = p.length();
+        enet_socket_send(extsock, &address, &buf, 1);
+    }
+
+    #define DISCONNECTEDINTERVAL 5000
+
+    void checkservergameinfo() {
+        ENetSocket extsock = getextsock2();
+        if(!extsock) return;
+        enet_uint32 events = ENET_SOCKET_WAIT_RECEIVE;
+        int s = 0;
+        ENetBuffer buf;
+        ENetAddress address;
+        uchar data[MAXTRANS];
+        buf.data = data;
+        buf.dataLength = sizeof(data);
+        while((s = enet_socket_wait(extsock, &events, 0)) >= 0 && events) {
+            int len = enet_socket_receive(extsock, &address, &buf, 1);
+            if(len <= 0) continue;
+            ucharbuf p(data, len);
+            struct extplayerdata extpdata;
+            if(!extplayershelper(p, extpdata)) {
+                void *p = getservergameinfo(address);
+                struct serverpreviewdata *pr;
+                if(!p) {
+                    pr = new serverpreviewdata;
+                } else {
+                    pr = (struct serverpreviewdata*) p;
+                }
+                pr->addplayer(extpdata);
+                pr->checkdisconected(DISCONNECTEDINTERVAL);
+                saveservergameinfo(address, pr);
+            }
+        }
+    }
+
+    int listplayers() {
+        vector<serverinfodata *> v = getservers();
+        loopv(v) {
+            serverinfodata* s = v[i];
+            if(!s) continue;
+            serverpreviewdata *p = static_cast<serverpreviewdata *>(s->gameinfo);
+            if(!p || s->ping == serverinfodata::WAITING) continue;
+            p->checkdisconected(DISCONNECTEDINTERVAL);
+            loopj(p->nplayers) {
+                conoutf("%s(%d) %40s %30s:%d", p->players[j].name, p->players[j].cn, s->sdesc, s->name, s->port);
+            }
+        }
+        return 0;
+    }
+
+    ICOMMAND(listplayers, "", (), intret(listplayers()));
+
 
     extern const char* getcurrentteam();
 
@@ -2695,3 +2771,8 @@ namespace game
     COMMAND(gotosel, "");
 }
 
+void cleangameinfo(void* p) {
+    if(!p) return;
+    serverpreviewdata *s = (serverpreviewdata*) p;
+    delete s;
+}

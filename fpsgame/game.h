@@ -663,6 +663,7 @@ struct extplayerdata {
     int gunselect;
     int privilege;
     int state;
+    int lastseen;
     extplayerdata() {
         cn = 0;
         ping = 0;
@@ -678,6 +679,7 @@ struct extplayerdata {
         gunselect = 0;
         privilege = 0;
         state = 0;
+        lastseen = totalmillis;
     }
     void reset() {
         cn = 0;
@@ -694,6 +696,7 @@ struct extplayerdata {
         gunselect = 0;
         privilege = 0;
         state = 0;
+        lastseen = totalmillis;
     }
     void update(const struct extplayerdata& ndata) {
         cn = ndata.cn;
@@ -712,6 +715,7 @@ struct extplayerdata {
         gunselect = ndata.gunselect;
         privilege = ndata.privilege;
         state = ndata.state;
+        lastseen = totalmillis;
     }
     extplayerdata(const struct extplayerdata& ndata) {
         update(ndata);
@@ -771,10 +775,25 @@ struct serverpreviewdata {
             nplayers++;
         }
     }
+    void removeplayer(int n) {
+        if(nplayers > 0 && n < nplayers) {
+            nplayers--;
+            loopi(nplayers-n) {
+                players[n+i] = players[n+i+1];
+            }
+        }
+    }
+    void checkdisconected(int timeout) {
+        loopi(nplayers) {
+            if(players[i].lastseen + timeout < totalmillis) {
+                removeplayer(i);
+            }
+        }
+    }
 };
 
 #define MAXEXTRETRIES 2
-#define EXTRETRIESINT 1000
+#define EXTRETRIESINT 500
 #define EXTREFRESHINT 3000
 struct extplayerinfo
 {

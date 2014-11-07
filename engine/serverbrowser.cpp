@@ -263,27 +263,15 @@ enum { UNRESOLVED = 0, RESOLVING, RESOLVED };
 VARP(keepserverprio, 0, 1, 1);
 XIDENTHOOK(keepserverprio, IDF_EXTENDED);
 
-struct serverinfo : pingattempts
+struct serverinfo : pingattempts, serverinfodata
 {
-    enum 
-    { 
-        WAITING = INT_MAX,
-
-        MAXPINGS = 3
-    };
-
-    string name, map, sdesc;
-    int port, numplayers, resolved, ping, lastping, nextping;
+    int resolved, lastping, nextping;
     int pings[MAXPINGS];
-    vector<int> attr;
-    ENetAddress address;
     bool keep;
     const char *password;
 
-    serverinfo()
-        : port(-1), numplayers(0), resolved(UNRESOLVED), keep(false), password(NULL)
+    serverinfo() : resolved(UNRESOLVED), keep(false), password(NULL)
     {
-        name[0] = map[0] = sdesc[0] = '\0';
         clearpings();
         setoffset();
     }
@@ -363,6 +351,36 @@ vector<serverinfo *> servers;
 vector<serverinfo *> ignoredservers;
 ENetSocket pingsock = ENET_SOCKET_NULL;
 int lastinfo = 0;
+
+vector<serverinfodata *> getservers() {
+    vector<serverinfodata *> result;
+    loopv(servers) {
+        serverinfodata* d = static_cast<serverinfodata*>(servers[i]);
+        result.add(d);
+    }
+    return result;
+}
+
+void saveservergameinfo(ENetAddress address, void *pdata) {
+    loopv(servers) {
+        serverinfo *s = servers[i];
+        if(s->address.host == address.host && s->address.port == address.port) {
+            s->gameinfo = pdata;
+            return;
+        }
+    }
+    cleangameinfo(pdata);
+}
+
+void* getservergameinfo(ENetAddress address) {
+    loopv(servers) {
+        serverinfo *s = servers[i];
+        if(s->address.host == address.host && s->address.port == address.port) {
+            return s->gameinfo;
+        }
+    }
+    return NULL;
+}
 
 static bool isignoredserver(serverinfo *si) {
     loopv(ignoredservers) {
@@ -509,7 +527,8 @@ void pingservers()
         if(si.address.host == ENET_HOST_ANY) continue;
         buildping(buf, ping, si);
         enet_socket_send(pingsock, &si.address, &buf, 1);
-        
+        game::requestgameinfo(si.address);
+
         si.checkdecay(servpingdecay);
     }
     if(searchlan)
@@ -519,6 +538,7 @@ void pingservers()
         address.port = server::laninfoport();
         buildping(buf, ping, lanpings);
         enet_socket_send(pingsock, &address, &buf, 1);
+        game::requestgameinfo(address);
     }
     lastinfo = totalmillis;
 }
@@ -622,6 +642,7 @@ void refreshservers()
 
     checkresolver();
     checkpings();
+
     if(totalmillis - lastinfo >= servpingrate/(maxservpings ? max(1, (servers.length() + maxservpings - 1) / maxservpings) : 1)) pingservers();
     if(autosortservers) sortservers();
 }
@@ -674,7 +695,7 @@ const char *showservers(g3d_gui *cgui, uint *header, int pagemin, int pagemax)
                 serverinfo &si = *servers[j];
                 const char *sdesc = si.sdesc;
                 if(si.address.host == ENET_HOST_ANY) sdesc = "[unknown host]";
-                else if(si.ping == serverinfo::WAITING) sdesc = "[waiting for response]";
+                else if(si.ping == serverinfodata::WAITING) sdesc = "[waiting for response]";
                 if(game::serverinfoentry(cgui, i, si.name, si.port, sdesc, si.map, sdesc == si.sdesc ? si.ping : -1, si.attr, si.numplayers))
                     sc = &si;
             }
@@ -788,6 +809,14 @@ void initservers()
 {
     selectedserver = NULL;
     if(autoupdateservers && !updatedservers) updatefrommaster();
+}
+
+void forceinitservers()
+{
+    if(!updatedservers) {
+        selectedserver = NULL;
+        updatefrommaster();
+    }
 }
 
 ICOMMAND(addserver, "sis", (const char *name, int *port, const char *password), addserver(name, *port, password[0] ? password : NULL));
