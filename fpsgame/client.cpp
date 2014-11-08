@@ -2826,8 +2826,21 @@ static void onconnectseq(g3d_gui *g, playersentry &e) {
     }
 }
 
-VAR(stopplayerssearch, 0, 0, 1);
 static char savedfilter[MAXEXTNAMELENGHT];
+static void filterheader(g3d_gui *g, int& stopplayerssearch) {
+    g->pushlist();
+    g->textf("Quick filter ", 0xFFFFDD, NULL);
+    const char* filter = g->field("", 0xFFFFFF, MAXEXTNAMELENGHT-1, 0, savedfilter);
+    if(filter) strncpy(savedfilter, filter, MAXEXTNAMELENGHT-1);
+    g->spring();
+    if(g->button("stop updating", 0xFFFFDD, stopplayerssearch ? "radio_on" : "radio_off")&G3D_UP) {
+        stopplayerssearch = !stopplayerssearch;
+    }
+    g->poplist();
+    g->separator();
+}
+
+VAR(stopplayerssearch, 0, 0, 1);
 
 bool needsearch = false;
 void showplayersgui(g3d_gui *g, uint *name) {
@@ -2839,7 +2852,6 @@ void showplayersgui(g3d_gui *g, uint *name) {
         int cmd = game::showserverpreview(g);
         switch(cmd) {
         case 0:
-            g->allowautotab(true);
             return;
         case 1:
             g->allowautotab(true);
@@ -2879,19 +2891,8 @@ void showplayersgui(g3d_gui *g, uint *name) {
     }
 
     g->allowautotab(false);
-    g->pushlist();
-    g->textf("Quick filter ", 0xFFFFDD, NULL);
-    const char* filter = g->field("", 0xFFFFFF, MAXEXTNAMELENGHT-1, 0, savedfilter);
-    g->spring();
-    if(g->button("stop updating", 0xFFFFDD, stopplayerssearch ? "radio_on" : "radio_off")&G3D_UP) {
-        stopplayerssearch = !stopplayerssearch;
-    }
-    g->poplist();
-    g->separator();
+    filterheader(g, stopplayerssearch);
 
-    if(filter) {
-        strncpy(savedfilter, filter, MAXEXTNAMELENGHT-1);
-    }
     if(strnlen(savedfilter, MAXEXTNAMELENGHT-1) > 0) {
         loopv(p0) {
             if(strstr( p0[i].pname, savedfilter) != NULL) {
@@ -2902,20 +2903,13 @@ void showplayersgui(g3d_gui *g, uint *name) {
         pe = p0;
     }
     pe.sort(playersentrysort);
+
     int len = pe.length(), k = 0, kt = 0, maxcount = 30;
 
     loopi( len/maxcount + 1 ) {
         if(i>0 && k<len) {
             g->tab();
-            g->pushlist();
-            g->textf("Quick filter ", 0xFFFFDD, NULL);
-            g->field("", 0xFFFFFF, MAXEXTNAMELENGHT-1, 0, savedfilter);
-            g->spring();
-            if(g->button("stop updating", 0xFFFFDD, stopplayerssearch ? "radio_on" : "radio_off")&G3D_UP) {
-                stopplayerssearch = !stopplayerssearch;
-            }
-            g->poplist();
-            g->separator();
+            filterheader(g, stopplayerssearch);
         }
 
         g->pushlist();
