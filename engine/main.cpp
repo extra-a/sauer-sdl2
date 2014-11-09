@@ -31,6 +31,7 @@ void quit()                     // normal exit
     disconnect();
     localdisconnect();
     writecfg();
+    writeextendedcfg();
     cleanup();
     exit(EXIT_SUCCESS);
 }

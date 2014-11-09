@@ -2267,9 +2267,7 @@ static inline bool sortidents(ident *x, ident *y)
 void writecfg(const char *name)
 {
     stream *f = openutf8file(path(name && name[0] ? name : game::savedconfig(), true), "w");
-    stream *extf = openutf8file(path("extendedconfig.cfg", true), "w");
     if(!f) return;
-    if(!extf) return;
     f->printf("// automatically written on exit, DO NOT MODIFY\n// delete this file to have %s overwrite these settings\n// modify settings in game, or put settings in %s to override anything\n\n", game::defaultconfig(), game::autoexec());
     game::writeclientinfo(f);
     f->printf("\n");
@@ -2280,37 +2278,35 @@ void writecfg(const char *name)
     loopv(ids)
     {
         ident &id = *ids[i];
-        if(id.flags&IDF_PERSIST){
-        	stream* t=id.flags&IDF_EXTENDED?extf:f;
-        	switch(id.type){
-                case ID_VAR: t->printf("%s %d\n", escapeid(id), *id.storage.i); break;
-                case ID_FVAR: t->printf("%s %s\n", escapeid(id), floatstr(*id.storage.f)); break;
-                case ID_SVAR: t->printf("%s %s\n", escapeid(id), escapestring(*id.storage.s)); break;
-        	}
+        if(id.flags&IDF_PERSIST && !(id.flags&IDF_EXTENDED)) {
+            switch(id.type) {
+            case ID_VAR: f->printf("%s %d\n", escapeid(id), *id.storage.i); break;
+            case ID_FVAR: f->printf("%s %s\n", escapeid(id), floatstr(*id.storage.f)); break;
+            case ID_SVAR: f->printf("%s %s\n", escapeid(id), escapestring(*id.storage.s)); break;
+            }
         }
     }
     f->printf("\n");
-    extf->printf("\n");
     writebinds(f);
     f->printf("\n");
     loopv(ids)
     {
         ident &id = *ids[i];
-        stream* t=id.flags&IDF_EXTENDED?extf:f;
-        if(id.type==ID_ALIAS && id.flags&IDF_PERSIST && !(id.flags&IDF_OVERRIDDEN)) switch(id.valtype)
-        {
-        case VAL_STR:
-            if(!id.val.s[0]) break;
-            if(!validateblock(id.val.s)) { t->printf("%s = %s\n", escapeid(id), escapestring(id.val.s)); break; }
-        case VAL_FLOAT:
-        case VAL_INT: 
-            t->printf("%s = [%s]\n", escapeid(id), id.getstr()); break;
+        if(id.type==ID_ALIAS && id.flags&IDF_PERSIST && !(id.flags&IDF_EXTENDED)
+           && !(id.flags&IDF_OVERRIDDEN)) {
+            switch(id.valtype)
+                {
+                case VAL_STR:
+                    if(!id.val.s[0]) break;
+                    if(!validateblock(id.val.s)) { f->printf("%s = %s\n", escapeid(id), escapestring(id.val.s)); break; }
+                case VAL_FLOAT:
+                case VAL_INT:
+                    f->printf("%s = [%s]\n", escapeid(id), id.getstr()); break;
+                }
         }
     }
     f->printf("\n");
-    extf->printf("\n");
     writecompletions(f);
-    delete extf;
     delete f;
 }
 
@@ -2327,11 +2323,10 @@ void writeextendedcfg(const char *name)
     {
         ident &id = *ids[i];
         if(id.flags&IDF_PERSIST && id.flags&IDF_EXTENDED) {
-            stream* t=extf;
             switch(id.type) {
-            case ID_VAR: t->printf("%s %d\n", escapeid(id), *id.storage.i); break;
-            case ID_FVAR: t->printf("%s %s\n", escapeid(id), floatstr(*id.storage.f)); break;
-            case ID_SVAR: t->printf("%s %s\n", escapeid(id), escapestring(*id.storage.s)); break;
+            case ID_VAR: extf->printf("%s %d\n", escapeid(id), *id.storage.i); break;
+            case ID_FVAR: extf->printf("%s %s\n", escapeid(id), floatstr(*id.storage.f)); break;
+            case ID_SVAR: extf->printf("%s %s\n", escapeid(id), escapestring(*id.storage.s)); break;
             }
         }
     }
@@ -2341,16 +2336,15 @@ void writeextendedcfg(const char *name)
         ident &id = *ids[i];
         if(id.type==ID_ALIAS && id.flags&IDF_PERSIST && id.flags&IDF_EXTENDED
            && !(id.flags&IDF_OVERRIDDEN)) {
-            stream* t=extf;
             switch(id.valtype)
                 {
                 case VAL_STR:
                     if(!id.val.s[0]) break;
                     if(!validateblock(id.val.s))
-                        { t->printf("%s = %s\n", escapeid(id), escapestring(id.val.s)); break; }
+                        { extf->printf("%s = %s\n", escapeid(id), escapestring(id.val.s)); break; }
                 case VAL_FLOAT:
                 case VAL_INT: 
-                    t->printf("%s = [%s]\n", escapeid(id), id.getstr()); break;
+                    extf->printf("%s = [%s]\n", escapeid(id), id.getstr()); break;
                 }
         }
     }
