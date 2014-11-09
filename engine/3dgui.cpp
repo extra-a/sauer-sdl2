@@ -477,6 +477,12 @@ struct gui : g3d_gui
         return field_(name, color, length, height, initval, initmode, FIELDKEY);
     }
 
+    void seteditorcontent(char *name, char *content, int *mode)
+    {
+        editor *e = useeditor(name, *mode<=0 ? EDITORFOREVER : *mode, false, "");
+        if(e) e->clear(content ? content : "");
+    }
+
     char *field_(const char *name, int color, int length, int height, const char *initval, int initmode, int fieldtype = FIELDEDIT)
     {	
         editor *e = useeditor(name, initmode, false, initval); // generate a new editor if necessary

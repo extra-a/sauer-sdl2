@@ -2,7 +2,6 @@
 #include "extendedscripts.h"
 
 extern int getpacketloss();
-extern bool needsearch;
 float staticscale = 0.33;
 
 namespace game
@@ -342,6 +341,7 @@ namespace game
     extern void checkseserverinfo();
     extern void checkextinfos();
     extern void checkservergameinfo();
+    extern bool needsearch;
     void checkgameinfo() {
         checkseserverinfo();
         checkextinfos();

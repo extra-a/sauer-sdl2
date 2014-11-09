@@ -480,6 +480,11 @@ void guieditor(char *name, int *maxlength, int *height, int *mode)
     //returns a non-NULL pointer (the currentline) when the user commits, could then manipulate via text* commands
 }
 
+void setguieditorcontent(char *name, char *content, int *mode) {
+    if(!cgui) return;
+    cgui->seteditorcontent(name, content, mode);
+}
+
 //-ve length indicates a wrapped text field of any (approx 260 chars) length, |length| is the field width
 void guikeyfield(char *var, int *maxlength, char *onchange)
 {
@@ -566,10 +571,9 @@ void guiservers(uint *header, int *pagemin, int *pagemax)
     }
 }
 
-void guiplayers(uint* name) {
-    extern void showplayersgui(g3d_gui *cgui, uint *name);
+void guiplayers(const char* name) {
     if(cgui) {
-        showplayersgui(cgui, name);
+        game::showplayersgui(cgui, name);
     }
 }
 
@@ -586,7 +590,7 @@ COMMAND(newgui, "ssss");
 COMMAND(guibutton, "sss");
 COMMAND(guitext, "ss");
 COMMAND(guiservers, "eii");
-COMMAND(guiplayers, "e");
+COMMAND(guiplayers, "s");
 ICOMMAND(cleargui, "i", (int *n), intret(cleargui(*n)));
 COMMAND(showgui, "s");
 COMMAND(hidegui, "s");
@@ -613,6 +617,7 @@ COMMAND(guitab, "s");
 COMMAND(guifield, "sis");
 COMMAND(guikeyfield, "sis");
 COMMAND(guieditor, "siii");
+COMMAND(setguieditorcontent, "ssi");
 COMMAND(guicolor, "i");
 COMMAND(guitextbox, "siii");
 

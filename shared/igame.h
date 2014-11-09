@@ -96,6 +96,7 @@ namespace game
     extern int showserverpreview(g3d_gui *g);
     extern bool needminimap();
     extern void requestgameinfo(ENetAddress address);
+    extern void showplayersgui(g3d_gui *cgui, const char *name);
 }
  
 namespace server

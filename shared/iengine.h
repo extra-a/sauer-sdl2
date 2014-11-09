@@ -519,6 +519,7 @@ struct g3d_gui
     virtual void column(int col) = 0;
     virtual char *keyfield(const char *name, int color, int length, int height = 0, const char *initval = NULL, int initmode = EDITORFOCUSED) = 0;
     virtual char *field(const char *name, int color, int length, int height = 0, const char *initval = NULL, int initmode = EDITORFOCUSED) = 0;
+    virtual void seteditorcontent(char *name, char *content, int *mode) = 0;
     virtual void textbox(const char *text, int width, int height, int color = 0xFFFFFF) = 0;
     virtual int textwithtextureicon(const char *text, int color, const char *icon,
                                     bool clickable, bool center,
