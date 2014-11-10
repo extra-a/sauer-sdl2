@@ -469,7 +469,9 @@ namespace game
         g->poplist();
     }
 
+    bool needsearch = false;
     const char* showserverpreview(g3d_gui *g) {
+        needsearch = true;
         g->allowautotab(false);
         if(lastpreviewdata.hasserverdata) {
             string hostname;
@@ -2890,7 +2892,6 @@ namespace game
 
     VAR(stopplayerssearch, 0, 0, 1);
 
-    bool needsearch = false;
     const char* showplayersgui(g3d_gui *g, const char *name) {
         if(!stopplayerssearch) {
             needsearch = true;
