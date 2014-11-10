@@ -2916,10 +2916,12 @@ namespace game
                 if( s->attr.length() >= 1 ) {
                     mode = s->attr[1];
                 }
-                p0.add(playersentry(p->players[j].name, s->sdesc, s->name,
-                                    s->ping, s->numplayers,
-                                    maxplayers, mode, icon,
-                                    s->address.host, s->port));
+                if(p->players[j].cn < 128) {
+                    p0.add(playersentry(p->players[j].name, s->sdesc, s->name,
+                                        s->ping, s->numplayers,
+                                        maxplayers, mode, icon,
+                                        s->address.host, s->port));
+                }
             }
         }
 
