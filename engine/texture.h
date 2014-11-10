@@ -336,6 +336,8 @@ struct Shader
 
     static inline bool isnull(const Shader *s) { return !s; }
 
+    bool isnull() const { return isnull(this); }
+
     void setvariant_(int col, int row, Shader *fallbackshader)
     {
         Shader *s = fallbackshader;
@@ -350,21 +352,21 @@ struct Shader
 
     void setvariant(int col, int row, Shader *fallbackshader)
     {
-        if(isnull(this) || !detailshader || renderpath==R_FIXEDFUNCTION) return;
+        if(isnull() || !detailshader || renderpath==R_FIXEDFUNCTION) return;
         setvariant_(col, row, fallbackshader);
         lastshader->flushenvparams();
     }
 
     void setvariant(int col, int row)
     {
-        if(isnull(this) || !detailshader || renderpath==R_FIXEDFUNCTION) return;
+        if(isnull() || !detailshader || renderpath==R_FIXEDFUNCTION) return;
         setvariant_(col, row, detailshader);
         lastshader->flushenvparams();
     }
 
     void setvariant(int col, int row, Slot &slot, VSlot &vslot, Shader *fallbackshader)
     {
-        if(isnull(this) || !detailshader || renderpath==R_FIXEDFUNCTION) return;
+        if(isnull() || !detailshader || renderpath==R_FIXEDFUNCTION) return;
         setvariant_(col, row, fallbackshader);
         lastshader->flushenvparams(&slot);
         lastshader->setslotparams(slot, vslot);
@@ -372,7 +374,7 @@ struct Shader
 
     void setvariant(int col, int row, Slot &slot, VSlot &vslot)
     {
-        if(isnull(this) || !detailshader || renderpath==R_FIXEDFUNCTION) return;
+        if(isnull() || !detailshader || renderpath==R_FIXEDFUNCTION) return;
         setvariant_(col, row, detailshader);
         lastshader->flushenvparams(&slot);
         lastshader->setslotparams(slot, vslot);
@@ -385,14 +387,14 @@ struct Shader
  
     void set()
     {
-        if(isnull(this) || !detailshader || renderpath==R_FIXEDFUNCTION) return;
+        if(isnull() || !detailshader || renderpath==R_FIXEDFUNCTION) return;
         set_();
         lastshader->flushenvparams();
     }
 
     void set(Slot &slot, VSlot &vslot)
     {
-        if(isnull(this) || !detailshader || renderpath==R_FIXEDFUNCTION) return;
+        if(isnull() || !detailshader || renderpath==R_FIXEDFUNCTION) return;
         set_();
         lastshader->flushenvparams(&slot);
         lastshader->setslotparams(slot, vslot);
