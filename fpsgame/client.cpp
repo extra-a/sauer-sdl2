@@ -2822,37 +2822,40 @@ namespace game
     XIDENTHOOK(savedsearches, IDF_EXTENDED);
     ICOMMAND(overwritesearches, "s", (char *s), setsvar("savedsearches", s));
 
-    #define MAXCODELEN 10000
+    char *strduplicate(const char *s) {
+        char *d = (char*)malloc( strlen(s) + 1 );
+        if(d == NULL) return NULL;
+        strcpy(d, s);
+        return d;
+    }
+
+    #define MAXCODELEN 1000
     static char cmdbuff[MAXCODELEN];
 
     static int applyfilter(const char* name, vector<playersentry> &p0, vector<playersentry> &p1) {
-        snprintf(cmdbuff, MAXCODELEN, "getplayersearch [%s]", name);
+        snprintf(cmdbuff, MAXCODELEN, "unescape (getplayersearch (stringify $currentsearch))");
         const char* patterns = executestr(cmdbuff);
         if(!patterns) return -1;
-        snprintf(cmdbuff, MAXCODELEN, "getpsearchnpatterns [%s]", patterns);
-        int npats = execute(cmdbuff);
-        int len = p0.length();
-        if(npats <=0 || len <= 0) {
-            DELETEA(patterns);
-            return -1;
-        }
+
         vector<bool> ismatched;
         loopv(p0) {
             ismatched.add(false);
         }
-        const char* currentpattern = NULL;
-        loopj(npats) {
-            snprintf(cmdbuff, MAXCODELEN, "getpsearchpattern [%s] %d", patterns, j);
-            currentpattern = executestr(cmdbuff);
-            if(!currentpattern) continue;
+
+        const char* spl = " \t\n\v\f\r";
+        char* pats = strduplicate(patterns);
+        char* p = strtok(pats, spl);
+        while(p) {
             loopv(p0) {
-                if(strstr( p0[i].pname, currentpattern) != NULL && !ismatched[i]) {
+                if( strstr(p0[i].pname, p) != NULL && !ismatched[i]) {
                     p1.add( p0[i] );
                     ismatched[i] = true;
                 }
             }
-            DELETEA(currentpattern);
+            p = strtok(NULL, spl);
         }
+
+        free(pats);
         DELETEA(patterns);
         return 0;
     }
