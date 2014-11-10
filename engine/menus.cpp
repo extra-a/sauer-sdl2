@@ -555,6 +555,8 @@ void newgui(char *name, char *contents, char *header, char *init)
 }
 
 menu *guiserversmenu = NULL;
+menu *guiplayersmenu = NULL;
+menu *guiserverpreviewmenu = NULL;
 
 void guiservers(uint *header, int *pagemin, int *pagemax)
 {
@@ -573,7 +575,23 @@ void guiservers(uint *header, int *pagemin, int *pagemax)
 
 void guiplayers(const char* name) {
     if(cgui) {
-        game::showplayersgui(cgui, name);
+        const char* command = game::showplayersgui(cgui, name);
+        if(command) {
+            updatelater.add().schedule(command);
+            if(shouldclearmenu) clearlater = true;
+            guiplayersmenu = clearlater || guistack.empty() ? NULL : guistack.last();
+        }
+    }
+}
+
+void guiserverpreview() {
+    if(cgui) {
+        const char* command = game::showserverpreview(cgui);
+        if(command) {
+            updatelater.add().schedule(command);
+            if(shouldclearmenu) clearlater = true;
+            guiserverpreviewmenu = clearlater || guistack.empty() ? NULL : guistack.last();
+        }
     }
 }
 
@@ -584,6 +602,16 @@ void notifywelcome()
         if(guistack.length() && guistack.last() == guiserversmenu) clearguis();
         guiserversmenu = NULL;
     }
+    if(guiplayersmenu)
+    {
+        if(guistack.length() && guistack.last() == guiplayersmenu) clearguis();
+        guiplayersmenu = NULL;
+    }
+    if(guiserverpreviewmenu)
+    {
+        if(guistack.length() && guistack.last() == guiserverpreviewmenu) clearguis();
+        guiserverpreviewmenu = NULL;
+    }
 }
  
 COMMAND(newgui, "ssss");
@@ -591,6 +619,7 @@ COMMAND(guibutton, "sss");
 COMMAND(guitext, "ss");
 COMMAND(guiservers, "eii");
 COMMAND(guiplayers, "s");
+COMMAND(guiserverpreview, "");
 ICOMMAND(cleargui, "i", (int *n), intret(cleargui(*n)));
 COMMAND(showgui, "s");
 COMMAND(hidegui, "s");

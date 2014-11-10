@@ -649,31 +649,11 @@ void refreshservers()
 }
 
 serverinfo *selectedserver = NULL;
-bool ispreview = false;
 VARP(showserverpreviews, 0, 0, 1);
 XIDENTHOOK(showserverpreviews, IDF_EXTENDED);
 
 const char *showservers(g3d_gui *cgui, uint *header, int pagemin, int pagemax)
 {
-    if(ispreview) {
-        cgui->allowautotab(false);
-        int cmd = game::showserverpreview(cgui);
-        switch(cmd) {
-        case 0:
-            return NULL;
-        case 1:
-            cgui->allowautotab(true);
-            ispreview = false;
-            return "connectselected";
-        case -1:
-            ispreview = false;
-            selectedserver = NULL;
-            cgui->allowautotab(true);
-            return NULL;
-        }
-        cgui->allowautotab(true);
-        return NULL;
-    }
     refreshservers();
     if(servers.empty())
     {
@@ -705,14 +685,14 @@ const char *showservers(g3d_gui *cgui, uint *header, int pagemin, int pagemax)
         cgui->poplist();
         start = end;
     }
-    if(selectedserver || !sc) return NULL;
-    selectedserver = sc;
+    if(!sc) return NULL;
     if(showserverpreviews) {
-        game::setserverpreview(sc->name, sc->port);
-        cgui->allowautotab(false);
-        ispreview = true;
+        game::setserverpreview(sc->address.host, sc->port);
+        showgui("serverpreview");
         return NULL;
     }
+    if(selectedserver || !sc) return NULL;
+    selectedserver = sc;
     return "connectselected";
 }
 
@@ -725,15 +705,17 @@ void connectselected()
 
 COMMAND(connectselected, "");
 
-void connectserver(const char* host, int port) {
+void setselectedserver(uint host, int port) {
     loopv(servers) {
         serverinfo *s = servers[i];
-        if(!strcmp(s->name, host) && (s->port = port)) {
+        conoutf("host %d %d port %d %d", s->address.host, host, s->port, port);
+        if((s->address.host == host) && (s->port == port)) {
+            conoutf("selected server is set");
             selectedserver = s;
-            connectselected();
             return;
         }
     }
+    conoutf("no such server");
     selectedserver = NULL;
 }
 

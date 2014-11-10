@@ -805,7 +805,7 @@ const char *hud_settings_gui =
 "] \"General\"\n";
 
 
-const char *players_menus =
+const char *extended_menus =
 "currentsearch = \"\"\n"
 "currenttitle = \"\"\n"
 "currentfilters = \"\"\n"
@@ -867,7 +867,12 @@ const char *players_menus =
     "guistayopen [\n"
          "guiplayers $currenttitle\n"
     "]\n"
-"] \n";
+"] \n"
+"newgui serverpreview [\n"
+    "guistayopen [\n"
+         "guiserverpreview\n"
+    "]\n"
+"] \"preview\" \n";
 
 const char *search_helpers =
 "stringify = [\n"
@@ -979,7 +984,7 @@ const char *game_scripts[] = { extended_settings_gui,
                                hud_new1,
                                hud_new2,
                                search_helpers,
-                               players_menus,
+                               extended_menus,
                                new_main_menu,
                                0 };
 

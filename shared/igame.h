@@ -92,11 +92,11 @@ namespace game
     extern bool serverinfostartcolumn(g3d_gui *g, int i);
     extern void serverinfoendcolumn(g3d_gui *g, int i);
     extern bool serverinfoentry(g3d_gui *g, int i, const char *name, int port, const char *desc, const char *map, int ping, const vector<int> &attr, int np);
-    extern void setserverpreview(const char *servername, int serverport);
-    extern int showserverpreview(g3d_gui *g);
+    extern void setserverpreview(int servername, int serverport);
+    extern const char* showserverpreview(g3d_gui *g);
     extern bool needminimap();
     extern void requestgameinfo(ENetAddress address);
-    extern void showplayersgui(g3d_gui *cgui, const char *name);
+    extern const char* showplayersgui(g3d_gui *cgui, const char *name);
 }
  
 namespace server

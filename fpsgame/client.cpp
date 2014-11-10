@@ -25,6 +25,10 @@ namespace game
 
     ENetSocket extinfosock = ENET_SOCKET_NULL;
 
+    static int getconnectport(int port) {
+        return port-1;
+    }
+
     ENetSocket getextsock()
     {
         if(extinfosock != ENET_SOCKET_NULL) return extinfosock;
@@ -276,14 +280,18 @@ namespace game
         enet_socket_send(sock, &lastpreviewdata.servaddress, &buf2, 1);
     }
 
-    void setserverpreview(const char *servername, int serverport) {
-        lastpreviewdata.reset();
-        if(enet_address_set_host( &lastpreviewdata.servaddress, servername) < 0) return;
-        if(serverport) {
+    void setserverpreview(int host, int serverport) {
+        ENetAddress address;
+        address.host = host;
+        address.port = serverport ? server::serverinfoport(serverport) : SAUERBRATEN_SERVINFO_PORT;
+
+        if(address.host != lastpreviewdata.servaddress.host ||
+           lastpreviewdata.servaddress.port != address.port) {
+            lastpreviewdata.reset();
+            lastpreviewdata.servaddress.host = host;
             lastpreviewdata.servaddress.port = server::serverinfoport(serverport);
-        } else {
-            lastpreviewdata.servaddress.port = SAUERBRATEN_SERVINFO_PORT;
         }
+
         lastpreviewdata.isupdating = true;
     }
 
@@ -461,7 +469,8 @@ namespace game
         g->poplist();
     }
 
-    int showserverpreview(g3d_gui *g) {
+    const char* showserverpreview(g3d_gui *g) {
+        g->allowautotab(false);
         if(lastpreviewdata.hasserverdata) {
             string hostname;
             if(enet_address_get_host_ip(&lastpreviewdata.servaddress, hostname, sizeof(hostname)) >= 0) {
@@ -548,21 +557,18 @@ namespace game
         g->separator();
         g->pushlist();
         g->spring();
-        if(g->button("back", 0xFFFFDD, "exit")&G3D_UP) {
-            g->poplist();
-            lastpreviewdata.reset();
-            return -1;
-        }
-        g->separator();
         if(g->button("connect", 0xFFFFDD, "checkbox_on")&G3D_UP) {
             g->poplist();
-            g->end();
+            g->allowautotab(true);
+            setselectedserver(lastpreviewdata.servaddress.host,
+                              getconnectport(lastpreviewdata.servaddress.port));
             lastpreviewdata.reset();
-            return 1;
+            return "connectselected";
         }
         g->spring();
         g->poplist();
-        return 0;
+        g->allowautotab(true);
+        return NULL;
     }
 
     extern vector<fpsent *> clients;
@@ -2764,6 +2770,7 @@ namespace game
         const char* sdesc;
         const char* shost;
         int sping, splayers, smaxplayers, smode, sicon, sport;
+        uint sip;
 
         playersentry() {
             pname = "";
@@ -2774,11 +2781,12 @@ namespace game
             smaxplayers = 0;
             smode = 0;
             sicon = MM_START-1;
+            sip = 0;
             sport = 0;
         }
 
         playersentry(const char* name, const char* desc, const char* host,
-                     int ping, int players, int maxplayers, int mode, int icon, int port) {
+                     int ping, int players, int maxplayers, int mode, int icon, uint ip, int port) {
             pname = name;
             sdesc = desc;
             shost = host;
@@ -2787,6 +2795,7 @@ namespace game
             smaxplayers = maxplayers;
             smode = mode;
             sicon = icon;
+            sip = ip;
             sport = port;
         }
 
@@ -2798,23 +2807,20 @@ namespace game
         return strncmp(p1.sdesc, p2.sdesc, MAXSERVSTRING) < 0;
     }
 
-    static char prevhost[100];
-    static int prevport;
-    static bool playersserverpreview = false;
 
-    static void onconnectseq(g3d_gui *g, playersentry &e) {
+    static const char* onconnectseq(g3d_gui *g, playersentry &e) {
         g->poplist();
         g->mergehits(false);
         g->poplist();
         g->allowautotab(true);
 
         if(showserverpreviews) {
-            playersserverpreview = true;
-            strncpy(prevhost, e.shost, 100);
-            prevport = e.sport;
-            game::setserverpreview(prevhost, prevport);
+            setserverpreview(e.sip, e.sport);
+            showgui("serverpreview");
+            return NULL;
         } else {
-            connectserver(e.shost, e.sport);
+            setselectedserver(e.sip, e.sport);
+            return "connectselected";
         }
     }
 
@@ -2885,28 +2891,9 @@ namespace game
     VAR(stopplayerssearch, 0, 0, 1);
 
     bool needsearch = false;
-    void showplayersgui(g3d_gui *g, const char *name) {
+    const char* showplayersgui(g3d_gui *g, const char *name) {
         if(!stopplayerssearch) {
             needsearch = true;
-        }
-        if(playersserverpreview) {
-            g->allowautotab(false);
-            int cmd = game::showserverpreview(g);
-            switch(cmd) {
-            case 0:
-                return;
-            case 1:
-                g->allowautotab(true);
-                playersserverpreview = false;
-                connectserver(prevhost, prevport);
-                return;
-            case -1:
-                g->allowautotab(true);
-                playersserverpreview = false;
-                return;
-            }
-            g->allowautotab(true);
-            return;
         }
         vector<serverinfodata *> v = getservers();
         vector<playersentry> p0, p1, pe;
@@ -2929,8 +2916,10 @@ namespace game
                 if( s->attr.length() >= 1 ) {
                     mode = s->attr[1];
                 }
-                p0.add(playersentry(p->players[j].name, s->sdesc, s->name, s->ping, s->numplayers,
-                                    maxplayers, mode, icon, s->port));
+                p0.add(playersentry(p->players[j].name, s->sdesc, s->name,
+                                    s->ping, s->numplayers,
+                                    maxplayers, mode, icon,
+                                    s->address.host, s->port));
             }
         }
 
@@ -2987,8 +2976,7 @@ namespace game
                 } else {
                     playersentry e = pe[kt];
                     if(g->buttonf("%s", 0xFFFFDD, NULL, e.pname)&G3D_UP) {
-                        onconnectseq(g, e);
-                        return;
+                        return onconnectseq(g, e);
                     }
                     kt++;
                 }
@@ -3004,8 +2992,7 @@ namespace game
                 playersentry e = pe[kt];
                 const char *icon = e.splayers >= e.smaxplayers ? "serverfull" : game::mastermodeicon(e.sicon, "serverunk");
                 if(g->buttonf("%d", 0xFFFFDD, icon, e.sping)&G3D_UP) {
-                    onconnectseq(g, e);
-                    return;
+                    return onconnectseq(g, e);
                 }
                 kt++;
             }
@@ -3022,13 +3009,11 @@ namespace game
                 if(e.smaxplayers) {
                     if(g->buttonf(e.splayers >= e.smaxplayers ? "\f3%d/%d " : "%d/%d",
                                   0xFFFFDD, NULL, e.splayers, e.smaxplayers)&G3D_UP) {
-                        onconnectseq(g, e);
-                        return;
+                        return onconnectseq(g, e);
                     }
                 } else {
                     if(g->buttonf("%d", 0xFFFFDD, NULL, e.splayers)&G3D_UP) {
-                        onconnectseq(g, e);
-                        return;
+                        return onconnectseq(g, e);
                     }
                 }
                 kt++;
@@ -3043,8 +3028,7 @@ namespace game
                 if(kt>=len) break;
                 playersentry e = pe[kt];
                 if(g->buttonf("%.15s", 0xFFFFDD, NULL, server::modename(e.smode,""))&G3D_UP) {
-                    onconnectseq(g, e);
-                    return;
+                    return onconnectseq(g, e);
                 }
                 kt++;
             }
@@ -3058,8 +3042,7 @@ namespace game
                 if(kt>=len) break;
                 playersentry e = pe[kt];
                 if(g->buttonf("%.15s", 0xFFFFDD, NULL, e.shost)&G3D_UP) {
-                    onconnectseq(g, e);
-                    return;
+                    return onconnectseq(g, e);
                 }
                 kt++;
             }
@@ -3073,8 +3056,7 @@ namespace game
                 if(kt>=len) break;
                 playersentry e = pe[kt];
                 if(g->buttonf("%.5d", 0xFFFFDD, NULL, e.sport)&G3D_UP) {
-                    onconnectseq(g, e);
-                    return;
+                    return onconnectseq(g, e);
                 }
                 kt++;
             }
@@ -3088,8 +3070,7 @@ namespace game
                 if(kt>=len) break;
                 playersentry e = pe[kt];
                 if(g->buttonf("%.25s", 0xFFFFDD, NULL, e.sdesc)&G3D_UP) {
-                    onconnectseq(g, e);
-                    return;
+                    return onconnectseq(g, e);
                 }
                 kt++;
             }
@@ -3099,6 +3080,7 @@ namespace game
             k = kt;
         }
         g->allowautotab(true);
+        return NULL;
     }
 }
 
