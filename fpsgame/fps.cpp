@@ -1171,6 +1171,8 @@ namespace game
 
     VARP(newhud_hpssize, 0, 30, 50);
     XIDENTHOOK(newhud_hpssize, IDF_EXTENDED);
+    VARP(newhud_hpgap, 0, 100, 200);
+    XIDENTHOOK(newhud_hpgap, IDF_EXTENDED);
     VARP(newhud_hpiconssize, 0, 60, 200);
     XIDENTHOOK(newhud_hpiconssize, IDF_EXTENDED);
     VARP(newhud_hppos_x, 0, 420, 1000);
@@ -1196,7 +1198,7 @@ namespace game
 
         char buff[10];
         int r = 255, g = 255, b = 255, a = 255, tw = 0, th = 0;
-        float hsep = 20.0*hpscale*staticscale;
+        float hsep = 20.0*hpscale*staticscale*((float)newhud_hpgap/100.0f);
         if(coloredhealth && !m_insta) getchpcolors(d, r, g, b, a);
         snprintf(buff, 10, "%d", d->state==CS_DEAD ? 0 : d->health);
         text_bounds(buff, tw, th);
@@ -1226,6 +1228,8 @@ namespace game
     XIDENTHOOK(newhud_ammosize, IDF_EXTENDED);
     VARP(newhud_ammoiconssize, 0, 60, 200);
     XIDENTHOOK(newhud_ammoiconssize, IDF_EXTENDED);
+    VARP(newhud_ammogap, 0, 100, 200);
+    XIDENTHOOK(newhud_ammogap, IDF_EXTENDED);
     VARP(newhud_ammopos_x, 0, 580, 1000);
     XIDENTHOOK(newhud_ammopos_x, IDF_EXTENDED);
     VARP(newhud_ammopos_y, 0, 960, 1000);
@@ -1244,7 +1248,7 @@ namespace game
         float ammoscale = (1 + newhud_ammosize/10.0)*h/1080.0;
         float xoff = newhud_ammopos_x*conw/1000;
         float yoff = newhud_ammopos_y*conh/1000;
-        float hsep = 20.0*ammoscale*staticscale;
+        float hsep = 20.0*ammoscale*staticscale*((float)newhud_ammogap/100.0f);
         int r = 255, g = 255, b = 255, a = 255, tw = 0, th = 0;
 
         glPushMatrix();
