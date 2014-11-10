@@ -649,7 +649,7 @@ void refreshservers()
 }
 
 serverinfo *selectedserver = NULL;
-VARP(showserverpreviews, 0, 0, 1);
+VARP(showserverpreviews, 0, 1, 1);
 XIDENTHOOK(showserverpreviews, IDF_EXTENDED);
 
 const char *showservers(g3d_gui *cgui, uint *header, int pagemin, int pagemax)

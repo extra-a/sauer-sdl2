@@ -400,8 +400,13 @@ const char *hud_new2 =
 
 const char *extended_settings_gui =
 "newgui extended_settings [\n"
-
-    "guicheckbox \"Show servers preview\" showserverpreviews\n"
+    "local oldstatkeys newstatkeys kk\n"
+    "oldstatkeys = (searchbinds showplayerstats)\n"
+    "newstatkeys = (searchbinds showplayerstats)\n"
+    "guilist [\n"
+    "guitext \"Show player stats bind: \"\n"
+    "guikeyfield newstatkeys 20 [looplist kk [@@oldstatkeys] [bind $kk]; looplist kk $newstatkeys [bind $kk showplayerstats]]\n"
+    "]\n"
     "guicheckbox \"Use following player team\" usefollowingplayerteam\n"
     "guicheckbox \"Log players stats on game end\" dumpstatsongameend\n"
     "guistrut 1\n"
@@ -874,9 +879,12 @@ const char *extended_menus =
     "]\n"
 "] \"preview\" \n";
 
-const char *search_helpers =
+const char *extended_helpers =
 "stringify = [\n"
     "concatword \"^\"\"$arg1\"^\"\"\n"
+"]\n"
+"unstringify = [\n"
+    "at [@arg1]\n"
 "]\n"
 "updateplayersearch = [\n"
     "if (!=s $arg1 \"\") [\n"
@@ -983,7 +991,7 @@ const char *game_scripts[] = { extended_settings_gui,
                                hud_old_extended,
                                hud_new1,
                                hud_new2,
-                               search_helpers,
+                               extended_helpers,
                                extended_menus,
                                new_main_menu,
                                0 };
