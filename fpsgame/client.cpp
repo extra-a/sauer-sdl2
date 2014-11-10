@@ -186,13 +186,13 @@ namespace game
         data.timeleft = getint(p); // time left
         if(data.notteammode) return 0;
         struct teamdata td;
-        loopi(expectedteams) {
+        loopi(min(32,expectedteams)) {
             getstring(strdata, p);
             strncpy(td.teamname, strdata, MAXEXTTEAMLENGHT-1);
             td.teamname[MAXEXTTEAMLENGHT-1] = 0;
             td.score = getint(p);
             td.bases = getint(p);
-            loopj(td.bases) {
+            loopj(min(32,td.bases)) {
                 getint(p);
             }
             data.addteam(td);
