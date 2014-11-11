@@ -469,9 +469,10 @@ namespace game
         g->poplist();
     }
 
-    bool needsearch = false;
+    VAR(needsearch, 0, 0, 1);
+    ICOMMAND(keepsearching, "", (), intret(needsearch=1));
     const char* showserverpreview(g3d_gui *g) {
-        needsearch = true;
+        needsearch = 1;
         g->allowautotab(false);
         if(lastpreviewdata.hasserverdata) {
             string hostname;
@@ -2891,10 +2892,9 @@ namespace game
     }
 
     VAR(stopplayerssearch, 0, 0, 1);
-
     const char* showplayersgui(g3d_gui *g, const char *name) {
         if(!stopplayerssearch) {
-            needsearch = true;
+            needsearch = 1;
         }
         vector<serverinfodata *> v = getservers();
         vector<playersentry> p0, p1, pe;

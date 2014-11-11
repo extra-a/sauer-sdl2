@@ -341,7 +341,7 @@ namespace game
     extern void checkseserverinfo();
     extern void checkextinfos();
     extern void checkservergameinfo();
-    extern bool needsearch;
+    extern int needsearch;
     void checkgameinfo() {
         checkseserverinfo();
         checkextinfos();
@@ -350,7 +350,7 @@ namespace game
             forceinitservers();
             refreshservers();
         }
-        needsearch = false;
+        needsearch = 0;
     }
 
     extern void checkseek();

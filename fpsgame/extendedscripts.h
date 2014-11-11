@@ -852,6 +852,7 @@ const char *extended_menus =
     "]\n"
 "] \"searches\"\n"
 "newgui editplayersearch [\n"
+    "keepsearching\n"
     "guistayopen [\n"
         "guilist [\n"
             "local ntitle nsearch ensearch\n"
