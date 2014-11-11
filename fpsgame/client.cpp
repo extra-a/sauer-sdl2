@@ -1,5 +1,9 @@
 #include "game.h"
 
+#ifdef WIN32
+#include "io.h"
+#endif
+
 #define EXT_ACK                         -1
 #define EXT_PLAYERSTATS_RESP_STATS      -11
 #define EXT_PLAYERSTATS                 1
