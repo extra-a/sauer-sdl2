@@ -5,6 +5,7 @@
 
 #ifdef WIN32
 #define snprintf _snprintf
+#define access _access
 #endif
 
 // console message types

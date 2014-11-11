@@ -6,6 +6,7 @@
 
 #ifdef WIN32
 #define snprintf _snprintf
+#define access _access
 #endif
 
 #ifndef STANDALONE

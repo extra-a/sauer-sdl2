@@ -341,12 +341,14 @@ namespace game
     extern void checkseserverinfo();
     extern void checkextinfos();
     extern void checkservergameinfo();
+    extern void autodemocheck();
     extern int needplayersearch;
     extern int needpreviewupdate;
     void checkgameinfo() {
         checkseserverinfo();
         checkextinfos();
         checkservergameinfo();
+        autodemocheck();
         if(needplayersearch) {
             forceinitservers();
             refreshservers();

@@ -1923,6 +1923,44 @@ namespace game
         }
     }
 
+    VARP(autodownloaddemos, 0, 0, 1);
+    XIDENTHOOK(autodownloaddemos, IDF_EXTENDED);
+
+    #define MAXDEMONAMELEN 500
+    #define DEMODNLTIMEOUT 10000
+    static char expecteddemoname[MAXDEMONAMELEN];
+    static int democheckedtime;
+    static int awaitingdemo, awaitingdemolist;
+
+    void listdemos();
+    static void checkrecordeddemo(char* msg) {
+        int len = strnlen(msg, MAXDEMONAMELEN-1);
+        if(len < 16) return;
+        int paternpos = len - 10;
+        if(!strncmp(msg, "demo \"", 6) && !strncmp(msg + paternpos, "\" recorded", 10)) {
+            strncpy(expecteddemoname, msg + 6, min(MAXDEMONAMELEN, len - 16));
+            expecteddemoname[len - 16] = 0;
+            democheckedtime = totalmillis;
+            awaitingdemo = 1;
+            awaitingdemolist = 1;
+            listdemos();
+        }
+    }
+
+    void getdemo(int i);
+    static void trygetrecordeddemo(char* name, int i) {
+        if(!strncmp(expecteddemoname, name, MAXDEMONAMELEN)) getdemo(i);
+    }
+
+    void autodemocheck() {
+        if(democheckedtime + DEMODNLTIMEOUT < totalmillis && awaitingdemo) {
+            conoutf("failed to dowload demo %s", expecteddemoname);
+            expecteddemoname[0] = 0;
+            awaitingdemolist = 0;
+            awaitingdemo = 0;
+        }
+    }
+
     void parsemessages(int cn, fpsent *d, ucharbuf &p)
     {
         static char text[MAXTRANS];
@@ -2412,6 +2450,7 @@ namespace game
             case N_SERVMSG:
                 getstring(text, p);
                 conoutf("%s", text);
+                if(autodownloaddemos) checkrecordeddemo(text);
                 break;
 
             case N_SENDDEMOLIST:
@@ -2422,8 +2461,13 @@ namespace game
                 {
                     getstring(text, p);
                     if(p.overread()) break;
-                    conoutf("%d. %s", i+1, text);
+                    if(awaitingdemolist) {
+                        trygetrecordeddemo(text, i+1);
+                    } else {
+                        conoutf("%d. %s", i+1, text);
+                    }
                 }
+                awaitingdemolist = 0;
                 break;
             }
 
@@ -2615,13 +2659,26 @@ namespace game
             case N_DEMOPACKET: return;
             case N_SENDDEMO:
             {
-                defformatstring(fname)("%d.dmo", lastmillis);
-                stream *demo = openrawfile(fname, "wb");
-                if(!demo) return;
-                conoutf("received demo \"%s\"", fname);
-                ucharbuf b = p.subbuf(p.remaining());
-                demo->write(b.buf, b.maxlen);
-                delete demo;
+                if(awaitingdemo) {
+                    defformatstring(fname)("%s.dmo", expecteddemoname);
+                    if(access(fname, 0) != -1) return;
+                    stream *demo = openrawfile(fname, "wb");
+                    if(!demo) return;
+                    conoutf("auto downloaded demo \"%s\"", fname);
+                    ucharbuf b = p.subbuf(p.remaining());
+                    demo->write(b.buf, b.maxlen);
+                    awaitingdemo = 0;
+                    expecteddemoname[0] = 0;
+                    delete demo;
+                } else {
+                    defformatstring(fname)("%d.dmo", lastmillis);
+                    stream *demo = openrawfile(fname, "wb");
+                    if(!demo) return;
+                    conoutf("received demo \"%s\"", fname);
+                    ucharbuf b = p.subbuf(p.remaining());
+                    demo->write(b.buf, b.maxlen);
+                    delete demo;
+                }
                 break;
             }
 
@@ -2700,15 +2757,17 @@ namespace game
 
     void getdemo(int i)
     {
-        if(i<=0) conoutf("getting demo...");
-        else conoutf("getting demo %d...", i);
+        if(!awaitingdemolist) {
+            if(i<=0) conoutf("getting demo...");
+            else conoutf("getting demo %d...", i);
+        }
         addmsg(N_GETDEMO, "ri", i);
     }
     ICOMMAND(getdemo, "i", (int *val), getdemo(*val));
 
     void listdemos()
     {
-        conoutf("listing demos...");
+        if(!awaitingdemolist) conoutf("listing demos...");
         addmsg(N_LISTDEMOS, "r");
     }
     COMMAND(listdemos, "");
@@ -2836,8 +2895,8 @@ namespace game
         return d;
     }
 
-    #define MAXCODELEN 1000
-    static char cmdbuff[MAXCODELEN];
+    #define MAXPATLEN 200
+    static char cmdbuff[MAXPATLEN];
 
 
     static void applyfilter(const char* filter,
@@ -2863,7 +2922,7 @@ namespace game
 
     static int applysearchfilter(const char* name,
                                  vector<playersentry> &p0, vector<playersentry> &p1) {
-        snprintf(cmdbuff, MAXCODELEN, "unescape (getplayersearch (stringify $currentsearch))");
+        snprintf(cmdbuff, MAXPATLEN, "unescape (getplayersearch (stringify $currentsearch))");
         const char* patterns = executestr(cmdbuff);
         if(!patterns) return -1;
         if(strlen(patterns) <= 0) {
@@ -2924,7 +2983,10 @@ namespace game
             quickfilter[0] = 0;
         }
         const char* filter = g->field("", 0xFFFFFF, FILTERLEN-1, 0, quickfilter);
-        if(filter) strncpy(quickfilter, filter, FILTERLEN-1);
+        if(filter) {
+            strncpy(quickfilter, filter, FILTERLEN-1);
+            quickfilter[FILTERLEN-1] = 0;
+        }
 
         g->poplist();
         g->separator();
