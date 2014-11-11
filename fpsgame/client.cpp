@@ -1954,7 +1954,7 @@ namespace game
 
     void autodemocheck() {
         if(democheckedtime + DEMODNLTIMEOUT < totalmillis && awaitingdemo) {
-            conoutf("failed to dowload demo %s", expecteddemoname);
+            conoutf("failed to download demo \"%s\"", expecteddemoname);
             expecteddemoname[0] = 0;
             awaitingdemolist = 0;
             awaitingdemo = 0;

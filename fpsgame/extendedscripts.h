@@ -416,6 +416,7 @@ const char *extended_settings_gui =
     "guikeyfield newstatkeys 20 [looplist kk [@@oldstatkeys] [bind $kk]; looplist kk $newstatkeys [bind $kk showplayerstats]]\n"
     "]\n"
     "guicheckbox \"Use following player team\" usefollowingplayerteam\n"
+    "guicheckbox \"Autodownload server demos\" autodownloaddemos\n"
     "guicheckbox \"Log players stats on game end\" dumpstatsongameend\n"
     "guistrut 1\n"
 
