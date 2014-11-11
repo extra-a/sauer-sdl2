@@ -2893,31 +2893,35 @@ namespace game
     }
     COMMAND(clearsearchdata, "");
 
+    #define TMPLN 20
+    static char tmpsbuff[TMPLN];
     static void filterheader(g3d_gui *g, const char* name, int& stopplayerssearch,
                              int nplayers, int nallplayers) {
         g->pushlist();
 
-        if(g->button("stop updating ", 0xFFFFDD, stopplayerssearch ? "radio_on" : "radio_off")&G3D_UP) {
-            stopplayerssearch = !stopplayerssearch;
-            if(!stopplayerssearch) clearsearchdata();
+        if(name && strlen(name) > 0) {
+            g->titlef("%s  ", 0xFFFFFF, NULL, name);
         }
-        if(g->button( (name && strlen(name) > 0) ? "edit search" : "new search", 0xFFFFDD, "menu")&G3D_UP) {
+        if(g->button( (name && strlen(name) > 0) ? "edit search  " : "new search  ", 0xFFFFDD, "menu")&G3D_UP) {
             g->poplist();
             g->allowautotab(true);
             execute("setsearch");
             showgui("editplayersearch");
             return;
         }
-
-        g->spring();
-        g->titlef("   %s   ", 0xFFFFFF, NULL, name ? name : "");
-        g->spring();
-
-        if( nplayers == nallplayers) {
-            g->textf("%d ", 0xFFFFDD, "info", nplayers);
-        } else {
-            g->textf("%d/%d  ", 0xFFFFDD, "info", nplayers, nallplayers);
+        if(g->button("stop updating ", 0xFFFFDD, stopplayerssearch ? "radio_on" : "radio_off")&G3D_UP) {
+            stopplayerssearch = !stopplayerssearch;
+            if(!stopplayerssearch) clearsearchdata();
         }
+
+        g->spring();
+
+        if(nplayers == nallplayers) {
+            snprintf(tmpsbuff, TMPLN, "%d", nplayers);
+        } else {
+            snprintf(tmpsbuff, TMPLN, "%d/%d", nplayers, nallplayers);
+        }
+        g->textf("%s  ", 0xFFFFDD, "info", tmpsbuff);
         if(g->button("clear ", 0xFFFFDD, "action")&G3D_UP) {
             quickfilter[0] = 0;
         }
