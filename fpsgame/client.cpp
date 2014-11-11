@@ -296,7 +296,11 @@ namespace game
     }
 
     int sortplayersfn(struct extplayerdata& d1, struct extplayerdata& d2) {
-        return d1.frags > d2.frags;
+        if(d1.flags > d2.flags) return 1;
+        if(d1.flags < d2.flags) return 0;
+        if(d1.frags > d2.frags) return 1;
+        if(d1.frags < d2.frags) return 0;
+        return d1.cn > d2.cn;
     }
 
     int sortteamsfn(struct teamdata& t1, struct teamdata& t2) {
