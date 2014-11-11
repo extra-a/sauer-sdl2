@@ -2893,8 +2893,6 @@ namespace game
     }
     COMMAND(clearsearchdata, "");
 
-    #define TMPLN 20
-    static char tmpsbuff[TMPLN];
     static void filterheader(g3d_gui *g, const char* name, int& stopplayerssearch,
                              int nplayers, int nallplayers) {
         g->pushlist();
@@ -2917,11 +2915,11 @@ namespace game
         g->spring();
 
         if(nplayers == nallplayers) {
-            snprintf(tmpsbuff, TMPLN, "%d", nplayers);
+            g->textf("%d  ", 0xFFFFDD, "info", nplayers);
+
         } else {
-            snprintf(tmpsbuff, TMPLN, "%d/%d", nplayers, nallplayers);
+            g->textf("%d/%d  ", 0xFFFFDD, "info", nplayers, nallplayers);
         }
-        g->textf("%s  ", 0xFFFFDD, "info", tmpsbuff);
         if(g->button("clear ", 0xFFFFDD, "action")&G3D_UP) {
             quickfilter[0] = 0;
         }
