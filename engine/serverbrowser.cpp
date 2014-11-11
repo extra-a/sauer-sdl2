@@ -708,14 +708,11 @@ COMMAND(connectselected, "");
 void setselectedserver(uint host, int port) {
     loopv(servers) {
         serverinfo *s = servers[i];
-        conoutf("host %d %d port %d %d", s->address.host, host, s->port, port);
         if((s->address.host == host) && (s->port == port)) {
-            conoutf("selected server is set");
             selectedserver = s;
             return;
         }
     }
-    conoutf("no such server");
     selectedserver = NULL;
 }
 
