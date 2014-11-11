@@ -2864,6 +2864,10 @@ namespace game
         snprintf(cmdbuff, MAXCODELEN, "unescape (getplayersearch (stringify $currentsearch))");
         const char* patterns = executestr(cmdbuff);
         if(!patterns) return -1;
+        if(strlen(patterns) <= 0) {
+            DELETEA(patterns);
+            return -1;
+        }
         applyfilter(patterns, p0, p1);
         DELETEA(patterns);
         return 0;
@@ -2871,14 +2875,31 @@ namespace game
 
     #define FILTERLEN 21
     static char quickfilter[FILTERLEN];
+
+    VAR(stopplayerssearch, 0, 0, 1);
+    void clearsearchdata() {
+        stopplayerssearch = 0;
+        quickfilter[0] = 0;
+        vector<serverinfodata *> v = getservers();
+        loopv(v) {
+            serverinfodata* s = v[i];
+            if(!s) continue;
+            serverpreviewdata *p = static_cast<serverpreviewdata *>(s->gameinfo);
+            if(!p) continue;
+            p->checkdisconected(0);
+        }
+    }
+    COMMAND(clearsearchdata, "");
+
     static void filterheader(g3d_gui *g, const char* name, int& stopplayerssearch,
                              int nplayers, int nallplayers) {
         g->pushlist();
 
-        if(g->button("stop updating  ", 0xFFFFDD, stopplayerssearch ? "radio_on" : "radio_off")&G3D_UP) {
+        if(g->button("stop updating ", 0xFFFFDD, stopplayerssearch ? "radio_on" : "radio_off")&G3D_UP) {
             stopplayerssearch = !stopplayerssearch;
+            if(!stopplayerssearch) clearsearchdata();
         }
-        if(g->button("edit search  ", 0xFFFFDD, "menu")&G3D_UP) {
+        if(g->button( (name && strlen(name) > 0) ? "edit search" : "new search", 0xFFFFDD, "menu")&G3D_UP) {
             g->poplist();
             g->allowautotab(true);
             execute("setsearch");
@@ -2887,7 +2908,7 @@ namespace game
         }
 
         g->spring();
-        g->titlef("%s", 0xFFFFFF, NULL, name ? name : "");
+        g->titlef("   %s   ", 0xFFFFFF, NULL, name ? name : "");
         g->spring();
 
         if( nplayers == nallplayers) {
@@ -2904,21 +2925,6 @@ namespace game
         g->poplist();
         g->separator();
     }
-
-    VAR(stopplayerssearch, 0, 0, 1);
-    void clearsearchdata() {
-        stopplayerssearch = 0;
-        quickfilter[0] = 0;
-        vector<serverinfodata *> v = getservers();
-        loopv(v) {
-            serverinfodata* s = v[i];
-            if(!s) continue;
-            serverpreviewdata *p = static_cast<serverpreviewdata *>(s->gameinfo);
-            if(!p) continue;
-            p->checkdisconected(0);
-        }
-    }
-    COMMAND(clearsearchdata, "");
 
     const char* showplayersgui(g3d_gui *g, const char *name) {
         if(!stopplayerssearch) {
@@ -2976,7 +2982,7 @@ namespace game
         g->allowautotab(false);
         filterheader(g, name, stopplayerssearch, nplayers, nallplayers);
 
-        int len = pe.length(), k = 0, kt = 0, maxcount = 30, ntabs = 0;
+        int len = pe.length(), k = 0, kt = 0, maxcount = 25, ntabs = 0;
         ntabs = len/maxcount + ( len%maxcount ? 1 : 0 );
         if(ntabs == 0) {
             g->pushlist();
