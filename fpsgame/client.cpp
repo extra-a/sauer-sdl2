@@ -2837,18 +2837,15 @@ namespace game
     #define MAXCODELEN 1000
     static char cmdbuff[MAXCODELEN];
 
-    static int applyfilter(const char* name, vector<playersentry> &p0, vector<playersentry> &p1) {
-        snprintf(cmdbuff, MAXCODELEN, "unescape (getplayersearch (stringify $currentsearch))");
-        const char* patterns = executestr(cmdbuff);
-        if(!patterns) return -1;
 
+    static void applyfilter(const char* filter,
+                            vector<playersentry> &p0, vector<playersentry> &p1) {
         vector<bool> ismatched;
         loopv(p0) {
             ismatched.add(false);
         }
-
         const char* spl = " \t\n\v\f\r";
-        char* pats = strduplicate(patterns);
+        char* pats = strduplicate(filter);
         char* p = strtok(pats, spl);
         while(p) {
             loopv(p0) {
@@ -2859,18 +2856,28 @@ namespace game
             }
             p = strtok(NULL, spl);
         }
-
         free(pats);
+    }
+
+    static int applysearchfilter(const char* name,
+                                 vector<playersentry> &p0, vector<playersentry> &p1) {
+        snprintf(cmdbuff, MAXCODELEN, "unescape (getplayersearch (stringify $currentsearch))");
+        const char* patterns = executestr(cmdbuff);
+        if(!patterns) return -1;
+        applyfilter(patterns, p0, p1);
         DELETEA(patterns);
         return 0;
     }
 
-    static char savedfilter[MAXEXTNAMELENGHT];
+    #define FILTERLEN 21
+    static char quickfilter[FILTERLEN];
     static void filterheader(g3d_gui *g, const char* name, int& stopplayerssearch) {
         g->pushlist();
-        g->textf("filter ", 0xFFFFDD, "info");
-        const char* filter = g->field("", 0xFFFFFF, MAXEXTNAMELENGHT-1, 0, savedfilter);
-        if(filter) strncpy(savedfilter, filter, MAXEXTNAMELENGHT-1);
+        if(g->button("clear ", 0xFFFFDD, "action")&G3D_UP) {
+            quickfilter[0] = 0;
+        }
+        const char* filter = g->field("", 0xFFFFFF, FILTERLEN-1, 0, quickfilter);
+        if(filter) strncpy(quickfilter, filter, FILTERLEN-1);
         g->spring();
         g->titlef("%s", 0xFFFFFF, NULL, name ? name : "");
         g->spring();
@@ -2890,6 +2897,7 @@ namespace game
     VAR(stopplayerssearch, 0, 0, 1);
     void clearsearchdata() {
         stopplayerssearch = 0;
+        quickfilter[0] = 0;
         vector<serverinfodata *> v = getservers();
         loopv(v) {
             serverinfodata* s = v[i];
@@ -2939,19 +2947,14 @@ namespace game
         filterheader(g, name, stopplayerssearch);
 
         if(name && strlen(name) > 0) {
-            if(applyfilter(name, p0, p1)) {
-                p1 = p0;
-            }
+            int err = applysearchfilter(name, p0, p1);
+            if(err) p1 = p0;
         } else {
             p1 = p0;
         }
 
-        if(strnlen(savedfilter, MAXEXTNAMELENGHT-1) > 0) {
-            loopv(p1) {
-                if(strstr( p1[i].pname, savedfilter) != NULL) {
-                    pe.add( p1[i] );
-                }
-            }
+        if(strnlen(quickfilter, FILTERLEN-1) > 0) {
+            applyfilter(quickfilter, p1, pe);
         } else {
             pe = p1;
         }
