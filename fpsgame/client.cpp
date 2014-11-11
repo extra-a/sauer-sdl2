@@ -2892,6 +2892,19 @@ namespace game
     }
 
     VAR(stopplayerssearch, 0, 0, 1);
+    void clearsearchdata() {
+        stopplayerssearch = 0;
+        vector<serverinfodata *> v = getservers();
+        loopv(v) {
+            serverinfodata* s = v[i];
+            if(!s) continue;
+            serverpreviewdata *p = static_cast<serverpreviewdata *>(s->gameinfo);
+            if(!p) continue;
+            p->checkdisconected(0);
+        }
+    }
+    COMMAND(clearsearchdata, "");
+
     const char* showplayersgui(g3d_gui *g, const char *name) {
         if(!stopplayerssearch) {
             needsearch = 1;

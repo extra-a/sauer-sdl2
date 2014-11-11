@@ -785,7 +785,7 @@ struct serverpreviewdata {
     }
     void checkdisconected(int timeout) {
         loopi(nplayers) {
-            if(players[i].lastseen + timeout < totalmillis) {
+            if(players[i].lastseen + timeout <= totalmillis) {
                 removeplayer(i);
             }
         }
