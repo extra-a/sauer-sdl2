@@ -535,7 +535,7 @@ struct fpsstate
 
 #define MAXTEAMS 128
 
-#define MAXSERVSTRING 100
+#define MAXSERVSTRING 50
 struct serverdata {
     int ping;
     int nclients;
