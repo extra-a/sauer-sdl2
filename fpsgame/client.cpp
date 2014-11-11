@@ -342,8 +342,9 @@ namespace game
         }
     }
 
+    int needpreviewupdate;
     void checkseserverinfo() {
-        if(!lastpreviewdata.isupdating) return;
+        if(!needpreviewupdate) return;
         if(lastpreviewdata.lastupdate + SERVUPDATEINTERVAL < totalmillis) {
             requestserverinfosend();
         }
@@ -469,10 +470,11 @@ namespace game
         g->poplist();
     }
 
-    VAR(needsearch, 0, 0, 1);
-    ICOMMAND(keepsearching, "", (), intret(needsearch=1));
+    VAR(needplayersearch, 0, 0, 1);
+    ICOMMAND(keepsearching, "", (), intret(needplayersearch=1));
     const char* showserverpreview(g3d_gui *g) {
-        needsearch = 1;
+        needplayersearch = 1;
+        needpreviewupdate = 1;
         g->allowautotab(false);
         if(lastpreviewdata.hasserverdata) {
             string hostname;
@@ -2928,7 +2930,7 @@ namespace game
 
     const char* showplayersgui(g3d_gui *g, const char *name) {
         if(!stopplayerssearch) {
-            needsearch = 1;
+            needplayersearch = 1;
         }
         vector<serverinfodata *> v = getservers();
         vector<playersentry> p0, p1, pe;
