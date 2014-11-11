@@ -853,7 +853,6 @@ namespace game
     void drawicon(int icon, float x, float y, float sz)
     {
         settexture("packages/hud/items.png");
-        holdscreenlock;
         glBegin(GL_TRIANGLE_STRIP);
         float tsz = 0.25f, tx = tsz*(icon%4), ty = tsz*(icon/4);
         glTexCoord2f(tx,     ty);     glVertex2f(x,    y);
@@ -979,7 +978,6 @@ namespace game
         float textsep = 20*ammobarscale*staticscale;
         int pw = 0, ph = 0, tw = 0, th = 0;
 
-        holdscreenlock;
         glPushMatrix();
         glScalef(staticscale*ammobarscale, staticscale*ammobarscale, 1);
         draw_text("", 0, 0, 255, 255, 255, 255);
@@ -1051,7 +1049,6 @@ namespace game
     void drawammohud(fpsent *d)
     {
         float x = HICON_X + 2*HICON_STEP, y = HICON_Y, sz = HICON_SIZE;
-        holdscreenlock;
         glPushMatrix();
         glScalef(1/3.2f, 1/3.2f, 1);
         float xup = (x+sz)*3.2f, yup = y*3.2f + 0.1f*sz;
@@ -1126,7 +1123,6 @@ namespace game
 
     void drawhudicons(fpsent *d, int w, int h)
     {
-        holdscreenlock;
         glPushMatrix();
         glScalef(h/1800.0f, h/1800.0f, 1);
 
@@ -1185,8 +1181,6 @@ namespace game
            (newhud_hpdisablewithgui && framehasgui))
             return;
 
-        holdscreenlock;
-
         int conw = int(w/staticscale), conh = int(h/staticscale);
         float hpscale = (1 + newhud_hpssize/10.0)*h/1080.0;
         float xoff = newhud_hppos_x*conw/1000;
@@ -1241,8 +1235,6 @@ namespace game
            (!m_insta && newhud_ammodisableininsta == -1) ||
            (newhud_ammodisablewithgui && framehasgui))
             return;
-
-        holdscreenlock;
 
         int conw = int(w/staticscale), conh = int(h/staticscale);
         float ammoscale = (1 + newhud_ammosize/10.0)*h/1080.0;
@@ -1305,8 +1297,6 @@ namespace game
 
     void drawclock(int w, int h) {
         int conw = int(w/staticscale), conh = int(h/staticscale);
-
-        holdscreenlock;
 
         char buf[10];
         int millis = max(game::maplimit-lastmillis, 0);
@@ -1414,8 +1404,6 @@ namespace game
 
     void drawscores(int w, int h) {
         int conw = int(w/staticscale), conh = int(h/staticscale);
-
-        holdscreenlock;
 
         vector<fpsent *> bestplayers;
         vector<scoregroup *> bestgroups;
@@ -1596,7 +1584,6 @@ namespace game
     XIDENTHOOK(newhud_spectatorpos_y, IDF_EXTENDED);
 
     void drawspectator(int w, int h) {
-        holdscreenlock;
         fpsent *f = followingplayer();
         if(!f || player1->state!=CS_SPECTATOR) return;
  
@@ -1668,7 +1655,6 @@ namespace game
     void drawnewhuditems(fpsent *d, int w, int h) {
         if(newhud_itemsdisablewithgui && framehasgui) return;
         if(d->quadmillis) {
-            holdscreenlock;
             char buff[10];
             int conw = int(w/staticscale), conh = int(h/staticscale);
             float itemsscale = (1 + newhud_itemssize/10.0)*h/1080.0;
@@ -1722,7 +1708,6 @@ namespace game
         fpsent* d = (player1->state == CS_SPECTATOR) ? followingplayer() : player1;
         if(!d || (lagometerdisablewithgui && framehasgui)) return;
 
-        holdscreenlock;
         int conw = int(w/staticscale), conh = int(h/staticscale);
 
         float xoff = lagometerpos_start_x == 1 ? (1000-lagometerpos_x)*conw/1000 : lagometerpos_x*conw/1000;
@@ -1801,8 +1786,6 @@ namespace game
     ICOMMAND(extendedsettings, "", (), executestr("showgui extended_settings"));
 
     void gameplayhud(int w, int h) {
-        holdscreenlock;
-
         if(player1->state==CS_SPECTATOR &&
            !(newhud && newhud_spectatorsdisablewithgui && framehasgui)) {
             drawspectator(w, h);

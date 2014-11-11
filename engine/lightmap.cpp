@@ -247,7 +247,6 @@ void check_calclight_canceled()
 
 void show_calclight_progress()
 {
-    holdscreenlock;
     float bar1 = float(progress) / float(allocnodes);
     defformatstring(text1)("%d%% using %d textures", int(bar1 * 100), lightmaps.length());
 
@@ -472,7 +471,6 @@ static void updatelightmap(const layoutinfo &surface)
     if(max(LM_PACKW, LM_PACKH) > hwtexsize) return;
 
     LightMap &lm = lightmaps[surface.lmid-LMID_RESERVED];
-    holdscreenlock;
     if(lm.tex < 0)
     {
         lm.offsetx = lm.offsety = 0;
@@ -1969,7 +1967,6 @@ void cleanuplightmaps()
         LightMap &lm = lightmaps[i];
         lm.tex = lm.offsetx = lm.offsety = -1;
     }
-    holdscreenlock;
     loopv(lightmaptexs) glDeleteTextures(1, &lightmaptexs[i].id);
     lightmaptexs.shrink(0);
     if(progresstex) { glDeleteTextures(1, &progresstex); progresstex = 0; }
@@ -2417,7 +2414,6 @@ VARF(convertlms, 0, 1, 1, { cleanuplightmaps(); initlights(); allchanged(); });
 
 void genreservedlightmaptexs()
 {
-    holdscreenlock;
     while(lightmaptexs.length() < LMID_RESERVED)
     {
         LightMapTexture &tex = lightmaptexs.add();
@@ -2559,7 +2555,6 @@ void genlightmaptexs(int flagmask, int flagval)
             if(offsety >= tex.h) break;
         }
         
-        holdscreenlock;
         glGenTextures(1, &tex.id);
         createtexture(tex.id, tex.w, tex.h, data ? data : firstlm->data, 3, 1, bpp==4 ? GL_RGBA : GL_RGB);
         if(data) delete[] data;

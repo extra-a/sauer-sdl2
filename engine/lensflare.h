@@ -133,7 +133,6 @@ struct flarerenderer : partrenderer
 
     void render()
     {
-        holdscreenlock;
         glDisable(GL_FOG);
         defaultshader->set();
         glDisable(GL_DEPTH_TEST);

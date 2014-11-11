@@ -417,7 +417,6 @@ struct captureclientmode : clientmode
     {
         float scale = calcradarscale();
         int blips = 0;
-        holdscreenlock;
         loopv(bases)
         {
             baseinfo &b = bases[i];
@@ -470,7 +469,6 @@ struct captureclientmode : clientmode
 
     void drawhud(fpsent *d, int w, int h)
     {
-        holdscreenlock;
         glPushMatrix();
         glScalef(h/1800.0f, h/1800.0f, 1);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

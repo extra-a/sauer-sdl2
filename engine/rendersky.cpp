@@ -82,7 +82,6 @@ void draw_envbox_face(float s0, float t0, int x0, int y0, int z0,
                       float s3, float t3, int x3, int y3, int z3,
                       GLuint texture)
 {
-    holdscreenlock;
     glBindTexture(GL_TEXTURE_2D, texture);
     glBegin(GL_TRIANGLE_STRIP);
     glTexCoord2f(s3, t3); glVertex3f(x3, y3, z3);
@@ -140,7 +139,6 @@ void draw_envbox(int w, float z1clip = 0.0f, float z2clip = 1.0f, int faces = 0x
 void draw_env_overlay(int w, Texture *overlay = NULL, float tx = 0, float ty = 0)
 {
     float z = w*cloudheight, tsz = 0.5f*(1-cloudfade)/cloudscale, psz = w*(1-cloudfade);
-    holdscreenlock;
     glBindTexture(GL_TEXTURE_2D, overlay ? overlay->id : notexture->id);
     float r = (cloudcolour>>16)/255.0f, g = ((cloudcolour>>8)&255)/255.0f, b = (cloudcolour&255)/255.0f;
     glColor4f(r, g, b, cloudalpha);
@@ -275,7 +273,6 @@ static void initdome(const bvec &color, float minalpha = 0.0f, float maxalpha = 
 
     if(hasVBO)
     {
-        holdscreenlock;
         if(!domevbuf) glGenBuffers_(1, &domevbuf);
         glBindBuffer_(GL_ARRAY_BUFFER_ARB, domevbuf);
         glBufferData_(GL_ARRAY_BUFFER_ARB, domenumverts*sizeof(domevert), domeverts, GL_STATIC_DRAW_ARB);
@@ -291,7 +288,6 @@ static void initdome(const bvec &color, float minalpha = 0.0f, float maxalpha = 
 static void deletedome()
 {
 	domenumverts = domenumindices = 0;
-    holdscreenlock;
     if(domevbuf) { glDeleteBuffers_(1, &domevbuf); domevbuf = 0; }
     if(domeebuf) { glDeleteBuffers_(1, &domeebuf); domeebuf = 0; }
     DELETEA(domeverts);
@@ -323,7 +319,6 @@ static void drawdome()
         domeclipz = fogdomeclip;
     }
 
-    holdscreenlock;
     if(hasVBO)
     {
         glBindBuffer_(GL_ARRAY_BUFFER_ARB, domevbuf);
@@ -363,7 +358,6 @@ bool drawskylimits(bool explicitonly)
 {
     nocolorshader->set();
 
-    holdscreenlock;
     glDisable(GL_TEXTURE_2D);
     glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
     bool rendered = rendersky(explicitonly);
@@ -377,7 +371,6 @@ void drawskyoutline()
 {
     lineshader->set();
 
-    holdscreenlock;
     glDisable(GL_TEXTURE_2D);
     glDepthMask(GL_FALSE);
     extern int wireframe;
@@ -406,7 +399,6 @@ VARR(fogdomeclouds, 0, 1, 1);
 static void drawfogdome(int farplane)
 {
     notextureshader->set();
-    holdscreenlock;
     glDisable(GL_TEXTURE_2D);
 
     glEnable(GL_BLEND);
@@ -486,7 +478,6 @@ void drawskybox(int farplane, bool limited)
     if(glaring) SETSHADER(skyboxglare);
     else defaultshader->set();
 
-    holdscreenlock;
     glDisable(GL_FOG);
 
     if(limited) 

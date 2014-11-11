@@ -574,7 +574,6 @@ struct editor
             }
         }
         
-        holdscreenlock;
         if(selection)
         {
             // convert from cursor coords into pixel coords

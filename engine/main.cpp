@@ -6,7 +6,6 @@ extern void cleargamma();
 
 void cleanup()
 {
-    holdscreenlock;
     recorder::stop();
     cleanupserver();
     SDL_ShowCursor(SDL_TRUE);
@@ -179,7 +178,6 @@ void renderbackground(const char *caption, Texture *mapshot, const char *mapname
     getbackgroundres(w, h);
     gettextres(w, h);
 
-    holdscreenlock;
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glOrtho(0, w, h, 0, -1, 1);
@@ -371,7 +369,6 @@ void renderprogress(float bar, const char *text, GLuint tex, bool background)   
     getbackgroundres(w, h);
     gettextres(w, h);
 
-    holdscreenlock;
     glMatrixMode(GL_PROJECTION);
     glPushMatrix();
     glLoadIdentity();
@@ -553,7 +550,6 @@ bool initwindowpos = false;
 
 void setfullscreen(bool enable)
 {
-    holdscreenlock;
     if(!screen) return;
     //initwarning(enable ? "fullscreen" : "windowed");
     SDL_SetWindowFullscreen(screen, enable ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
@@ -579,7 +575,6 @@ void screenres(int w, int h)
     {
         scr_w = min(scr_w, desktopw);
         scr_h = min(scr_h, desktoph);
-        holdscreenlock;
         if(SDL_GetWindowFlags(screen) & SDL_WINDOW_FULLSCREEN) gl_resize();
         else SDL_SetWindowSize(screen, scr_w, scr_h);
     }
@@ -596,20 +591,17 @@ VARFP(gamma, 30, 100, 300,
 {
     if(gamma == curgamma) return;
     curgamma = gamma;
-    holdscreenlock;
     if(SDL_SetWindowBrightness(screen, gamma/100.0f)==-1) conoutf(CON_ERROR, "Could not set gamma: %s", SDL_GetError());
 });
 
 void restoregamma()
 {
     if(curgamma == 100) return;
-    holdscreenlock;
     SDL_SetWindowBrightness(screen, curgamma/100.0f);
 }
 
 void cleargamma()
 {
-    holdscreenlock;
     if(curgamma != 100 && screen) SDL_SetWindowBrightness(screen, 1.0f);
 }
 
@@ -617,7 +609,6 @@ VAR(dbgmodes, 0, 0, 1);
 
 void setupscreen(int &useddepthbits, int &usedfsaa)
 {
-    holdscreenlock;
     if(glcontext)
     {
         SDL_GL_DeleteContext(glcontext);
@@ -709,7 +700,6 @@ void setupscreen(int &useddepthbits, int &usedfsaa)
 
 void updatevsync(){
        if(!glcontext) return;
-       holdscreenlock;
        if(!SDL_GL_SetSwapInterval(vsync ? (vsynctear ? -1 : 1) : 0)) return;
        if(vsync && vsynctear) conoutf("vsynctear not supported, or you need to restart sauer to apply changes.");
        else if(vsync) conoutf("vsynctear not supported, or you need to restart sauer to apply changes.");
@@ -718,7 +708,6 @@ void updatevsync(){
 
 void resetgl()
 {
-    holdscreenlock;
     clearchanges(CHANGE_GFX);
 
     renderbackground("resetting OpenGL");
@@ -977,7 +966,6 @@ void checkinput()
 
                     case SDL_WINDOWEVENT_SIZE_CHANGED:
                     {
-                        holdscreenlock;
                         SDL_GetWindowSize(screen, &screenw, &screenh);
                         if(!(SDL_GetWindowFlags(screen) & SDL_WINDOW_FULLSCREEN))
                         {
@@ -1023,7 +1011,6 @@ void checkinput()
 
 void swapbuffers(bool overlay)
 {
-    holdscreenlock;
     recorder::capture(overlay);
     SDL_GL_SwapWindow(screen);
 }

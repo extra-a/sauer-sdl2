@@ -34,7 +34,7 @@ void destroyvbo(GLuint vbo)
     vbi.uses--;
     if(!vbi.uses) 
     {
-        if(hasVBO) { holdscreenlock; glDeleteBuffers_(1, &vbo); }
+        if(hasVBO) { glDeleteBuffers_(1, &vbo); }
         else if(vbi.data) delete[] vbi.data;
         vbos.remove(vbo);
     }
@@ -46,7 +46,6 @@ void genvbo(int type, void *buf, int len, vtxarray **vas, int numva)
     uchar *data = NULL;
     if(hasVBO)
     {
-        holdscreenlock;
         glGenBuffers_(1, &vbo);
         GLenum target = type==VBO_VBUF ? GL_ARRAY_BUFFER_ARB : GL_ELEMENT_ARRAY_BUFFER_ARB;
         glBindBuffer_(target, vbo);
@@ -97,7 +96,6 @@ bool readva(vtxarray *va, ushort *&edata, uchar *&vdata)
 
     if(hasVBO)
     {
-        holdscreenlock;
         glBindBuffer_(GL_ELEMENT_ARRAY_BUFFER_ARB, va->ebuf);
         glGetBufferSubData_(GL_ELEMENT_ARRAY_BUFFER_ARB, (size_t)va->edata, 3*va->tris*sizeof(ushort), edata);
         glBindBuffer_(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);

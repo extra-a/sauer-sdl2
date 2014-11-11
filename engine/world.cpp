@@ -538,7 +538,6 @@ VAR(showentradius, 0, 1, 1);
 void renderentring(const extentity &e, float radius, int axis)
 {
     if(radius <= 0) return;
-    holdscreenlock;
     glBegin(GL_LINE_LOOP);
     loopi(15)
     {
@@ -560,7 +559,6 @@ void renderentsphere(const extentity &e, float radius)
 void renderentattachment(const extentity &e)
 {
     if(!e.attached) return;
-    holdscreenlock;
     glBegin(GL_LINES);
     glVertex3fv(e.o.v);
     glVertex3fv(e.attached->o.v);
@@ -575,7 +573,6 @@ void renderentarrow(const extentity &e, const vec &dir, float radius)
     spoke.orthogonal(dir);
     spoke.normalize();
     spoke.mul(arrowsize);
-    holdscreenlock;
     glBegin(GL_LINES);
     glVertex3fv(e.o.v);
     glVertex3fv(target.v);
@@ -599,7 +596,6 @@ void renderentcone(const extentity &e, const vec &dir, float radius, float angle
     spoke.orthogonal(dir);
     spoke.normalize();
     spoke.mul(radius*sinf(angle*RAD));
-    holdscreenlock;
     glBegin(GL_LINES);
     loopi(8)
     {
@@ -623,7 +619,6 @@ void renderentcone(const extentity &e, const vec &dir, float radius, float angle
 
 void renderentradius(extentity &e, bool color)
 {
-    holdscreenlock;
     switch(e.type)
     {
         case ET_LIGHT:
@@ -683,7 +678,6 @@ void renderentselection(const vec &o, const vec &ray, bool entmoving)
     if(noentedit()) return;
     vec eo, es;
 
-    holdscreenlock;
     glColor3ub(0, 40, 0);
     loopv(entgroup) entfocus(entgroup[i],     
         entselectionbox(e, eo, es);

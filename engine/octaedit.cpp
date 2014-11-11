@@ -10,7 +10,6 @@ void boxs(int orient, vec o, const vec &s)
     float f = boxoutline ? (dc>0 ? 0.2f : -0.2f) : 0;
     o[D[d]] += dc * s[D[d]] + f;
 
-    holdscreenlock;
     glBegin(GL_LINE_LOOP);
 
     glVertex3fv(o.v); o[R[d]] += s[R[d]];
@@ -40,7 +39,6 @@ void boxsgrid(int orient, vec o, vec s, int g)
 
     o[D[d]] += dc * s[D[d]]*g + f;
 
-    holdscreenlock;
     glBegin(GL_LINES);
     loop(x, xs) {
         o[R[d]] += g;
@@ -431,7 +429,6 @@ void rendereditcursor()
         }
     }
 
-    holdscreenlock;
     glEnable(GL_BLEND);
     glBlendFunc(GL_ONE, GL_ONE);
 
@@ -2263,7 +2260,6 @@ void rendertexturepanel(int w, int h)
 {
     if((texpaneltimer -= curtime)>0 && editmode)
     {
-        holdscreenlock;
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
         glPushMatrix();

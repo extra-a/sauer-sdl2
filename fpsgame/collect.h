@@ -447,7 +447,6 @@ struct collectclientmode : clientmode
 
     void drawhud(fpsent *d, int w, int h)
     {
-        holdscreenlock;
         int conw = int(w/staticscale), conh = int(h/staticscale);
         float itemsscale = (1 + newhud_itemssize/10.0)*h/1080.0;
         float xoff = newhud_itemspos_reverse_x ? (1000 - newhud_itemspos_x)*conw/1000 : newhud_itemspos_x*conw/1000;

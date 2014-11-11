@@ -286,8 +286,6 @@ extern void damagecompass(int n, const vec &loc);
 extern vec minimapcenter, minimapradius, minimapscale;
 extern void bindminimap();
 
-inline void __screenlock() {}
-#define holdscreenlock __screenlock();
 
 // renderparticles
 enum

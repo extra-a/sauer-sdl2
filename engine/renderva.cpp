@@ -4,7 +4,6 @@
 
 static inline void drawtris(GLsizei numindices, const GLvoid *indices, ushort minvert, ushort maxvert)
 {
-    holdscreenlock;
     if(hasDRE) glDrawRangeElements_(GL_TRIANGLES, minvert, maxvert, numindices, GL_UNSIGNED_SHORT, indices);
     else glDrawElements(GL_TRIANGLES, numindices, GL_UNSIGNED_SHORT, indices);
     glde++;
@@ -243,7 +242,6 @@ struct queryframe
         if(cur >= max)
         {
             if(max >= MAXQUERY) return NULL;
-            holdscreenlock;
             glGenQueries_(1, &queries[max++].id);
         }
         occludequery *query = &queries[cur++];
@@ -256,7 +254,6 @@ struct queryframe
 
     void cleanup()
     {
-        holdscreenlock;
         loopi(max)
         {
             glDeleteQueries_(1, &queries[i].id);
@@ -304,7 +301,6 @@ bool checkquery(occludequery *query, bool nowait)
     if(query->fragments >= 0) fragments = query->fragments;
     else
     {
-        holdscreenlock;
         if(nowait || !oqwait)
         {
             GLint avail;
@@ -319,7 +315,6 @@ bool checkquery(occludequery *query, bool nowait)
 
 void drawbb(const ivec &bo, const ivec &br, const vec &camera)
 {
-    holdscreenlock;
     glBegin(GL_QUADS);
 
     #define GENFACEORIENT(orient, v0, v1, v2, v3) do { \
@@ -494,7 +489,6 @@ void rendermapmodels()
     endmodelbatches();
 
     bool colormask = true;
-    holdscreenlock;
     for(octaentities *oe = visiblemms; oe; oe = oe->next) if(oe->distance<0)
     {
         oe->query = doquery && !insideoe(oe, camera1->o) ? newquery(oe) : NULL;
@@ -568,7 +562,6 @@ bool bboccluded(const ivec &bo, const ivec &br)
 
 static void setuptexgen(int dims = 2)
 {
-    holdscreenlock;
     glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
     glEnable(GL_TEXTURE_GEN_S);
     if(dims>=2)
@@ -580,7 +573,6 @@ static void setuptexgen(int dims = 2)
 
 static void disabletexgen(int dims = 2)
 {
-    holdscreenlock;
     glDisable(GL_TEXTURE_GEN_S);
     if(dims>=2) glDisable(GL_TEXTURE_GEN_T);
 }
@@ -593,7 +585,6 @@ void renderoutline()
 {
     lineshader->set();
 
-    holdscreenlock;
     glDisable(GL_TEXTURE_2D);
     glEnableClientState(GL_VERTEX_ARRAY);
 
@@ -657,7 +648,6 @@ void renderblendbrush(GLuint tex, float x, float y, float w, float h)
 {
     SETSHADER(blendbrush);
 
-   holdscreenlock;
     glEnableClientState(GL_VERTEX_ARRAY);
 
     glDepthFunc(GL_LEQUAL);
@@ -727,7 +717,6 @@ void rendershadowmapreceivers()
 
     SETSHADER(shadowmapreceiver);
 
-    holdscreenlock;
     glDisable(GL_TEXTURE_2D);
     glEnableClientState(GL_VERTEX_ARRAY);
 
@@ -808,7 +797,6 @@ void renderdepthobstacles(const vec &bbmin, const vec &bbmax, float scale, float
     setlocalparamfv("depthscale", SHPARAM_VERTEX, 0, scales);
     setlocalparamfv("depthoffsets", SHPARAM_VERTEX, 1, offsets);
 
-    holdscreenlock;
     glDisable(GL_TEXTURE_2D);
     glEnableClientState(GL_VERTEX_ARRAY);
 
@@ -887,7 +875,6 @@ struct renderstate
 void renderquery(renderstate &cur, occludequery *query, vtxarray *va, bool full = true)
 {
     nocolorshader->set();
-    holdscreenlock;
     if(cur.colormask) { cur.colormask = false; glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE); }
     if(cur.depthmask) { cur.depthmask = false; glDepthMask(GL_FALSE); }
 
@@ -1102,7 +1089,6 @@ static void changedynlightpos(renderstate &cur)
     GLfloat tx[4] = { 0.5f/cur.dynlightradius, 0, 0, 0.5f - 0.5f*cur.dynlightpos.x/cur.dynlightradius },
             ty[4] = { 0, 0.5f/cur.dynlightradius, 0, 0.5f - 0.5f*cur.dynlightpos.y/cur.dynlightradius },
             tz[4] = { 0, 0, 0.5f/cur.dynlightradius, 0.5f - 0.5f*cur.dynlightpos.z/cur.dynlightradius };
-    holdscreenlock;
     glActiveTexture_(GL_TEXTURE0_ARB);
     glTexGenfv(GL_S, GL_OBJECT_PLANE, tx);
     glTexGenfv(GL_T, GL_OBJECT_PLANE, ty);
@@ -1113,7 +1099,6 @@ static void changedynlightpos(renderstate &cur)
     
 static void changevbuf(renderstate &cur, int pass, vtxarray *va)
 {
-    holdscreenlock;
     if(hasVBO)
     {
         glBindBuffer_(GL_ARRAY_BUFFER_ARB, va->vbuf);
@@ -1157,7 +1142,6 @@ static void changebatchtmus(renderstate &cur, int pass, geombatch &b)
     extern bool brightengeom;
     extern int fullbright;
     int lmid = brightengeom && (b.es.lmid < LMID_RESERVED || (fullbright && editmode)) ? LMID_BRIGHT : b.es.lmid; 
-    holdscreenlock;
     if(cur.textures[cur.lightmaptmu]!=lightmaptexs[lmid].id)
     {
         glActiveTexture_(GL_TEXTURE0_ARB+cur.lightmaptmu);
@@ -1212,7 +1196,6 @@ static void changebatchtmus(renderstate &cur, int pass, geombatch &b)
 
 static inline void disableenv(renderstate &cur)
 {
-    holdscreenlock;
     glDisable(GL_TEXTURE_CUBE_MAP_ARB);
     glDisableClientState(GL_NORMAL_ARRAY);
     glDisable(GL_TEXTURE_GEN_S);
@@ -1222,7 +1205,6 @@ static inline void disableenv(renderstate &cur)
 
 static inline void enableenv(renderstate &cur)
 {
-    holdscreenlock;
     setuptmu(cur.glowtmu, "T , P @ Pa", "= Pa");
     glEnableClientState(GL_NORMAL_ARRAY);
     glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP_ARB);
@@ -1239,14 +1221,12 @@ static inline void enableenv(renderstate &cur)
 
 static inline void disableglow(renderstate &cur)
 {
-    holdscreenlock;
     glDisable(GL_TEXTURE_2D);
     glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 }
 
 static inline void enableglow(renderstate &cur, bool shouldsetuptmu = true)
 {
-    holdscreenlock;
     if(shouldsetuptmu) setuptmu(cur.glowtmu, "P + T", "= Pa");
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
     glMatrixMode(GL_TEXTURE);
@@ -1257,7 +1237,6 @@ static inline void enableglow(renderstate &cur, bool shouldsetuptmu = true)
     
 static void changeenv(renderstate &cur, int pass, Slot &slot, VSlot &vslot, geombatch *b = NULL)
 {
-    holdscreenlock;
     if(pass==RENDERPASS_ENVMAP)
     {
         bool specmask = slot.sts.length() && slot.sts[0].t->bpp >= 4;
@@ -1361,7 +1340,6 @@ static void changeenv(renderstate &cur, int pass, Slot &slot, VSlot &vslot, geom
                         
 static void changeglow(renderstate &cur, int pass, Slot &slot, VSlot &vslot)
 {
-    holdscreenlock;
     vec color = vslot.glowcolor;
     if(vslot.pulseglowspeed)
     {
@@ -1432,7 +1410,6 @@ static void changeglow(renderstate &cur, int pass, Slot &slot, VSlot &vslot)
 
 static void changecolor(renderstate &cur, int pass, Slot &slot, VSlot &vslot)
 {
-    holdscreenlock;
     if(vslot.colorscale == vec(1, 1, 1))
     {
         if(cur.causticstmu >= 0)
@@ -1470,7 +1447,6 @@ static void changecolor(renderstate &cur, int pass, Slot &slot, VSlot &vslot)
 
 static void changeslottmus(renderstate &cur, int pass, Slot &slot, VSlot &vslot)
 {
-    holdscreenlock;
     if(pass==RENDERPASS_LIGHTMAP || pass==RENDERPASS_COLOR || pass==RENDERPASS_ENVMAP || pass==RENDERPASS_DYNLIGHT) 
     {
         GLuint diffusetex = slot.sts.empty() ? notexture->id : slot.sts[0].t->id;
@@ -1644,7 +1620,6 @@ static void changetexgen(renderstate &cur, int dim, Slot &slot, VSlot &vslot)
 
     if(renderpath==R_FIXEDFUNCTION)
     {
-        holdscreenlock;
         bool mtglow = cur.mtglow && !cur.envscale.x;
         if(cur.texgendim == dim && (cur.mttexgen || !mtglow)) return;
         glMatrixMode(GL_TEXTURE);
@@ -1721,7 +1696,6 @@ static void resetbatches()
 
 static void renderbatches(renderstate &cur, int pass)
 {
-    holdscreenlock;
     cur.slot = NULL;
     cur.vslot = NULL;
     int curbatch = firstbatch;
@@ -1765,7 +1739,6 @@ static void renderbatches(renderstate &cur, int pass)
 
 void renderzpass(renderstate &cur, vtxarray *va)
 {
-    holdscreenlock;
     if(cur.vbuf!=va->vbuf) changevbuf(cur, RENDERPASS_Z, va);
     if(!cur.depthmask) { cur.depthmask = true; glDepthMask(GL_TRUE); }
     if(cur.colormask) { cur.colormask = false; glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE); }
@@ -1837,7 +1810,6 @@ void renderfoggedvas(renderstate &cur, bool doquery = false)
     if(fading) fogshader->setvariant(0, 2);
     else fogshader->set();
 
-    holdscreenlock;
     glDisable(GL_TEXTURE_2D);
         
     glColor3ubv(fogging ? refractcolor.v : fogcolor.v);
@@ -1968,7 +1940,6 @@ static GLuint createattenxytex(int size)
         *dst++ = uchar(atten*255);
     }
     GLuint tex = 0;
-    holdscreenlock;
     glGenTextures(1, &tex);
     createtexture(tex, size, size, data, 3, 1, GL_ALPHA);
     delete[] data;
@@ -1985,7 +1956,6 @@ static GLuint createattenztex(int size)
         *dst++ = uchar(atten*255);
     }
     GLuint tex = 0;
-    holdscreenlock;
     glGenTextures(1, &tex);
     createtexture(tex, size, 1, data, 3, 1, GL_ALPHA, GL_TEXTURE_1D);
     delete[] data;
@@ -2018,7 +1988,6 @@ void cleanupva()
 {
     clearvas(worldroot);
     clearqueries();
-    holdscreenlock;
     if(attenxytex) { glDeleteTextures(1, &attenxytex); attenxytex = 0; }
     if(attenztex) { glDeleteTextures(1, &attenztex); attenztex = 0; }
     loopi(NUMCAUSTICS) caustictex[i] = NULL;
@@ -2041,7 +2010,6 @@ void setupcaustics(int tmu, float blend, GLfloat *color = NULL)
     }
     int tex = (lastmillis/causticmillis)%NUMCAUSTICS;
     float frac = float(lastmillis%causticmillis)/causticmillis;
-    holdscreenlock;
     if(color) color[3] = frac;
     else glColor4f(1, 1, 1, frac);
     loopi(2)
@@ -2069,7 +2037,6 @@ void setupcaustics(int tmu, float blend, GLfloat *color = NULL)
 
 void setupTMUs(renderstate &cur, float causticspass, bool fogpass)
 {
-    holdscreenlock;
     if(renderpath==R_FIXEDFUNCTION)
     {
         if(nolights) cur.lightmaptmu = -1;
@@ -2141,7 +2108,6 @@ void setupTMUs(renderstate &cur, float causticspass, bool fogpass)
 
 void cleanupTMUs(renderstate &cur, float causticspass, bool fogpass)
 {
-    holdscreenlock;
     if(cur.lightmaptmu>=0)
     {
         glActiveTexture_(GL_TEXTURE0_ARB+cur.lightmaptmu);
@@ -2235,7 +2201,6 @@ VAR(ffdlscissor, 0, 1, 1);
 
 static void setupenvpass(renderstate &cur)
 {
-    holdscreenlock;
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glColor4f(1, 1, 1, 1);
     cur.envscale = vec(-1, -1, -1);
@@ -2266,7 +2231,6 @@ static void cleanuptexgen(renderstate &cur)
 {
     if(cur.texgendim >= 0 && cur.texgendim <= 2)
     {
-        holdscreenlock;
         glMatrixMode(GL_TEXTURE);
         glLoadIdentity();
         glMatrixMode(GL_MODELVIEW);
@@ -2275,7 +2239,6 @@ static void cleanuptexgen(renderstate &cur)
 
 static void cleanupenvpass(renderstate &cur)
 {
-    holdscreenlock;
     glDisableClientState(GL_TEXTURE_COORD_ARRAY);
     glDisable(GL_TEXTURE_2D);
     resettmu(1);
@@ -2320,7 +2283,6 @@ void rendergeom(float causticspass, bool fogpass)
 
     resetbatches();
 
-    holdscreenlock;
     glEnableClientState(GL_VERTEX_ARRAY);
 
     int blends = 0;
@@ -2639,7 +2601,6 @@ void renderalphageom(bool fogpass)
     renderstate cur;
     cur.alphaing = 1;
 
-    holdscreenlock;
     glEnableClientState(GL_VERTEX_ARRAY);
 
     glGetFloatv(GL_FOG_COLOR, cur.fogcolor);
@@ -2775,7 +2736,6 @@ void renderskyva(vtxarray *va, bool explicitonly = false)
 {
     if(!prevskyva || va->vbuf != prevskyva->vbuf)
     {
-        holdscreenlock;
         if(!prevskyva) glEnableClientState(GL_VERTEX_ARRAY);
         if(hasVBO)
         {
@@ -2843,7 +2803,6 @@ bool rendersky(bool explicitonly)
 
     if(prevskyva)
     {
-        holdscreenlock;
         glDisableClientState(GL_VERTEX_ARRAY);
         if(hasVBO) 
         {

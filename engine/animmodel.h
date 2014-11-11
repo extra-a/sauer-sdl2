@@ -87,7 +87,6 @@ struct animmodel : model
 
         void setuptmus(const animstate *as, bool masked)
         {
-            holdscreenlock;
             if(fullbright)
             {
                 if(enablelighting) { glDisable(GL_LIGHTING); enablelighting = false; }
@@ -154,7 +153,6 @@ struct animmodel : model
 
         void setshaderparams(mesh *m, const animstate *as, bool masked)
         {
-            holdscreenlock;
             if(fullbright)
             {
                 glColor4f(fullbright/2, fullbright/2, fullbright/2, transparent);
@@ -242,7 +240,6 @@ struct animmodel : model
 
         void bind(mesh *b, const animstate *as)
         {
-            holdscreenlock;
             if(!cullface && enablecullface) { glDisable(GL_CULL_FACE); enablecullface = false; }
             else if(cullface && !enablecullface) { glEnable(GL_CULL_FACE); enablecullface = true; }
 
@@ -787,7 +784,6 @@ struct animmodel : model
 
         void render(int anim, int basetime, int basetime2, float pitch, const vec &axis, const vec &forward, dynent *d, animstate *as)
         {
-            holdscreenlock;
             if(!(anim&ANIM_REUSE)) loopi(numanimparts)
             {
                 animinfo info;
@@ -986,7 +982,6 @@ struct animmodel : model
 
     void render(int anim, int basetime, int basetime2, const vec &o, float yaw, float pitch, dynent *d, modelattach *a, const vec &color, const vec &dir, float trans)
     {
-        holdscreenlock;
         if(!loaded) return;
 
         yaw += spinyaw*lastmillis/1000.0f;
@@ -1304,7 +1299,6 @@ struct animmodel : model
 
         if(renderpath==R_FIXEDFUNCTION && lightmodels && !enablelight0)
         {
-            holdscreenlock;
             glEnable(GL_LIGHT0);
             static const GLfloat zero[4] = { 0, 0, 0, 0 };
             glLightModelfv(GL_LIGHT_MODEL_AMBIENT, zero);
@@ -1317,7 +1311,6 @@ struct animmodel : model
 
     static void disablebones()
     {
-        holdscreenlock;
         glDisableVertexAttribArray_(6);
         glDisableVertexAttribArray_(7);
         enablebones = false;
@@ -1325,14 +1318,12 @@ struct animmodel : model
 
     static void disabletangents()
     {
-        holdscreenlock;
         glDisableVertexAttribArray_(1);
         enabletangents = false;
     }
 
     static void disablemtc()
     {
-        holdscreenlock;
         glClientActiveTexture_(GL_TEXTURE1_ARB);
         glDisableClientState(GL_TEXTURE_COORD_ARRAY);
         glClientActiveTexture_(GL_TEXTURE0_ARB);
@@ -1341,7 +1332,6 @@ struct animmodel : model
 
     static void disabletc()
     {
-        holdscreenlock;
         glDisableClientState(GL_TEXTURE_COORD_ARRAY);
         if(enablemtc) disablemtc();
         enabletc = false;
@@ -1349,14 +1339,12 @@ struct animmodel : model
 
     static void disablenormals()
     {
-        holdscreenlock;
         glDisableClientState(GL_NORMAL_ARRAY);
         enablenormals = false;
     }
 
     static void disablevbo()
     {
-        holdscreenlock;
         if(hasVBO)
         {
             glBindBuffer_(GL_ARRAY_BUFFER_ARB, 0);
@@ -1380,7 +1368,6 @@ struct animmodel : model
     static void disableglow()
     {
         resettmu(0);
-        holdscreenlock;
         glActiveTexture_(GL_TEXTURE1_ARB);
         resettmu(1);
         glDisable(GL_TEXTURE_2D);
@@ -1391,7 +1378,6 @@ struct animmodel : model
 
     static void disableenvmap(bool cleanup = false)
     {
-        holdscreenlock;
         glActiveTexture_(GL_TEXTURE0_ARB+envmaptmu);
         if(enableenvmap) glDisable(GL_TEXTURE_CUBE_MAP_ARB);
         if(cleanup && renderpath==R_FIXEDFUNCTION)
@@ -1407,7 +1393,6 @@ struct animmodel : model
 
     void endrender()
     {
-        holdscreenlock;
         if(lastvbuf || lastebuf) disablevbo();
         if(enablealphatest) glDisable(GL_ALPHA_TEST);
         if(enablealphablend) glDisable(GL_BLEND);
