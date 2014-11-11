@@ -496,7 +496,7 @@ namespace game
                 loopv(spectators) g.textf("%d", 0xFFFFDD, NULL, spectators[i]->clientnum);
                 g.poplist();
 
-                if(showping){
+                if(showping && (multiplayer(false) || demoplayback)) {
                        g.space(1);
                        g.pushlist();
                        g.text("ping", 0xFFFF80);
