@@ -2871,25 +2871,36 @@ namespace game
 
     #define FILTERLEN 21
     static char quickfilter[FILTERLEN];
-    static void filterheader(g3d_gui *g, const char* name, int& stopplayerssearch) {
+    static void filterheader(g3d_gui *g, const char* name, int& stopplayerssearch,
+                             int nplayers, int nallplayers) {
         g->pushlist();
+
+        if(g->button("stop updating  ", 0xFFFFDD, stopplayerssearch ? "radio_on" : "radio_off")&G3D_UP) {
+            stopplayerssearch = !stopplayerssearch;
+        }
+        if(g->button("edit search  ", 0xFFFFDD, "menu")&G3D_UP) {
+            g->poplist();
+            g->allowautotab(true);
+            execute("setsearch");
+            showgui("editplayersearch");
+            return;
+        }
+
+        g->spring();
+        g->titlef("%s", 0xFFFFFF, NULL, name ? name : "");
+        g->spring();
+
+        if( nplayers == nallplayers) {
+            g->textf("%d ", 0xFFFFDD, "info", nplayers);
+        } else {
+            g->textf("%d/%d  ", 0xFFFFDD, "info", nplayers, nallplayers);
+        }
         if(g->button("clear ", 0xFFFFDD, "action")&G3D_UP) {
             quickfilter[0] = 0;
         }
         const char* filter = g->field("", 0xFFFFFF, FILTERLEN-1, 0, quickfilter);
         if(filter) strncpy(quickfilter, filter, FILTERLEN-1);
-        g->spring();
-        g->titlef("%s", 0xFFFFFF, NULL, name ? name : "");
-        g->spring();
-        if(g->button("edit search  ", 0xFFFFDD, "menu")&G3D_UP) {
-            g->poplist();
-            execute("setsearch");
-            showgui("editplayersearch");
-            return;
-        }
-        if(g->button("stop updating", 0xFFFFDD, stopplayerssearch ? "radio_on" : "radio_off")&G3D_UP) {
-            stopplayerssearch = !stopplayerssearch;
-        }
+
         g->poplist();
         g->separator();
     }
@@ -2943,8 +2954,8 @@ namespace game
             }
         }
 
-        g->allowautotab(false);
-        filterheader(g, name, stopplayerssearch);
+        int nplayers, nallplayers;
+        nallplayers = p0.length();
 
         if(name && strlen(name) > 0) {
             int err = applysearchfilter(name, p0, p1);
@@ -2959,6 +2970,11 @@ namespace game
             pe = p1;
         }
         pe.sort(playersentrysort);
+
+        nplayers = pe.length();
+
+        g->allowautotab(false);
+        filterheader(g, name, stopplayerssearch, nplayers, nallplayers);
 
         int len = pe.length(), k = 0, kt = 0, maxcount = 30, ntabs = 0;
         ntabs = len/maxcount + ( len%maxcount ? 1 : 0 );
@@ -2976,7 +2992,7 @@ namespace game
         loopi( ntabs ) {
             if(i>0 && k<len) {
                 g->tab();
-                filterheader(g, name, stopplayerssearch);
+                filterheader(g, name, stopplayerssearch, nplayers, nallplayers);
             }
 
             g->pushlist();
