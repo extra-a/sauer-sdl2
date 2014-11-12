@@ -595,6 +595,13 @@ void guiserverpreview() {
     }
 }
 
+void guidemoslist() {
+    if(cgui) {
+        game::showdemoslist(cgui);
+    }
+}
+
+
 void notifywelcome()
 {
     if(guiserversmenu)
@@ -619,6 +626,7 @@ COMMAND(guibutton, "sss");
 COMMAND(guitext, "ss");
 COMMAND(guiservers, "eii");
 COMMAND(guiplayers, "s");
+COMMAND(guidemoslist, "");
 COMMAND(guiserverpreview, "");
 ICOMMAND(cleargui, "i", (int *n), intret(cleargui(*n)));
 COMMAND(showgui, "s");

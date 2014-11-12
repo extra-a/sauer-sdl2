@@ -898,7 +898,13 @@ const char *extended_menus =
     "guistayopen [\n"
          "guiserverpreview\n"
     "]\n"
-"] \"preview\" \n";
+"] \"preview\" \n"
+"newgui demoslist [\n"
+    "guistayopen [\n"
+         "guidemoslist\n"
+    "]\n"
+"] \"demos\" \n";
+
 
 const char *extended_helpers =
 "stringify = [\n"
@@ -991,6 +997,7 @@ const char *new_main_menu =
 "    guibar\n"
 "    guibutton \"server browser..\"  \"showgui servers\"\n"
 "    guibutton \"players..\"  \"showgui playersearches\"\n"
+"    guibutton \"demos..\"  [updatedemoslist; showgui demoslist]\n"
 "    if (isconnected) [\n"
 "        guibar\n"
 "        if (|| $editing (m_edit (getmode))) [\n"

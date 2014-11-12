@@ -2,7 +2,10 @@
 #include "extendedscripts.h"
 
 extern int getpacketloss();
+extern string homedir;
 float staticscale = 0.33;
+
+#include <sys/stat.h>
 
 namespace game
 {
@@ -2010,6 +2013,80 @@ namespace game
         }
         return false;
     }
+
+    struct demolistentry {
+        char *name;
+        time_t mtime;
+
+        demolistentry(char *nname, time_t nmtime) {
+            size_t len = 0;
+            if(nname) len = strlen(nname);
+            if(len <= 0) {
+                name = NULL;
+            } else {
+                name = new char[len+1];
+                strcpy(name, nname);
+            }
+            mtime = nmtime;
+        }
+
+        ~demolistentry() {
+            delete[] name;
+        }
+    };
+
+    int demosortfn(struct demolistentry* &e1, struct demolistentry* &e2) {
+        if(e1->mtime > e2->mtime) return 1;
+        if(e1->mtime < e2->mtime) return 0;
+        if(strcmp(e1->name, e2->name) <= 0) return 1;
+        return 0;
+    }
+
+    static vector<demolistentry *> demos;
+
+    static void listdirfiles(const char *dir, const char *ext, vector<char *> &files) {
+        string dirname;
+        copystring(dirname, dir);
+        path(dirname);
+        size_t dirlen = strlen(dirname);
+        while(dirlen > 1 && dirname[dirlen-1] == PATHDIV) dirname[--dirlen] = '\0';
+        string s;
+        if(homedir[0]) {
+            formatstring(s)("%s%s", homedir, dirname);
+            listdir(homedir, false, ext, files);
+        }
+    }
+
+    void updatedemoslist() {
+        vector<char *> files;
+        demos.deletecontents();
+        listdirfiles("", "dmo", files);
+        struct stat statbuf;
+        struct demolistentry *pe;
+        string s;
+        loopv(files) {
+            formatstring(s)("%s%s.dmo", homedir, files[i]);
+            if(stat(s, &statbuf) == -1) continue;
+            pe = new demolistentry(files[i], statbuf.st_mtime);
+            demos.add(pe);
+        }
+        demos.sort(demosortfn);
+    }
+
+    extern void setmode(int mode);
+    void showdemoslist(g3d_gui *g) {
+        loopv(demos) {
+            if(!demos[i]) continue;
+            if(g->buttonf("%s", 0xFFFFDD, "action", demos[i]->name)&G3D_UP) {
+                server::stopdemo();
+                setmode(-1);
+                changemap(demos[i]->name);
+                return;
+            }
+        }
+    }
+
+    COMMAND(updatedemoslist, "");
 
     // any data written into this vector will get saved with the map data. Must take care to do own versioning, and endianess if applicable. Will not get called when loading maps from other games, so provide defaults.
     void writegamedata(vector<char> &extras) {}
