@@ -407,7 +407,7 @@ namespace game
                 g.pushlist();
                 g.strut(6);
                 g.text("acc", fgcolor);
-                if(showserveracc) {
+                if(showserveracc && connectedpeer()) {
                     loopscoregroup(o, g.textf("%d", 0xFFFFDD, NULL, (o ? o->extdata.data.acc : 0)));
                 } else {
                     loopscoregroup(o, g.textf("%.2lf", 0xFFFFDD, NULL, getweaponaccuracy(-1,o)));
