@@ -557,6 +557,7 @@ void newgui(char *name, char *contents, char *header, char *init)
 menu *guiserversmenu = NULL;
 menu *guiplayersmenu = NULL;
 menu *guiserverpreviewmenu = NULL;
+menu *guiguidemoslistmenu = NULL;
 
 void guiservers(uint *header, int *pagemin, int *pagemax)
 {
@@ -598,6 +599,8 @@ void guiserverpreview() {
 void guidemoslist() {
     if(cgui) {
         game::showdemoslist(cgui);
+        if(shouldclearmenu) clearlater = true;
+        guiguidemoslistmenu = clearlater || guistack.empty() ? NULL : guistack.last();
     }
 }
 
@@ -618,6 +621,11 @@ void notifywelcome()
     {
         if(guistack.length() && guistack.last() == guiserverpreviewmenu) clearguis();
         guiserverpreviewmenu = NULL;
+    }
+    if(guiguidemoslistmenu)
+    {
+        if(guistack.length() && guistack.last() == guiguidemoslistmenu) clearguis();
+        guiguidemoslistmenu = NULL;
     }
 }
  

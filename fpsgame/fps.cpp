@@ -2074,15 +2074,27 @@ namespace game
     }
 
     extern void setmode(int mode);
+    extern void demoseekintermission();
     void showdemoslist(g3d_gui *g) {
         loopv(demos) {
             if(!demos[i]) continue;
+            g->pushlist();
+            if(g->buttonf("seek to end  ", 0xFFFFDD, "action")&G3D_UP) {
+                server::stopdemo();
+                setmode(-1);
+                changemap(demos[i]->name);
+                demoseekintermission();
+                g->poplist();
+                return;
+            }
             if(g->buttonf("%s", 0xFFFFDD, "action", demos[i]->name)&G3D_UP) {
                 server::stopdemo();
                 setmode(-1);
                 changemap(demos[i]->name);
+                g->poplist();
                 return;
             }
+            g->poplist();
         }
     }
 

@@ -606,15 +606,25 @@ namespace game
 
     int seekmillispos = -1;
     bool demoseekmode = false;
+    bool seekintermission = false;
 
     extern int gamespeed;
     extern void changegamespeed(int val);
     extern void pausegame(bool val);
     extern void changemap(const char *name, int mode);
 
-    void demoseek(int min, int sec) {
+    void demoseekintermission() {
+        if(!demoplayback) return;
         pausegame(false);
+        demoseekmode = true;
+        seekintermission = true;
+        seekmillispos = 1;
+        changegamespeed(100000);
+    }
+
+    void demoseek(int min, int sec) {
         if( !demoplayback || min < 0 || sec < 0 ) return;
+        pausegame(false);
         int currentmillis = max(maplimit-lastmillis, 0);
         seekmillispos = (min*60 + sec)*1000;
         if(seekmillispos > currentmillis) {
@@ -623,23 +633,36 @@ namespace game
             stopdemo();
             changemap(s);
         }
-        game::demoseekmode = true;
-        changegamespeed(10000);
+        demoseekmode = true;
+        seekintermission = false;
+        changegamespeed(100000);
     }
 
     void checkseek() {
-        if(demoseekmode) {
+        if(demoseekmode && !seekintermission) {
             int currentmillis = max(maplimit-lastmillis, 0);
             if(currentmillis <= seekmillispos || !demoplayback || seekmillispos < 0) {
                 seekmillispos = -1;
-                demoseekmode=false;
+                demoseekmode = false;
+                seekintermission = false;
                 changegamespeed(100);
                 pausegame(true);
             }
+        } else if(demoseekmode && seekintermission && intermission ) {
+            if(seekmillispos >= 0) {
+                seekmillispos--;
+                return;
+            }
+            seekmillispos = -1;
+            demoseekmode = false;
+            seekintermission = false;
+            changegamespeed(100);
+            pausegame(true);
         }
     }
 
     ICOMMAND(demoseek, "ii", (int *min, int *sec), demoseek(*min, *sec));
+    ICOMMAND(demoseekintermission, "", (), demoseekintermission());
 
     ENetSocket extinfosock2 = ENET_SOCKET_NULL;
 
@@ -2022,7 +2045,7 @@ namespace game
 
             case N_GAMESPEED:
             {
-                int val = clamp(getint(p), 10, demoseekmode ? 10000 : 1000), cn = getint(p);
+                int val = clamp(getint(p), 10, demoseekmode ? 1000000 : 1000), cn = getint(p);
                 fpsent *a = cn >= 0 ? getclient(cn) : NULL;
                 if(!demopacket) gamespeed = val;
                 extern int slowmosp;

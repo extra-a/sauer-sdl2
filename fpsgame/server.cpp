@@ -1279,7 +1279,7 @@ namespace server
 
     void changegamespeed(int val, clientinfo *ci = NULL)
     {
-        val = clamp(val, 10, game::demoseekmode ? 10000 : 1000);
+        val = clamp(val, 10, game::demoseekmode ? 1000000 : 1000);
         if(gamespeed==val) return;
         gamespeed = val;
         sendf(-1, 1, "riii", N_GAMESPEED, gamespeed, ci ? ci->clientnum : -1);
