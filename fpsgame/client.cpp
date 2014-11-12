@@ -295,8 +295,6 @@ namespace game
             lastpreviewdata.servaddress.host = host;
             lastpreviewdata.servaddress.port = server::serverinfoport(serverport);
         }
-
-        lastpreviewdata.isupdating = true;
     }
 
     int sortplayersfn(struct extplayerdata& d1, struct extplayerdata& d2) {
@@ -313,7 +311,7 @@ namespace game
 
     void getseserverinfo() {
         ENetSocket sock = getservsock();
-        if(sock == ENET_SOCKET_NULL || !lastpreviewdata.isupdating) return;
+        if(sock == ENET_SOCKET_NULL) return;
 
         enet_uint32 events = ENET_SOCKET_WAIT_RECEIVE;
         int s = 0;

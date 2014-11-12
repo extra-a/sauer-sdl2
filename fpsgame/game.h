@@ -732,13 +732,11 @@ struct serverpreviewdata {
     int nplayers;
     struct teamsinfo tinfo;
     ENetAddress servaddress;
-    bool isupdating;
     bool hasserverdata;
     bool hasplayerdata;
     int lastupdate;
     int lastteamupdate;
     serverpreviewdata() {
-        isupdating = false;
         hasserverdata = false;
         hasplayerdata = false;
         lastupdate = 0;
@@ -750,15 +748,14 @@ struct serverpreviewdata {
         nplayers = 0;
     }
     void reset() {
-        isupdating = false;
         hasserverdata = false;
         hasplayerdata = false;
         lastupdate = 0;
         lastteamupdate = 0;
         sdata.reset();
         tinfo.reset();
-        servaddress.host = 0;
-        servaddress.port = 0;
+        /* servaddress.host = 0; */
+        /* servaddress.port = 0; */
         nplayers = 0;
     }
     void addplayer(struct extplayerdata& data) {
