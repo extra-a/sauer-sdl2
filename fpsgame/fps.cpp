@@ -1686,6 +1686,8 @@ namespace game
     XIDENTHOOK(lagometernobg, IDF_EXTENDED);
     VARP(lagometerdisablewithgui, 0, 1, 1);
     XIDENTHOOK(lagometerdisablewithgui, IDF_EXTENDED);
+    VARP(lagometerdisablelocal, 0, 1, 1);
+    XIDENTHOOK(lagometerdisablelocal, IDF_EXTENDED);
 
     VARP(lagometershowping, 0, 1, 1);
     XIDENTHOOK(lagometershowping, IDF_EXTENDED);
@@ -1710,7 +1712,8 @@ namespace game
 
     void drawlagmeter(int w, int h) {
         fpsent* d = (player1->state == CS_SPECTATOR) ? followingplayer() : player1;
-        if(!d || (lagometerdisablewithgui && framehasgui)) return;
+        if(!d || (lagometerdisablewithgui && framehasgui) ||
+           (lagometerdisablelocal && !connectedpeer())) return;
 
         int conw = int(w/staticscale), conh = int(h/staticscale);
 
