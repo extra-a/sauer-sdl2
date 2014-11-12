@@ -1227,3 +1227,10 @@ char *loadfile(const char *fn, size_t *size, bool utf8)
     return buf;
 }
 
+stream *openfullpathfile(const char *path, const char *mode)
+{
+    filestream *file = new filestream;
+    if(!file->open(path, mode)) { delete file; return NULL; }
+    return file;
+}
+

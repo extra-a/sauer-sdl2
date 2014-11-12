@@ -12,6 +12,7 @@
 
 extern float staticscale;
 extern int showserverpreviews;
+extern string homedir;
 
 namespace server
 {
@@ -2680,6 +2681,22 @@ namespace game
         }
     }
 
+    static void sanitisedemoname() {
+        int len = strnlen(expecteddemoname, MAXDEMONAMELEN-1);
+        char *s = expecteddemoname;
+        loopi(len) {
+            if(s[i] == '<' || s[i] == '>' || s[i] == ':' ||
+               s[i] == '"' || s[i] == '/' || s[i] == '\\' ||
+               s[i] == '|' || s[i] == '?' || s[i] == '*' || !isprint(s[i])) {
+                if(s[i] == ':') {
+                    s[i] = '-';
+                } else {
+                    s[i] = ' ';
+                }
+            }
+        }
+    }
+
     void receivefile(packetbuf &p)
     {
         int type;
@@ -2689,11 +2706,13 @@ namespace game
             case N_SENDDEMO:
             {
                 if(awaitingdemo) {
-                    defformatstring(fname)("%s.dmo", expecteddemoname);
-                    if(access(fname, 0) != -1) return;
-                    stream *demo = openrawfile(fname, "wb");
+                    sanitisedemoname();
+                    defformatstring(fullpath)("%s%s.dmo", homedir, expecteddemoname);
+                    if(access(fullpath, 0) != -1) return;
+                    stream *demo = openfullpathfile(fullpath, "wb");
+                    conoutf("fullpath %s stream %p", fullpath, demo);
                     if(!demo) return;
-                    conoutf("auto downloaded demo \"%s\"", fname);
+                    conoutf("saved demo as \"%s\"", expecteddemoname);
                     ucharbuf b = p.subbuf(p.remaining());
                     demo->write(b.buf, b.maxlen);
                     awaitingdemo = 0;
