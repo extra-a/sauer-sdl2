@@ -2079,7 +2079,7 @@ namespace game
         loopv(demos) {
             if(!demos[i]) continue;
             g->pushlist();
-            if(g->buttonf("seek to end  ", 0xFFFFDD, "action")&G3D_UP) {
+            if(g->buttonf("send  ", 0xFFFFDD, "action")&G3D_UP) {
                 server::stopdemo();
                 setmode(-1);
                 changemap(demos[i]->name);
@@ -2087,13 +2087,15 @@ namespace game
                 g->poplist();
                 return;
             }
-            if(g->buttonf("%s", 0xFFFFDD, "action", demos[i]->name)&G3D_UP) {
+            if(g->buttonf("play", 0xFFFFDD, "action")&G3D_UP) {
                 server::stopdemo();
                 setmode(-1);
                 changemap(demos[i]->name);
                 g->poplist();
                 return;
             }
+            g->separator();
+            g->textf("%s", 0xFFFFDD, NULL, demos[i]->name);
             g->poplist();
         }
     }
