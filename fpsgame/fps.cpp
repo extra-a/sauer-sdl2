@@ -2079,18 +2079,18 @@ namespace game
         loopv(demos) {
             if(!demos[i]) continue;
             g->pushlist();
-            if(g->buttonf("send  ", 0xFFFFDD, "action")&G3D_UP) {
+            if(g->buttonf("play  ", 0xFFFFDD, "action")&G3D_UP) {
+                server::stopdemo();
+                setmode(-1);
+                changemap(demos[i]->name);
+                g->poplist();
+                return;
+            }
+            if(g->buttonf("toend", 0xFFFFDD, "action")&G3D_UP) {
                 server::stopdemo();
                 setmode(-1);
                 changemap(demos[i]->name);
                 demoseekintermission();
-                g->poplist();
-                return;
-            }
-            if(g->buttonf("play", 0xFFFFDD, "action")&G3D_UP) {
-                server::stopdemo();
-                setmode(-1);
-                changemap(demos[i]->name);
                 g->poplist();
                 return;
             }
