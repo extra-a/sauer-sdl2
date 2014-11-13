@@ -5,3 +5,7 @@
 *.gch
 sauer_client
 sauer_server
+vcpp/sauerbraten.suo
+vcpp/sauerbraten.vcxproj.user
+vcpp/Debug/
+vcpp/Release/
