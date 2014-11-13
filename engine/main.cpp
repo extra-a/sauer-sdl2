@@ -474,7 +474,7 @@ void renderprogress(float bar, const char *text, GLuint tex, bool background)   
 VARNP(relativemouse, userelativemouse, 0, 1, 1);
 XIDENTHOOK(relativemouse, IDF_EXTENDED);
 
-bool grabinput = false, minimized = false, canrelativemouse = true, relativemouse = false, isentered = false, isfocused = false;
+bool grabinput = false, minimized = false, canrelativemouse = true, relativemouse = false, isentered = false, isfocused = false, shouldminimize = false;
 int keyrepeatmask = 0, textinputmask = 0;
 
 void keyrepeat(bool on, int mask)
@@ -885,11 +885,7 @@ void checkunfocused(SDL_Event event) {
     }
 
     if(hasalt && event.key.keysym.sym == SDLK_RETURN) {
-        hasalt = false;
-        isentered = false;
-        isfocused = false;
-        inputhandling(false);
-        SDL_MinimizeWindow(screen);
+        shouldminimize = true;
         return;
     }
 
@@ -1406,6 +1402,11 @@ int main(int argc, char **argv)
         updatesounds();
 
         if(minimized) continue;
+        if(shouldminimize) {
+            shouldminimize = false;
+            SDL_MinimizeWindow(screen);
+            continue;
+        }
 
         inbetweenframes = false;
         if(mainmenu) gl_drawmainmenu();
