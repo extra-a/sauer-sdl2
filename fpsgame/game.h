@@ -539,6 +539,7 @@ struct fpsstate
 struct serverdata {
     int ping;
     int nclients;
+    int proto;
     int mode;
     int timelimit;
     int maxclients;
@@ -550,6 +551,7 @@ struct serverdata {
     serverdata() {
         ping = 0;
         nclients = 0;
+        proto = 0;
         mode = 0;
         timelimit = 0;
         maxclients = 0;
@@ -562,6 +564,7 @@ struct serverdata {
     void reset() {
         ping = 0;
         nclients = 0;
+        proto = 0;
         mode = 0;
         timelimit = 0;
         maxclients = 0;
@@ -574,6 +577,7 @@ struct serverdata {
     void update(struct serverdata& ndata) {
         ping = ndata.ping;
         nclients = ndata.nclients;
+        proto = ndata.proto;
         mode = ndata.mode;
         timelimit = ndata.timelimit;
         maxclients = ndata.maxclients;

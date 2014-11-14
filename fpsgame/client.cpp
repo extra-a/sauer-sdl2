@@ -150,33 +150,44 @@ namespace game
         return servinfosock;
     }
 
+    #define MAXEXTATTRS 7
     int serverinfoparser(ucharbuf p, int millis, struct serverdata& data)
     {
         char strdata[MAXTRANS];
+
+        static const int defattrs[MAXEXTATTRS] = { 0, MM_START-1, 0, 0, 0, 0, 100 };
+        int* attr[MAXEXTATTRS];
+        attr[0] = &data.proto; // protocol version
+        attr[1] = &data.mode; // mode
+        attr[2] = &data.timelimit; // time remaining
+        attr[3] = &data.maxclients; // max clients
+        attr[4] = &data.access; // server access
+        attr[5] = &data.gamepaused; // paused
+        attr[6] = &data.gamespeed; // speed
+
         data.ping = (totalmillis - millis);
         data.nclients = getint(p); // clients count
 
-        // check protocol/length
+        // check length and init attrs
         int nargs = getint(p);
-        if(getint(p) != PROTOCOL_VERSION) return -2;
-
-        data.mode = getint(p); // mode
-        data.timelimit = getint(p); // time remaining
-        data.maxclients = getint(p); // max clients
-        data.access = getint(p); // server access
-        if(nargs >= 7) {
-            data.gamepaused = getint(p); // paused
-            data.gamespeed = getint(p); // speed
-        } else {
-            data.gamepaused = 0; // paused
-            data.gamespeed = 100; // speed
+        loopi(min(nargs, 50)) {
+            *(attr[i]) = getint(p);
         }
+        if(nargs < MAXEXTATTRS) {
+            loopi(MAXEXTATTRS - nargs) {
+                *(attr[nargs+i]) = defattrs[nargs+i];
+            }
+        }
+
         getstring(strdata, p); // server name
         strncpy(data.servname, strdata, MAXSERVSTRING-1);
         data.servname[MAXSERVSTRING-1] = 0;
         getstring(strdata, p); // server description
         strncpy(data.description, strdata, MAXSERVSTRING-1);
         data.description[MAXSERVSTRING-1] = 0;
+
+        // check for overread
+        if(p.overread()) return -2;
         return 0;
     }
 
@@ -483,45 +494,44 @@ namespace game
         needplayersearch = 1;
         needpreviewupdate = 1;
         g->allowautotab(false);
+        bool iscompat = false;
         if(lastpreviewdata.hasserverdata) {
-            string hostname;
-            if(enet_address_get_host_ip(&lastpreviewdata.servaddress, hostname, sizeof(hostname)) >= 0) {
-                g->pushlist();
-                g->spring();
-                g->titlef("%s", 0xFFFFFF, NULL, lastpreviewdata.sdata.description);
-                if(lastpreviewdata.sdata.nclients>=lastpreviewdata.sdata.maxclients) {
-                    g->titlef("  \f3%d/%d  \f7%d", 0xFFFFFF, NULL,
-                              lastpreviewdata.sdata.nclients,
-                              lastpreviewdata.sdata.maxclients, lastpreviewdata.sdata.ping);
-                } else {
-                    g->titlef("  %d/%d  %d", 0xFFFFFF, NULL,
-                              lastpreviewdata.sdata.nclients,
-                              lastpreviewdata.sdata.maxclients, lastpreviewdata.sdata.ping);
-                }
-                g->spring();
-                g->poplist();
-                g->pushlist();
-                g->spring();
-                g->textf("%s", 0xFFFF80, NULL, server::modename(lastpreviewdata.sdata.mode));
-                g->separator();
-                g->textf("%s", 0xFFFF80, NULL, lastpreviewdata.sdata.servname);
-                if(lastpreviewdata.sdata.gamespeed != 100) {
-                    g->separator();
-                    g->textf("%d.%02dx", 0xFFFF80, NULL, lastpreviewdata.sdata.gamespeed/100, lastpreviewdata.sdata.gamespeed%100);
-                }
-                g->separator();
-                int secs = lastpreviewdata.sdata.timelimit%60, mins = lastpreviewdata.sdata.timelimit/60;
-                g->pushlist();
-                g->strut(mins >= 10 ? 4.5f : 3.5f);
-                g->textf("%d:%02d", 0xFFFF80, NULL, mins, secs);
-                g->poplist();
-                if(lastpreviewdata.sdata.gamepaused) {
-                    g->separator();
-                    g->text("paused", 0xFFFF80);
-                }
-                g->spring();
-                g->poplist();
+            iscompat = lastpreviewdata.sdata.proto == PROTOCOL_VERSION;
+            g->pushlist();
+            g->spring();
+            g->titlef("%s", 0xFFFFFF, NULL, lastpreviewdata.sdata.description);
+            if(lastpreviewdata.sdata.nclients>=lastpreviewdata.sdata.maxclients) {
+                g->titlef("  \f3%d/%d  \f7%d", 0xFFFFFF, NULL,
+                          lastpreviewdata.sdata.nclients,
+                          lastpreviewdata.sdata.maxclients, lastpreviewdata.sdata.ping);
+            } else {
+                g->titlef("  %d/%d  %d", 0xFFFFFF, NULL,
+                          lastpreviewdata.sdata.nclients,
+                          lastpreviewdata.sdata.maxclients, lastpreviewdata.sdata.ping);
             }
+            g->spring();
+            g->poplist();
+            g->pushlist();
+            g->spring();
+            g->textf("%s", 0xFFFF80, NULL, server::modename(lastpreviewdata.sdata.mode));
+            g->separator();
+            g->textf("%s", 0xFFFF80, NULL, lastpreviewdata.sdata.servname);
+            if(lastpreviewdata.sdata.gamespeed != 100) {
+                g->separator();
+                g->textf("%d.%02dx", 0xFFFF80, NULL, lastpreviewdata.sdata.gamespeed/100, lastpreviewdata.sdata.gamespeed%100);
+            }
+            g->separator();
+            int secs = lastpreviewdata.sdata.timelimit%60, mins = lastpreviewdata.sdata.timelimit/60;
+            g->pushlist();
+            g->strut(mins >= 10 ? 4.5f : 3.5f);
+            g->textf("%d:%02d", 0xFFFF80, NULL, mins, secs);
+            g->poplist();
+            if(lastpreviewdata.sdata.gamepaused) {
+                g->separator();
+                g->text("paused", 0xFFFF80);
+            }
+            g->spring();
+            g->poplist();
         }
         if(lastpreviewdata.hasplayerdata && lastpreviewdata.nplayers) {
             g->separator();
@@ -569,7 +579,7 @@ namespace game
         g->separator();
         g->pushlist();
         g->spring();
-        if(g->button("connect", 0xFFFFDD, "checkbox_on")&G3D_UP) {
+        if(g->button("connect", 0xFFFFDD, iscompat ? "checkbox_on" : "serverunk")&G3D_UP) {
             g->poplist();
             g->allowautotab(true);
             setselectedserver(lastpreviewdata.servaddress.host,
