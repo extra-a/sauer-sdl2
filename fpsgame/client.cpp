@@ -2686,7 +2686,7 @@ namespace game
         char *s = expecteddemoname;
         loopi(len) {
             if(s[i] == '<' || s[i] == '>' || s[i] == ':' ||
-               s[i] == '"' || s[i] == '/' || s[i] == '\\' ||
+               s[i] == '"' || s[i] == '/' || s[i] == '\\' || s[i] == '.' ||
                s[i] == '|' || s[i] == '?' || s[i] == '*' || !isprint(s[i])) {
                 if(s[i] == ':') {
                     s[i] = '-';
@@ -2710,7 +2710,6 @@ namespace game
                     defformatstring(fullpath)("%s%s.dmo", homedir, expecteddemoname);
                     if(access(fullpath, 0) != -1) return;
                     stream *demo = openfullpathfile(fullpath, "wb");
-                    conoutf("fullpath %s stream %p", fullpath, demo);
                     if(!demo) return;
                     conoutf("saved demo as \"%s\"", expecteddemoname);
                     ucharbuf b = p.subbuf(p.remaining());
