@@ -12,6 +12,7 @@
 
 extern float staticscale;
 extern int showserverpreviews;
+extern int guiautotab;
 extern string homedir;
 
 namespace server
@@ -25,7 +26,6 @@ namespace game
     extern int newhud_itemspos_x;
     extern int newhud_itemspos_y;
     extern int newhud_itemspos_reverse_x;
-
     extern int newhud_itemsdisablewithgui;
 
     ENetSocket extinfosock = ENET_SOCKET_NULL;
@@ -3105,7 +3105,7 @@ namespace game
         g->allowautotab(false);
         filterheader(g, name, stopplayerssearch, nplayers, nallplayers);
 
-        int len = pe.length(), k = 0, kt = 0, maxcount = 25, ntabs = 0;
+        int len = pe.length(), k = 0, kt = 0, maxcount = max(16, guiautotab-2), ntabs = 0;
         ntabs = len/maxcount + ( len%maxcount ? 1 : 0 );
         if(ntabs == 0) {
             g->pushlist();

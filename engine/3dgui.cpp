@@ -31,7 +31,7 @@ static float cursorx = 0.5f, cursory = 0.5f;
 #define INSERT (3*SKIN_SCALE)
 #define MAXCOLUMNS 16
 
-VARP(guiautotab, 6, 16, 40);
+VARP(guiautotab, 16, 16, 40);
 VARP(guiclicktab, 0, 0, 1);
 VARP(guifadein, 0, 1, 1);
 

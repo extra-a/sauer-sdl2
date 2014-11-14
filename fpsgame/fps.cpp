@@ -2,6 +2,7 @@
 #include "extendedscripts.h"
 
 extern int getpacketloss();
+extern int guiautotab;
 extern string homedir;
 float staticscale = 0.33;
 
@@ -2076,8 +2077,15 @@ namespace game
     extern void setmode(int mode);
     extern void demoseekintermission();
     void showdemoslist(g3d_gui *g) {
+        g->allowautotab(true);
+        int maxcount = guiautotab;
+        int count = 0;
         loopv(demos) {
             if(!demos[i]) continue;
+            if(count >= maxcount) {
+                g->tab();
+                count = 0;
+            }
             g->pushlist();
             if(g->buttonf("play  ", 0xFFFFDD, "action")&G3D_UP) {
                 server::stopdemo();
@@ -2097,6 +2105,7 @@ namespace game
             g->separator();
             g->textf("%s", 0xFFFFDD, NULL, demos[i]->name);
             g->poplist();
+            count++;
         }
     }
 
