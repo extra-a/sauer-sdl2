@@ -362,6 +362,11 @@ namespace game
 
     int needpreviewupdate;
     void checkseserverinfo() {
+        if(!needpreviewupdate &&
+           lastpreviewdata.lastupdate &&
+           lastpreviewdata.lastupdate + SERVUPDATEINTERVAL < totalmillis) {
+            lastpreviewdata.reset();
+        }
         if(!needpreviewupdate) return;
         if(lastpreviewdata.lastupdate + SERVUPDATEINTERVAL < totalmillis) {
             requestserverinfosend();
