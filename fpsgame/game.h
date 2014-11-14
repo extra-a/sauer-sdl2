@@ -883,7 +883,7 @@ struct fpsent : dynent, fpsstate
     int detaileddamagetotal[MAXWEAPONS];
     int detaileddamagereceived[MAXWEAPONS];
     int lastprojectile;
-    bool extdatawasinit;
+    int extdatawasinit;
     struct extplayerinfo extdata;
     struct lagmeterdata lagdata;
     editinfo *edit;
@@ -903,7 +903,7 @@ struct fpsent : dynent, fpsstate
         respawn();
         lastprojectile = 3;
         extdata.needrefresh = true;
-        extdatawasinit = false;
+        extdatawasinit = 0;
         loopi(MAXWEAPONS) {
             detaileddamagedealt[i] = 0;
             detaileddamagetotal[i] = 0;

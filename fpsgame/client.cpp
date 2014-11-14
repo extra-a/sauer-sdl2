@@ -130,9 +130,9 @@ namespace game
                 fpsent *d = getclient(extpdata.cn);
                 if(!d || d->extdata.isfinal()) continue;
                 d->extdata.setextplayerinfo(extpdata);
-                if(!d->extdatawasinit) {
+                if(d->extdatawasinit <= 0) {
                     d->deaths = extpdata.deaths;
-                    d->extdatawasinit = true;
+                    d->extdatawasinit++;
                 }
             }
         }
@@ -1575,7 +1575,7 @@ namespace game
         player1->state = CS_ALIVE;
         player1->privilege = PRIV_NONE;
         player1->extdata.resetextdata();
-        player1->extdatawasinit = false;
+        player1->extdatawasinit = 0;
         sendcrc = senditemstoserver = false;
         demoplayback = false;
         gamepaused = false;

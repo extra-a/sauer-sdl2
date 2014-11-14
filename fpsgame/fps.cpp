@@ -691,6 +691,7 @@ namespace game
             d->lifesequence = -1;
             d->respawned = d->suicided = -2;
             d->resetextstats();
+            if(d->extdatawasinit <= 0) d->extdatawasinit = -1;
         }
 
         setclientmode();
