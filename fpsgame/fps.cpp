@@ -24,11 +24,11 @@ namespace game
     bool clientoption(const char *arg) { return false; }
 
     static inline int limitscore(int s) {
-        return s >= 0 ? min(9999, s) : max(-999, s);
+        return clamp(s, -999, 9999);
     }
 
     static inline int limitammo(int s) {
-        return s >= 0 ? min(999, s) : 0;
+        return clamp(s, 0, 999);
     }
 
     void taunt()
@@ -1449,7 +1449,11 @@ namespace game
                 else frags = bestplayers[0]->frags;
                 frags = limitscore(frags);
 
-                snprintf(buff1, 5, "%d", frags);
+                if(frags >= 9999) {
+                    snprintf(buff1, 5, "WIN");
+                } else {
+                    snprintf(buff1, 5, "%d", frags);
+                }
                 text_bounds(buff1, tw1, th1);
 
                 if(grsz > 1) {
@@ -1457,7 +1461,11 @@ namespace game
                     else frags2 = bestplayers[1]->frags;
                     frags2 = limitscore(frags2);
 
-                    snprintf(buff2, 5, "%d", frags2);
+                    if(frags2 >= 9999) {
+                        snprintf(buff2, 5, "WIN");
+                    } else {
+                        snprintf(buff2, 5, "%d", frags2);
+                    }
                     text_bounds(buff2, tw2, th2);
                 } else {
                     snprintf(buff2, 5, " ");
@@ -1489,7 +1497,11 @@ namespace game
                 else frags = bestplayers[0]->frags;
                 frags = limitscore(frags);
 
-                snprintf(buff1, 5, "%d", frags);
+                if(frags >= 9999) {
+                    snprintf(buff1, 5, "WIN");
+                } else {
+                    snprintf(buff1, 5, "%d", frags);
+                }
                 text_bounds(buff1, tw1, th1);
 
                 if(m_teammode) {
@@ -1502,7 +1514,11 @@ namespace game
                 }
                 frags2 = limitscore(frags2);
 
-                snprintf(buff2, 5, "%d", frags2);
+                if(frags2 >= 9999) {
+                    snprintf(buff2, 5, "WIN");
+                } else {
+                    snprintf(buff2, 5, "%d", frags2);
+                }
                 text_bounds(buff2, tw2, th2);
 
                 r2 = hudscoresplayercolor_r;
