@@ -2701,7 +2701,7 @@ namespace game
         char *s = expecteddemoname;
         loopi(len) {
             if(s[i] == '<' || s[i] == '>' || s[i] == ':' ||
-               s[i] == '"' || s[i] == '/' || s[i] == '\\' || s[i] == '.' ||
+               s[i] == '"' || s[i] == '/' || s[i] == '\\' ||
                s[i] == '|' || s[i] == '?' || s[i] == '*' || !isprint(s[i])) {
                 if(s[i] == ':') {
                     s[i] = '-';
