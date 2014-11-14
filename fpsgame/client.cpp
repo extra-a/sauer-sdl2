@@ -2893,7 +2893,7 @@ namespace game
         const char* sname;
         const char* sdesc;
         const char* shost;
-        int sping, splayers, smaxplayers, smode, stime, sicon, sport;
+        int sping, splayers, smaxplayers, smode, stime, sicon, sport, sproto;
         uint sip;
 
         playersentry() {
@@ -2909,11 +2909,12 @@ namespace game
             sicon = MM_START-1;
             sip = 0;
             sport = 0;
+            sproto = 0;
         }
 
         playersentry(const char* name, const char* desc, const char* host, const char* map,
                      int ping, int players, int maxplayers, int mode, int time,
-                     int icon, uint ip, int port) {
+                     int icon, uint ip, int port, int proto) {
             pname = name;
             sname = map;
             sdesc = desc;
@@ -2926,6 +2927,7 @@ namespace game
             sicon = icon;
             sip = ip;
             sport = port;
+            sproto = proto;
         }
 
     };
@@ -3075,7 +3077,7 @@ namespace game
             if(!stopplayerssearch) {
                 p->checkdisconected(DISCONNECTEDINTERVAL);
             }
-            int mode = 0, maxplayers = 0, time = 0, icon = MM_START-1;
+            int mode = 0, maxplayers = 0, time = 0, icon = MM_START-1, proto = -1;
             if( s->attr.length() >= 4 ) {
                 maxplayers = s->attr[3];
                 if(s->attr[0]==PROTOCOL_VERSION) {
@@ -3085,15 +3087,18 @@ namespace game
             if( s->attr.length() >= 3 ) {
                 time = s->attr[2];
             }
-            if( s->attr.length() >= 1 ) {
+            if( s->attr.length() >= 2 ) {
                 mode = s->attr[1];
+            }
+            if(s->attr.length() >= 1) {
+                proto = s->attr[0];
             }
             loopj(p->nplayers) {
                 if(p->players[j].cn < 128) {
                     p0.add(playersentry(p->players[j].name, s->sdesc, s->name, s->map,
                                         s->ping, s->numplayers, maxplayers,
                                         mode, time, icon,
-                                        s->address.host, s->port));
+                                        s->address.host, s->port, proto));
                 }
             }
         }
@@ -3281,8 +3286,14 @@ namespace game
             loopj(maxcount) {
                 if(kt>=len) break;
                 playersentry e = pe[kt];
-                if(g->buttonf("%.25s", 0xFFFFDD, NULL, e.sdesc)&G3D_UP) {
-                    return onconnectseq(g, e);
+                if(e.sproto == PROTOCOL_VERSION) {
+                    if(g->buttonf("%.25s", 0xFFFFDD, NULL, e.sdesc)&G3D_UP) {
+                        return onconnectseq(g, e);
+                    }
+                } else {
+                    if(g->buttonf("[%s protocol] ", 0xFFFFDD, NULL, e.sproto == -1 ? "unknown" : (e.sproto < PROTOCOL_VERSION ? "older" : "newer"))&G3D_UP) {
+                        return onconnectseq(g, e);
+                    }
                 }
                 kt++;
             }

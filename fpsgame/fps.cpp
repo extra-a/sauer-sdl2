@@ -1951,11 +1951,7 @@ namespace game
                     break;
 
                 case 8:
-                    if(ping < 0)
-                    {
-                        if(g->button(sdesc, 0xFFFFDD)&G3D_UP) return true;
-                    }
-                    else if(g->buttonf("[%s protocol] ", 0xFFFFDD, NULL, attr.empty() ? "unknown" : (attr[0] < PROTOCOL_VERSION ? "older" : "newer"))&G3D_UP) return true;
+                    if(g->button(sdesc, 0xFFFFDD)&G3D_UP) return true;
                     break;
             }
             return false;
@@ -2009,11 +2005,7 @@ namespace game
                     break;
 
                 case 8:
-                    if(ping < 0)
-                    {
-                        if(g->button(sdesc, 0xFFFFDD)&G3D_UP) return true;
-                    }
-                    else if(g->buttonf("[%s protocol] ", 0xFFFFDD, NULL, attr.empty() ? "unknown" : (attr[0] < PROTOCOL_VERSION ? "older" : "newer"))&G3D_UP) return true;
+                    if(g->buttonf("[%s protocol] ", 0xFFFFDD, NULL, attr.empty() ? "unknown" : (attr[0] < PROTOCOL_VERSION ? "older" : "newer"))&G3D_UP) return true;
                     break;
             }
             return false;
