@@ -3060,20 +3060,20 @@ namespace game
             if(!stopplayerssearch) {
                 p->checkdisconected(DISCONNECTEDINTERVAL);
             }
+            int mode = 0, maxplayers = 0, time = 0, icon = MM_START-1;
+            if( s->attr.length() >= 4 ) {
+                maxplayers = s->attr[3];
+                if(s->attr[0]==PROTOCOL_VERSION) {
+                    icon = s->attr[4];
+                }
+            }
+            if( s->attr.length() >= 3 ) {
+                time = s->attr[2];
+            }
+            if( s->attr.length() >= 1 ) {
+                mode = s->attr[1];
+            }
             loopj(p->nplayers) {
-                int mode = 0, maxplayers = 0, icon = MM_START-1, time = 0;
-                if( s->attr.length() >= 4 ) {
-                    maxplayers = s->attr[3];
-                    if(s->attr[0]==PROTOCOL_VERSION) {
-                        icon = s->attr[4];
-                    }
-                }
-                if( s->attr.length() >= 3 ) {
-                    time = s->attr[2];
-                }
-                if( s->attr.length() >= 1 ) {
-                    mode = s->attr[1];
-                }
                 if(p->players[j].cn < 128) {
                     p0.add(playersentry(p->players[j].name, s->sdesc, s->name, s->map,
                                         s->ping, s->numplayers, maxplayers,
@@ -3220,6 +3220,10 @@ namespace game
                     int min = secs/60;
                     secs %= 60;
                     if(g->buttonf("%d:%02d ", 0xFFFFDD, NULL, min, secs)&G3D_UP) {
+                        return onconnectseq(g, e);
+                    }
+                } else {
+                    if(g->buttonf(" ", 0xFFFFDD, NULL)&G3D_UP) {
                         return onconnectseq(g, e);
                     }
                 }
