@@ -27,7 +27,7 @@ namespace server
     {
         int type;
         int spawntime;
-        char spawned;
+        bool spawned;
     };
 
     static const int DEATHMILLIS = 300;
