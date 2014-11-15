@@ -1233,8 +1233,6 @@ int main(int argc, char **argv)
         else gameargs.add(argv[i]);
     }
 
-    execfile("extendedconfig.cfg", false);
-
     initing = NOT_INITING;
 
     numcpus = clamp(SDL_GetCPUCount(), 1, 16);
@@ -1317,6 +1315,7 @@ int main(int argc, char **argv)
         execfile(game::defaultconfig());
         writecfg(game::restoreconfig());
     }
+    execfile("extendedconfig.cfg", false);
     execfile(game::autoexec(), false);
 
     if(game::getgamescripts()) {

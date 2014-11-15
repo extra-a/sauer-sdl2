@@ -212,7 +212,10 @@ enum
 
     S_HIT,
     
-    S_FLAGFAIL
+    S_FLAGFAIL,
+
+    // from extended scripts
+    S_FRAGBEEP
 };
 
 // network messages codes, c2s, c2c, s2c

@@ -421,6 +421,7 @@ const char *extended_settings_gui =
     "]\n"
     "guicheckbox \"Use following player team\" usefollowingplayerteam\n"
     "guicheckbox \"Autodownload server demos\" autodownloaddemos\n"
+    "guicheckbox \"Frag beep\" fragbeep\n"
     "guicheckbox \"Log players stats on game end\" dumpstatsongameend\n"
     "guistrut 1\n"
 
@@ -1026,6 +1027,10 @@ const char *new_main_menu =
 "]";
 
 
+const char *hit_shoud =
+"registersound aard/bang 255\n";
+
+
 const char *game_scripts[] = { extended_settings_gui,
                                hud_settings_gui,
                                hud_old,
@@ -1035,6 +1040,7 @@ const char *game_scripts[] = { extended_settings_gui,
                                extended_helpers,
                                extended_menus,
                                new_main_menu,
+                               hit_shoud,
                                0 };
 
 
