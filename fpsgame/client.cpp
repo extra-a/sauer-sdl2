@@ -1978,7 +1978,9 @@ namespace game
     static int awaitingdemo, awaitingdemolist;
 
     void listdemos();
-    static void checkrecordeddemo(char* msg) {
+    static void checkrecordeddemo(char* origmsg) {
+        char* msg = strstr(origmsg, "demo \"");
+        if(!msg) return;
         int len = strnlen(msg, MAXDEMONAMELEN-1);
         if(len < 16) return;
         int paternpos = len - 10;
