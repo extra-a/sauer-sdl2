@@ -1734,7 +1734,7 @@ namespace game
     void drawlagmeter(int w, int h) {
         fpsent* d = (player1->state == CS_SPECTATOR) ? followingplayer() : player1;
         if(!d || (lagometerdisablewithgui && framehasgui) ||
-           (lagometerdisablelocal && !connectedpeer())) return;
+           (lagometerdisablelocal && !connectedpeer() && !demoplayback)) return;
 
         int conw = int(w/staticscale), conh = int(h/staticscale);
 
