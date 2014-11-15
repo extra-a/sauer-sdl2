@@ -2751,7 +2751,7 @@ namespace game
                     if(access(fullpath, 0) != -1) return;
                     stream *demo = openfullpathfile(fullpath, "wb");
                     if(!demo) return;
-                    conoutf("demo is saved as \"%s\".dmo", newdemoname);
+                    conoutf("demo is saved as \"%s.dmo\"", newdemoname);
                     ucharbuf b = p.subbuf(p.remaining());
                     demo->write(b.buf, b.maxlen);
                     awaitingdemo = 0;
