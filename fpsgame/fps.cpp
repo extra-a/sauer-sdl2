@@ -1779,8 +1779,9 @@ namespace game
                                  (GLubyte)127);
             }
         }
+        #define LAGOMETERBUFSZ 10
         if(lagometershowping) {
-            char buff[5];
+            char buff[LAGOMETERBUFSZ];
             glPushMatrix();
             float scale = lagometerpingsz/100.0;
             glScalef(scale, scale, 1);
@@ -1788,10 +1789,10 @@ namespace game
             int pl = getpacketloss();
             bool coloredpl = false;
             if(pl && d == player1) {
-                snprintf(buff, 5, "%d %d", d->ping, pl);
+                snprintf(buff, LAGOMETERBUFSZ, "%d %d", d->ping, pl);
                 coloredpl = true;
             } else {
-                snprintf(buff, 5, "%d", d->ping);
+                snprintf(buff, LAGOMETERBUFSZ, "%d", d->ping);
             }
             text_bounds(buff, w1, h1);
             if(d == player1 && lagometeronlypingself) {
