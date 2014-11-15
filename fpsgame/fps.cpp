@@ -1767,15 +1767,17 @@ namespace game
             }
             float ch = 0.0;
             int len = min(d->lagdata.pj.len, lagometerlen);
+            int pj;
             loopi(len) {
                 ch = min(100, d->lagdata.pj[i])/staticscale * lagometerheight/100.0;
+                pj = d->lagdata.pj[i];
                 drawacoloredquad(xoff + (i*lagometercolsz)/staticscale,
                                  yoff + ypsz - ch,
                                  lagometercolsz/staticscale,
                                  ch,
+                                 pj >= 100 ? (GLubyte)255 : (GLubyte)0,
                                  (GLubyte)0,
-                                 (GLubyte)0,
-                                 (GLubyte)255,
+                                 pj >= 100 ? (GLubyte)0 : (GLubyte)255,
                                  (GLubyte)127);
             }
         }
