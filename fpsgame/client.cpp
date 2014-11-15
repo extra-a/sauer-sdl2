@@ -2696,18 +2696,32 @@ namespace game
         }
     }
 
-    static void sanitisedemoname() {
-        int len = strnlen(expecteddemoname, MAXDEMONAMELEN-1);
-        char *s = expecteddemoname;
+    static void sanitisedemoname(char *s, int len, bool f) {
+        int k = 0, isescaped = 0;
         loopi(len) {
-            if(s[i] == '<' || s[i] == '>' || s[i] == ':' ||
-               s[i] == '"' || s[i] == '/' || s[i] == '\\' ||
-               s[i] == '|' || s[i] == '?' || s[i] == '*' || !isprint(s[i])) {
-                if(s[i] == ':') {
+            if( isescaped ) {
+                isescaped = 0;
+                continue;
+            }
+            // better demo names
+            if( s[i] == ':' && f) {
+                if( k < 2 ) {
                     s[i] = '-';
                 } else {
-                    s[i] = ' ';
+                    s[i] = ',';
                 }
+                k++;
+                continue;
+            }
+            if( s[i] == '\f' ) {
+                isescaped = 1;
+                continue;
+            }
+            if(s[i] == '<' || s[i] == '>' || s[i] == ':' ||
+               s[i] == '"' || s[i] == '/' || s[i] == '\\' ||
+               s[i] == '|' || s[i] == '?' || s[i] == '*' ||
+               !isprint(s[i])) {
+                    s[i] = ' ';
             }
         }
     }
@@ -2721,12 +2735,21 @@ namespace game
             case N_SENDDEMO:
             {
                 if(awaitingdemo) {
-                    sanitisedemoname();
-                    defformatstring(fullpath)("%s%s.dmo", homedir, expecteddemoname);
+                    string newdemoname;
+                    int len = strlen(expecteddemoname);
+                    sanitisedemoname(expecteddemoname, len, true);
+                    if(servinfo[0]) {
+                        formatstring(newdemoname)("%s, %s", servinfo, expecteddemoname);
+                    } else {
+                        formatstring(newdemoname)("%s", expecteddemoname);
+                    }
+                    len = strlen(newdemoname);
+                    sanitisedemoname(newdemoname, len, false);
+                    defformatstring(fullpath)("%s%s.dmo", homedir, newdemoname);
                     if(access(fullpath, 0) != -1) return;
                     stream *demo = openfullpathfile(fullpath, "wb");
                     if(!demo) return;
-                    conoutf("saved demo as \"%s\"", expecteddemoname);
+                    conoutf("demo is saved as \"%s\"", newdemoname);
                     ucharbuf b = p.subbuf(p.remaining());
                     demo->write(b.buf, b.maxlen);
                     awaitingdemo = 0;
