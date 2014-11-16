@@ -2215,7 +2215,7 @@ namespace game
             fdemos = demos;
         }
         len = fdemos.length();
-        g->allowautotab(true);
+        g->allowautotab(false);
         int maxcount = max(16, guiautotab-2);
         int count = 0;
         demoheader(g, len, fulllen);
@@ -2232,6 +2232,7 @@ namespace game
                 setmode(-1);
                 changemap(fdemos[i]->name);
                 g->poplist();
+                g->allowautotab(true);
                 return;
             }
             if(g->buttonf("toend", 0xFFFFDD, "action")&G3D_UP) {
@@ -2240,13 +2241,25 @@ namespace game
                 changemap(fdemos[i]->name);
                 demoseekintermission();
                 g->poplist();
+                g->allowautotab(true);
                 return;
             }
             g->separator();
-            g->textf("%s", 0xFFFFDD, NULL, fdemos[i]->name);
+            g->textf("%.80s", 0xFFFFDD, NULL, fdemos[i]->name);
             g->poplist();
             count++;
         }
+        if(count < maxcount) {
+            g->pushlist();
+            g->pushlist();
+            g->strut(95);
+            loopi( maxcount - count) {
+                g->buttonf(" ", 0xFFFFDD, NULL);
+            }
+            g->poplist();
+            g->poplist();
+        }
+        g->allowautotab(true);
     }
 
     COMMAND(updatedemoslist, "");
