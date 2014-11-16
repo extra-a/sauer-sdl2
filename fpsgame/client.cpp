@@ -2723,6 +2723,9 @@ namespace game
                 isescaped = 1;
                 continue;
             }
+            if(s[i] > 127) {
+                s[i] = '_';
+            }
             if(s[i] == '<' || s[i] == '>' || s[i] == ':' ||
                s[i] == '"' || s[i] == '/' || s[i] == '\\' ||
                s[i] == '|' || s[i] == '?' || s[i] == '*' ||
