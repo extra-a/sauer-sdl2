@@ -1972,7 +1972,7 @@ namespace game
     VARP(autodownloaddemos, 0, 0, 1);
     XIDENTHOOK(autodownloaddemos, IDF_EXTENDED);
 
-    #define MAXDEMONAMELEN 500
+    #define MAXDEMONAMELEN 200
     #define DEMODNLTIMEOUT 10000
     static char expecteddemoname[MAXDEMONAMELEN];
     static int democheckedtime;
@@ -1980,7 +1980,10 @@ namespace game
 
     void listdemos();
     static void checkrecordeddemo(char* origmsg) {
-        char* msg = strstr(origmsg, "demo \"");
+        string fmsg;
+        filtertext(fmsg, origmsg, true, MAXDEMONAMELEN-1);
+        fmsg[MAXDEMONAMELEN-1] = 0;
+        char* msg = strstr(fmsg, "demo ");
         if(!msg) return;
         int len = strnlen(msg, MAXDEMONAMELEN-1);
         if(len < 16) return;
