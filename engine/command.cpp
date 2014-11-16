@@ -2316,6 +2316,7 @@ void writeextendedcfg(const char *name)
 {
     stream *extf = openutf8file(path(name && name[0] ? name : "extendedconfig.cfg", true), "w");
     if(!extf) return;
+    extf->printf("// automatically written on exit\n\n");
     vector<ident *> ids;
     enumerate(idents, ident, id, ids.add(&id));
     ids.sort(sortidents);
