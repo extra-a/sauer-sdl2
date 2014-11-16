@@ -270,9 +270,9 @@ namespace game
         if(getgundamagetotal(-1, d) == 0) return;
         printf("---------------------\n");
         if(d->team && strlen(d->team) && m_teammode) {
-            logoutf("%s(%d): flags %d frags %d net %d (team: %s)\n", d->name, d->clientnum, d->flags, d->frags, d->frags - d->deaths, d->team);
+            logoutf("%s(%d): score %d frags %d net %d (team: %s)\n", d->name, d->clientnum, d->flags, d->frags, d->frags - d->deaths, d->team);
         } else {
-            logoutf("%s(%d): flags %d frags %d net %d\n", d->name, d->clientnum, d->flags, d->frags, d->frags - d->deaths);
+            logoutf("%s(%d): score %d frags %d net %d\n", d->name, d->clientnum, d->flags, d->frags, d->frags - d->deaths);
         }
 
         ppos = buff;
