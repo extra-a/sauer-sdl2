@@ -514,6 +514,9 @@ const char *hud_settings_gui =
     "guicheckbox \"Colored ammo\" coloredammo\n"
     "guistrut 1\n"
 
+    "guitext \"New HUD scale:\" 0\n"
+    "guislider hudscale\n"
+
     "guitab \"Lagometer\"\n"
 
     "guilist [\n"

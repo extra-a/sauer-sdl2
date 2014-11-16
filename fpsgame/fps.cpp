@@ -4,7 +4,12 @@
 extern int getpacketloss();
 extern int guiautotab;
 extern string homedir;
+
+
 float staticscale = 0.33;
+VARFP(hudscale, 50, 100, 300, { staticscale = 0.33*(hudscale/100.0f); })
+XIDENTHOOK(hudscale, IDF_EXTENDED);
+
 
 #include <sys/stat.h>
 
