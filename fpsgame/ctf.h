@@ -509,31 +509,33 @@ struct ctfclientmode : clientmode
         if(newhud && !(newhud_itemsdisablewithgui && framehasgui)) {
             glScalef(staticscale*itemsscale, staticscale*itemsscale, 1);
             char buff[10];
-            int tw = 0, th = 0, tw2=0, th2=0, x = 0, secs = 0;
+            int tw = 0, th = 0, tw2=0, th2=0, secs = 0, off1 = 0, off2 = 0;
             loopv(flags) {
                 if(flags[i].owner == d) {
                     snprintf(buff, 10, "M");
                     text_bounds(buff, tw, th);
+                    if(m_hold) {
+                        secs = max(HOLDSECS - (lastmillis - flags[i].owntime)/1000, 0);
+                        snprintf(buff, 10, "%d", secs);
+                        text_bounds(buff, tw2, th2);
+                    }
                     if(newhud_itemspos_reverse_x) {
-                        x = xoff/itemsscale - (d->quadmillis ? th + hsep : 0);
+                        off1 = d->quadmillis ?
+                            -hsep - th + (newhud_itemspos_centerfirst ? -th/2 : -th)
+                            : (newhud_itemspos_centerfirst ? -th/2 : -th);
                         if(m_hold) {
-                            secs = max(HOLDSECS - (lastmillis - flags[i].owntime)/1000, 0);
-                            snprintf(buff, 10, "%d", secs);
-                            text_bounds(buff, tw2, th2);
-                            x -= tw2 + th + hsep;
-                        } else {
-                            x -= th;
+                            off1 += (newhud_itemspos_centerfirst && !d->quadmillis ? 0 : -hsep - tw2);
                         }
-                        drawicon(m_hold ? HICON_NEUTRAL_FLAG : (flags[i].team==ctfteamflag(getcurrentteam()) ? HICON_BLUE_FLAG : HICON_RED_FLAG), x, yoff/itemsscale - th/2.0, th);
-                        if(m_hold) {
-                            draw_textf("%d", x + th + hsep, yoff/itemsscale - th/2.0, secs);
-                        }
+                        off2 = off1 + th + hsep;
                     } else {
-                        x = xoff/itemsscale + (d->quadmillis ? th + hsep : 0);
-                        drawicon(m_hold ? HICON_NEUTRAL_FLAG : (flags[i].team==ctfteamflag(getcurrentteam()) ? HICON_BLUE_FLAG : HICON_RED_FLAG), x, yoff/itemsscale - th/2.0, th);
-                        if(m_hold) {
-                            draw_textf("%d", x + th + hsep, yoff/itemsscale - th/2.0, max(HOLDSECS - (lastmillis - flags[i].owntime)/1000, 0));
-                        }
+                        off1 = d->quadmillis ?
+                            hsep + (newhud_itemspos_centerfirst ? th/2 : th)
+                            : (newhud_itemspos_centerfirst ? -th/2 : 0);
+                        off2 = off1 + th + hsep;
+                    }
+                    drawicon(m_hold ? HICON_NEUTRAL_FLAG : (flags[i].team==ctfteamflag(getcurrentteam()) ? HICON_BLUE_FLAG : HICON_RED_FLAG), xoff/itemsscale + off1, yoff/itemsscale - th/2.0, th);
+                    if(m_hold) {
+                        draw_textf("%d", xoff/itemsscale + off2, yoff/itemsscale - th/2.0, max(HOLDSECS - (lastmillis - flags[i].owntime)/1000, 0));
                     }
                     break;
                 }

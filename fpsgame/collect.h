@@ -458,19 +458,20 @@ struct collectclientmode : clientmode
             glScalef(staticscale*itemsscale, staticscale*itemsscale, 1);
             if(d->state == CS_ALIVE && d->tokens > 0) {
                 char buff[10];
-                int r = 255, g = 255, b = 255, a = 255, tw = 0, th = 0;
+                int r = 255, g = 255, b = 255, a = 255, tw = 0, th = 0, off = 0;
                 snprintf(buff, 10, "%d", d->tokens);
                 text_bounds(buff, tw, th);
                 if(newhud_itemspos_reverse_x) {
-                    int x = xoff/itemsscale - (d->quadmillis ? th + hsep : 0);
-                    x -= th + tw + hsep;
-                    drawicon(HICON_TOKEN, x, yoff/itemsscale - th/2.0, th);
-                    draw_text(buff, x + th + hsep, yoff/itemsscale - th/2.0, r, g, b, a);
+                    off = d->quadmillis ?
+                        -2*hsep - tw - th + (newhud_itemspos_centerfirst ? -th/2 : -th)
+                        : (newhud_itemspos_centerfirst ? -th/2 : -th - tw - hsep);
                 } else {
-                    int x = xoff/itemsscale + (d->quadmillis ? th + hsep : 0);
-                    drawicon(HICON_TOKEN, x, yoff/itemsscale - th/2.0, th);
-                    draw_text(buff, x + th + hsep, yoff/itemsscale - th/2.0, r, g, b, a);
+                    off = d->quadmillis ?
+                        hsep + (newhud_itemspos_centerfirst ? th/2 : th)
+                        : (newhud_itemspos_centerfirst ? -th/2 : 0);
                 }
+                drawicon(HICON_TOKEN, xoff/itemsscale + off, yoff/itemsscale - th/2.0, th);
+                draw_text(buff, xoff/itemsscale + off + th + hsep, yoff/itemsscale - th/2.0, r, g, b, a);
             }
         } else if(!newhud) {
             glScalef(h/1800.0f, h/1800.0f, 1);

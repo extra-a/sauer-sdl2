@@ -1671,12 +1671,14 @@ namespace game
 
     VARP(newhud_itemsdisablewithgui, 0, 0, 1);
     XIDENTHOOK(newhud_itemsdisablewithgui, IDF_EXTENDED);
-    VARP(newhud_itemssize, 0, 20, 30);
+    VARP(newhud_itemssize, 0, 20, 50);
     XIDENTHOOK(newhud_itemssize, IDF_EXTENDED);
     VARP(newhud_itemspos_x, 0, 10, 1000);
     XIDENTHOOK(newhud_itemspos_x, IDF_EXTENDED);
     VARP(newhud_itemspos_reverse_x, 0, 1, 1);
     XIDENTHOOK(newhud_itemspos_reverse_x, IDF_EXTENDED);
+    VARP(newhud_itemspos_centerfirst, 0, 0, 1);
+    XIDENTHOOK(newhud_itemspos_centerfirst, IDF_EXTENDED);
     VARP(newhud_itemspos_y, 0, 920, 1000);
     XIDENTHOOK(newhud_itemspos_y, IDF_EXTENDED);
 
@@ -1691,15 +1693,16 @@ namespace game
 
             glPushMatrix();
             snprintf(buff, 10, "M");
-            int tw = 0, th = 0;
+            int tw = 0, th = 0, adj = 0;
             text_bounds(buff, tw, th);
             glScalef(staticscale*itemsscale, staticscale*itemsscale, 1);
             draw_text("", 0, 0, 255, 255, 255, 255);
             if(newhud_itemspos_reverse_x) {
-                drawicon(HICON_QUAD, xoff/itemsscale - th, yoff/itemsscale - th/2.0, th);
+                adj = newhud_itemspos_centerfirst ? -th/2 : -th;
             } else {
-                drawicon(HICON_QUAD, xoff/itemsscale, yoff/itemsscale - th/2.0, th);
+                adj = newhud_itemspos_centerfirst ? -th/2 : 0;
             }
+            drawicon(HICON_QUAD, xoff/itemsscale + adj, yoff/itemsscale - th/2.0, th);
             glPopMatrix();
         }
     }
