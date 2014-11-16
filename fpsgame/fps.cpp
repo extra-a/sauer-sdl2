@@ -2155,36 +2155,95 @@ namespace game
         demos.sort(demosortfn);
     }
 
+    #define FILTERLEN 51
+    static char filter[FILTERLEN];
+    extern char *strduplicate(const char *s);
+
+    static void applyfilter(vector<demolistentry *> &p0, vector<demolistentry *> &p1) {
+        vector<bool> ismatched;
+        loopv(p0) {
+            ismatched.add(false);
+        }
+        const char* spl = " ";
+        char* pats = strduplicate(filter);
+        char* p = strtok(pats, spl);
+        while(p) {
+            loopv(p0) {
+                if( p0[i] && strstr(p0[i]->name, p) != NULL && !ismatched[i]) {
+                    p1.add( p0[i] );
+                    ismatched[i] = true;
+                }
+            }
+            p = strtok(NULL, spl);
+        }
+        free(pats);
+    }
+
+
+    static void demoheader(g3d_gui *g, int count, int maxcount) {
+        g->pushlist();
+        if(g->button("clear ", 0xFFFFDD, "action")&G3D_UP) {
+            filter[0] = 0;
+        }
+        const char* f = g->field("", 0xFFFFFF, FILTERLEN-1, 0, filter);
+        if(f) {
+            strncpy(filter, f, FILTERLEN-1);
+            filter[FILTERLEN-1] = 0;
+        }
+
+        g->spring();
+
+        if(count == maxcount) {
+            g->textf("%d", 0xFFFFDD, "info", count);
+
+        } else {
+            g->textf("%d/%d", 0xFFFFDD, "info", count, maxcount);
+        }
+        g->poplist();
+        g->separator();
+    }
+
     extern void setmode(int mode);
     extern void demoseekintermission();
     void showdemoslist(g3d_gui *g) {
+        int fulllen, len;
+        fulllen = demos.length();
+        vector<demolistentry *> fdemos;
+        if(strlen(filter) > 0) {
+            applyfilter(demos, fdemos);
+        } else {
+            fdemos = demos;
+        }
+        len = fdemos.length();
         g->allowautotab(true);
-        int maxcount = guiautotab;
+        int maxcount = max(16, guiautotab-2);
         int count = 0;
-        loopv(demos) {
-            if(!demos[i]) continue;
+        demoheader(g, len, fulllen);
+        loopv(fdemos) {
+            if(!fdemos[i]) continue;
             if(count >= maxcount) {
                 g->tab();
+                demoheader(g, len, fulllen);
                 count = 0;
             }
             g->pushlist();
             if(g->buttonf("play  ", 0xFFFFDD, "action")&G3D_UP) {
                 server::stopdemo();
                 setmode(-1);
-                changemap(demos[i]->name);
+                changemap(fdemos[i]->name);
                 g->poplist();
                 return;
             }
             if(g->buttonf("toend", 0xFFFFDD, "action")&G3D_UP) {
                 server::stopdemo();
                 setmode(-1);
-                changemap(demos[i]->name);
+                changemap(fdemos[i]->name);
                 demoseekintermission();
                 g->poplist();
                 return;
             }
             g->separator();
-            g->textf("%s", 0xFFFFDD, NULL, demos[i]->name);
+            g->textf("%s", 0xFFFFDD, NULL, fdemos[i]->name);
             g->poplist();
             count++;
         }
