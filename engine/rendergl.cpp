@@ -2352,6 +2352,7 @@ VAR(showeditstats, 0, 0, 1);
 VAR(statrate, 1, 200, 1000);
 
 FVARP(conscale, 1e-3f, 0.33f, 1e3f);
+VARF(textscale, 50, 100, 300, { conscale = 0.33f*textscale/100.0f; });
 
 VARP(newhud, 0, 0, 1);
 XIDENTHOOK(newhud, IDF_EXTENDED);
