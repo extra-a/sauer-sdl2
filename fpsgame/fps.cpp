@@ -919,8 +919,8 @@ namespace game
 
     VARP(ammobarfilterempty, 0, 0, 1);
     XIDENTHOOK(ammobarfilterempty, IDF_EXTENDED);
-    VARP(ammobariconslast, 0, 0, 1);
-    XIDENTHOOK(ammobariconslast, IDF_EXTENDED);
+    VARP(ammobariconspos, -1, -1, 1);
+    XIDENTHOOK(ammobariconspos, IDF_EXTENDED);
 
     VARP(ammobarsize, 1, 5, 30);
     XIDENTHOOK(ammobarsize, IDF_EXTENDED);
@@ -970,7 +970,7 @@ namespace game
         }
     }
 
-    void drawselectedammobg(float x, float y, float w, float h) {
+    static void drawselectedammobg(float x, float y, float w, float h) {
         drawacoloredquad(x, y, w, h,
                          (GLubyte)ammobarselectedcolor_r,
                          (GLubyte)ammobarselectedcolor_g,
@@ -990,26 +990,33 @@ namespace game
         float ammobarscale = (1 + ammobarsize/10.0)*h/1080.0;
         float xoff = 0.0;
         float yoff = ammobaroffset_y*conh/1000;
-        float vsep = 10*ammobarscale*staticscale;
-        float hsep = 60*ammobarscale*staticscale;
-        float textsep = 20*ammobarscale*staticscale;
+        float vsep = 20*ammobarscale*staticscale;
+        float hsep = 20*ammobarscale*staticscale;
+        float hgap = 60*ammobarscale*staticscale;
+        float textsep = 10*ammobarscale*staticscale;
         int pw = 0, ph = 0, tw = 0, th = 0;
 
         glPushMatrix();
         glScalef(staticscale*ammobarscale, staticscale*ammobarscale, 1);
         draw_text("", 0, 0, 255, 255, 255, 255);
 
-        int szx = 0, szy = 0, sz1 = 0;
+        int szx = 0, szy = 0, eszx = 0, eszy = 0;
         text_bounds("999", pw, ph);
 
-        if(ammobarhorizontal) {
-            szy = ph;
-            szx = NWEAPONS * (ph + pw + 2.0 * textsep + hsep) - hsep;
-            sz1 = ph + 2.0 * textsep + pw;
+        if(ammobariconspos == 0) {
+            eszx = pw;
+            eszy = 2*ph + textsep;
         } else {
-            szx = ph + 2.0 * textsep + pw;
-            szy = NWEAPONS * (ph + vsep + vsep) - 2*vsep;
-            sz1 = szx;
+            eszx = ph + textsep + pw;
+            eszy = ph;
+        }
+
+        if(ammobarhorizontal) {
+            szx = NWEAPONS * (eszx + hgap) - hgap + hsep;
+            szy = eszy + vsep;
+        } else {
+            szx = eszx + hsep;
+            szy = NWEAPONS * (eszy + vsep);
         }
 
         if(ammobaroffset_start_x == 1) {
@@ -1019,7 +1026,6 @@ namespace game
         } else {
             xoff = ammobaroffset_x*conw/1000;
         }
-
         yoff -= szy/2.0 * ammobarscale;
 
         for(int i = 0, xpos = 0, ypos = 0; i < NWEAPONS; i++) {
@@ -1028,32 +1034,37 @@ namespace game
             draw_text("", 0, 0, 255, 255, 255, 255);
             if(i+1 == d->gunselect) {
                 drawselectedammobg(xoff/ammobarscale + xpos,
-                                   yoff/ammobarscale + ypos - vsep/2.0,
-                                   ph + pw + 2.0*textsep,
-                                   ph + vsep);
+                                   yoff/ammobarscale + ypos,
+                                   eszx + hsep,
+                                   eszy + vsep);
             }
             if(ammobarfilterempty && d->ammo[i+1] == 0) {
                 draw_text("", 0, 0, 255, 255, 255, 85);
             }
-            if(ammobariconslast) {
-                drawicon(HICON_FIST+icons[i], xoff/ammobarscale + xpos + sz1 - th - textsep/2.0, yoff/ammobarscale + ypos, ph);
+            if(ammobariconspos == -1) {
+                drawicon(HICON_FIST+icons[i], xoff/ammobarscale + xpos + hsep/2.0, yoff/ammobarscale + ypos + vsep/2.0, ph);
+            } else if(ammobariconspos == 1) {
+                drawicon(HICON_FIST+icons[i], xoff/ammobarscale + xpos + eszx - ph - hsep/2.0, yoff/ammobarscale + ypos + vsep/2.0, ph);
             } else {
-                drawicon(HICON_FIST+icons[i], xoff/ammobarscale + xpos + textsep/2.0, yoff/ammobarscale + ypos, ph);
+                drawicon(HICON_FIST+icons[i], xoff/ammobarscale + xpos + (pw-th)/2.0 + hsep/2.0, yoff/ammobarscale + ypos + 0.75*vsep, ph);
             }
             if(coloredammo) getammocolor(d, i+1, r, g, b, a);
             if( !(ammobarfilterempty && d->ammo[i+1] == 0) ) {
-                if(ammobariconslast) {
-                    draw_text(buff, xoff/ammobarscale + xpos + textsep/2.0 + (pw-tw)/2.0,
-                              yoff/ammobarscale + ypos, r, g, b, a);
+                if(ammobariconspos == -1) {
+                    draw_text(buff, xoff/ammobarscale + xpos + hsep/2.0 + ph + textsep + (pw-tw)/2.0,
+                              yoff/ammobarscale + ypos + vsep/2.0, r, g, b, a);
+                } else if(ammobariconspos == 1) {
+                    draw_text(buff, xoff/ammobarscale + xpos + hsep/2.0 + (pw-tw)/2.0,
+                              yoff/ammobarscale + ypos + vsep/2.0, r, g, b, a);
                 } else {
-                    draw_text(buff, xoff/ammobarscale + xpos + ph + 1.5*textsep + (pw-tw)/2.0,
-                              yoff/ammobarscale + ypos, r, g, b, a);
+                    draw_text(buff, xoff/ammobarscale + xpos + hsep/2.0 + (pw-tw)/2.0,
+                              yoff/ammobarscale + ypos + 0.75*vsep + textsep + ph, r, g, b, a);
                 }
             }
             if(ammobarhorizontal) {
-                xpos += ph + pw + 2.0 * textsep + hsep;
+                xpos += eszx + hgap;
             } else {
-                ypos += ph + vsep + vsep;
+                ypos += eszy + vsep;
             }
         }
         draw_text("", 0, 0, 255, 255, 255, 255);
