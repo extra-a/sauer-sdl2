@@ -572,7 +572,7 @@ namespace game
             if(d==player1) conoutf(contype, "\f2%s got fragged by %s", dname, aname);
             else conoutf(contype, "\f2%s fragged %s", aname, dname);
         }
-        if(fragbeep && h==actor && !isteam(d->team, h->team)) playsound(S_FRAGBEEP);
+        if(fragbeep && h==actor && !isteam(d->team, h->team) && d != h) playsound(S_FRAGBEEP);
         deathstate(d);
 		ai::killed(d, actor);
     }
