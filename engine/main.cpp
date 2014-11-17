@@ -1363,7 +1363,7 @@ int main(int argc, char **argv)
     inputgrab(grabinput = true);
     ignoremousemotion();
 
-    conoutf(stringify_macro(\f0Sauerbraten SDL2 Client\f1 Version 1.9.4));
+    conoutf(stringify_macro(\f0Sauerbraten SDL2 Client\f1 Version 1.9.5));
 
     for(;;)
     {
