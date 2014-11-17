@@ -585,7 +585,7 @@ namespace game
         g->separator();
         g->pushlist();
         g->spring();
-        if(g->button("connect", 0xFFFFDD, iscompat ? "checkbox_on" : "serverunk")&G3D_UP) {
+        if(g->button("connect", 0xFFFFDD, iscompat ? "action" : "serverunk")&G3D_UP) {
             g->poplist();
             g->allowautotab(true);
             setselectedserver(lastpreviewdata.servaddress.host,
