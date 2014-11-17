@@ -1995,17 +1995,20 @@ namespace game
             awaitingdemo = 1;
             awaitingdemolist = 1;
             listdemos();
+            conoutf("trying to auto download demo \"%s\"", expecteddemoname);
         }
     }
 
     void getdemo(int i);
     static void trygetrecordeddemo(char* name, int i) {
-        if(!strncmp(expecteddemoname, name, MAXDEMONAMELEN)) getdemo(i);
+        if(!strncmp(expecteddemoname, name, MAXDEMONAMELEN)) {
+            addmsg(N_GETDEMO, "ri", i);
+        }
     }
 
     void autodemocheck() {
         if(democheckedtime + DEMODNLTIMEOUT < totalmillis && awaitingdemo) {
-            conoutf("failed to download demo \"%s\"", expecteddemoname);
+            conoutf("failed to auto download demo \"%s\"", expecteddemoname);
             expecteddemoname[0] = 0;
             awaitingdemolist = 0;
             awaitingdemo = 0;
@@ -2851,11 +2854,13 @@ namespace game
 
     void getdemo(int i)
     {
-        if(!awaitingdemolist) {
+        if(!awaitingdemo) {
             if(i<=0) conoutf("getting demo...");
             else conoutf("getting demo %d...", i);
+            addmsg(N_GETDEMO, "ri", i);
+        } else {
+            conoutf("demo auto download is still running");
         }
-        addmsg(N_GETDEMO, "ri", i);
     }
     ICOMMAND(getdemo, "i", (int *val), getdemo(*val));
 
