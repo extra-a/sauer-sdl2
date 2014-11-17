@@ -291,7 +291,7 @@ const char *hud_new1 =
     "newhud_hppos_x 420\n"
     "newhud_hppos_y 960\n"
     "newhud_hpssize 30\n"
-    "newhud_itemsdisablewithgui 0\n"
+    "newhud_itemsdisablewithgui 1\n"
     "newhud_itemspos_centerfirst 0\n"
     "newhud_itemspos_reverse_x 1\n"
     "newhud_itemspos_x 10\n"
@@ -314,7 +314,7 @@ const char *hud_new2 =
 "hudnew2 = [\n"
     "ammobar 1\n"
     "ammobardisableininsta 1\n"
-    "ammobardisablewithgui 0\n"
+    "ammobardisablewithgui 1\n"
     "ammobarfilterempty 1\n"
     "ammobarhorizontal 1\n"
     "ammobariconspos -1\n"
@@ -394,7 +394,7 @@ const char *hud_new2 =
     "newhud_hppos_x 500\n"
     "newhud_hppos_y 970\n"
     "newhud_hpssize 30\n"
-    "newhud_itemsdisablewithgui 0\n"
+    "newhud_itemsdisablewithgui 1\n"
     "newhud_itemspos_centerfirst 0\n"
     "newhud_itemspos_reverse_x 1\n"
     "newhud_itemspos_x 10\n"
@@ -411,6 +411,109 @@ const char *hud_new2 =
     "newhud_spectatorsize 5\n"
     "newhud_sysoutgamehudlast 1\n"
     "newhud_sysoutoffset 0\n"
+"]\n";
+
+const char *hud_new3 =
+"hudnew3 = [\n"
+    "ammobar 1\n"
+    "ammobardisableininsta 1\n"
+    "ammobardisablewithgui 0\n"
+    "ammobarfilterempty 1\n"
+    "ammobarhorizontal 1\n"
+    "ammobariconspos 0\n"
+    "ammobaroffset_start_x 0\n"
+    "ammobaroffset_x 675\n"
+    "ammobaroffset_y 950\n"
+    "ammobarselectedcolor_a 150\n"
+    "ammobarselectedcolor_b 255\n"
+    "ammobarselectedcolor_g 200\n"
+    "ammobarselectedcolor_r 100\n"
+    "ammobarsize 10\n"
+    "coloredammo 1\n"
+    "coloredhealth 1\n"
+    "gameclock 1\n"
+    "gameclockcolor_a 255\n"
+    "gameclockcolor_b 255\n"
+    "gameclockcolor_g 255\n"
+    "gameclockcolor_r 255\n"
+    "gameclockcolorbg_a 50\n"
+    "gameclockcolorbg_b 255\n"
+    "gameclockcolorbg_g 200\n"
+    "gameclockcolorbg_r 100\n"
+    "gameclockdisablewithgui 0\n"
+    "gameclockoffset_start_x 1\n"
+    "gameclockoffset_x 15\n"
+    "gameclockoffset_y 950\n"
+    "gameclocksize 15\n"
+    "hudscores 1\n"
+    "hudscoresdisablewithgui 0\n"
+    "hudscoresenemycolor_a 255\n"
+    "hudscoresenemycolor_b 0\n"
+    "hudscoresenemycolor_g 0\n"
+    "hudscoresenemycolor_r 255\n"
+    "hudscoresenemycolorbg_a 50\n"
+    "hudscoresenemycolorbg_b 85\n"
+    "hudscoresenemycolorbg_g 85\n"
+    "hudscoresenemycolorbg_r 255\n"
+    "hudscoresoffset_start_x -1\n"
+    "hudscoresoffset_x 15\n"
+    "hudscoresoffset_y 950\n"
+    "hudscoresplayercolor_a 255\n"
+    "hudscoresplayercolor_b 255\n"
+    "hudscoresplayercolor_g 255\n"
+    "hudscoresplayercolor_r 0\n"
+    "hudscoresplayercolorbg_a 50\n"
+    "hudscoresplayercolorbg_b 255\n"
+    "hudscoresplayercolorbg_g 255\n"
+    "hudscoresplayercolorbg_r 0\n"
+    "hudscoressize 15\n"
+    "hudscoresvertical 0\n"
+    "lagometer 1\n"
+    "lagometercolsz 1\n"
+    "lagometerdisablelocal 1\n"
+    "lagometerdisablewithgui 1\n"
+    "lagometerheight 100\n"
+    "lagometerlen 100\n"
+    "lagometernobg 0\n"
+    "lagometeronlypingself 1\n"
+    "lagometerpingsz 150\n"
+    "lagometerpos_start_x 1\n"
+    "lagometerpos_x 10\n"
+    "lagometerpos_y 500\n"
+    "lagometershowping 1\n"
+    "newhud 1\n"
+    "newhud_ammodisable 0\n"
+    "newhud_ammodisableininsta -1\n"
+    "newhud_ammodisablewithgui 0\n"
+    "newhud_ammogap 100\n"
+    "newhud_ammoiconssize 60\n"
+    "newhud_ammopos_x 470\n"
+    "newhud_ammopos_y 950\n"
+    "newhud_ammosize 30\n"
+    "newhud_hpdisableininsta 1\n"
+    "newhud_hpdisablewithgui 0\n"
+    "newhud_hpgap 60\n"
+    "newhud_hpiconssize 60\n"
+    "newhud_hppos_x 325\n"
+    "newhud_hppos_y 950\n"
+    "newhud_hpssize 50\n"
+    "newhud_itemsdisablewithgui 1\n"
+    "newhud_itemspos_centerfirst 1\n"
+    "newhud_itemspos_reverse_x 0\n"
+    "newhud_itemspos_x 500\n"
+    "newhud_itemspos_y 830\n"
+    "newhud_itemssize 26\n"
+    "newhud_miniconoffset 100\n"
+    "newhud_miniconsize 5\n"
+    "newhud_miniconwidth 40\n"
+    "newhud_spectatorpos_start_x 0\n"
+    "newhud_spectatorpos_x 500\n"
+    "newhud_spectatorpos_y 110\n"
+    "newhud_spectatorsdisablewithgui 1\n"
+    "newhud_spectatorsize 5\n"
+    "newhud_spectatorsnocolor 1\n"
+    "newhud_sysoutgamehudlast 1\n"
+    "newhud_sysoutoffset 100\n"
 "]\n";
 
 
@@ -501,6 +604,8 @@ const char *extended_settings_gui =
     "guibutton \"New customisable HUD (example1)\" \"hudnew1\"\n"
     "guistrut 1\n"
     "guibutton \"New customisable HUD (example2)\" \"hudnew2\"\n"
+    "guistrut 1\n"
+    "guibutton \"New customisable HUD (example3)\" \"hudnew3\"\n"
     "guistrut 1\n"
     "guibar\n"
     "guistrut 1\n"
@@ -1053,7 +1158,7 @@ const char *new_main_menu =
 "]";
 
 
-const char *hit_shoud =
+const char *hit_sound =
 "registersound aard/bang 255\n";
 
 
@@ -1063,10 +1168,11 @@ const char *game_scripts[] = { extended_settings_gui,
                                hud_old_extended,
                                hud_new1,
                                hud_new2,
+                               hud_new3,
                                extended_helpers,
                                extended_menus,
                                new_main_menu,
-                               hit_shoud,
+                               hit_sound,
                                0 };
 
 
