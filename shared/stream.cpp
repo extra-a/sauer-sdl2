@@ -221,6 +221,34 @@ done:
     return dst - dstbuf;
 }
 
+char *strduplicate(const char *s) {
+    char *d = new char[strlen(s) + 1];
+    if(d == NULL) return NULL;
+    strcpy(d, s);
+    return d;
+}
+
+char *strccasestr(char *str1, const char *str2) {
+    if(!str1 || !str2) return NULL;
+    int len1 = strlen(str1), len2 = strlen(str2);
+    char c1, c2;
+    bool mfail = false;
+    loopi(len1) {
+        loopj(len2) {
+            if(i+j >= len1) return NULL;
+            c1 = cubelower(str1[i + j]);
+            c2 = cubelower(str2[j]);
+            if(c1 != c2) {
+                mfail = true;
+                break;
+            }
+        }
+        if(!mfail) return str1 + i;
+        mfail = false;
+    }
+    return NULL;
+}
+
 ///////////////////////// file system ///////////////////////
 
 #ifdef WIN32

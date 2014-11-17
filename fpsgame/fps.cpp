@@ -2168,7 +2168,6 @@ namespace game
 
     #define FILTERLEN 51
     static char filter[FILTERLEN];
-    extern char *strduplicate(const char *s);
 
     static void applyfilter(vector<demolistentry *> &p0, vector<demolistentry *> &p1) {
         vector<bool> ismatched;
@@ -2180,7 +2179,7 @@ namespace game
         char* p = strtok(pats, spl);
         while(p) {
             loopv(p0) {
-                if( p0[i] && strstr(p0[i]->name, p) != NULL && !ismatched[i]) {
+                if( p0[i] && strccasestr(p0[i]->name, p) != NULL && !ismatched[i]) {
                     p1.add( p0[i] );
                     ismatched[i] = true;
                 }

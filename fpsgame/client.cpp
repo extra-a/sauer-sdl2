@@ -2996,12 +2996,6 @@ namespace game
     XIDENTHOOK(savedsearches, IDF_EXTENDED);
     ICOMMAND(overwritesearches, "s", (char *s), setsvar("savedsearches", s));
 
-    char *strduplicate(const char *s) {
-        char *d = (char*)malloc( strlen(s) + 1 );
-        if(d == NULL) return NULL;
-        strcpy(d, s);
-        return d;
-    }
 
     #define MAXPATLEN 200
     static char cmdbuff[MAXPATLEN];
@@ -3018,14 +3012,14 @@ namespace game
         char* p = strtok(pats, spl);
         while(p) {
             loopv(p0) {
-                if( strstr(p0[i].pname, p) != NULL && !ismatched[i]) {
+                if( strccasestr((char*)p0[i].pname, p) != NULL && !ismatched[i]) {
                     p1.add( p0[i] );
                     ismatched[i] = true;
                 }
             }
             p = strtok(NULL, spl);
         }
-        free(pats);
+        delete pats;
     }
 
     static int applysearchfilter(const char* name,
