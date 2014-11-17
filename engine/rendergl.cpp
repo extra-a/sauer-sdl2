@@ -2448,7 +2448,7 @@ void gl_drawhud()
             glPushMatrix();
             glScalef(conscale, conscale, 1);
 
-            int roffset = newhud_sysoutoffset * conh / 1000;
+            int roffset = (newhud ? newhud_sysoutoffset : 0) * conh / 1000;
 
             if(newhud_sysoutgamehudlast) {
                 drawgamehud(roffset, conw, conh);
