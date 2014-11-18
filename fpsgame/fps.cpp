@@ -990,10 +990,11 @@ namespace game
         float ammobarscale = (1 + ammobarsize/10.0)*h/1080.0;
         float xoff = 0.0;
         float yoff = ammobaroffset_y*conh/1000;
-        float vsep = 20*ammobarscale*staticscale;
-        float hsep = 20*ammobarscale*staticscale;
-        float hgap = 60*ammobarscale*staticscale;
-        float textsep = 10*ammobarscale*staticscale;
+        float vsep = 15;
+        float hsep = 15;
+        float hgap = ammobariconspos == 0 ? 40 : 60;
+        float vgap = ammobariconspos == 0 ? 30 : 20;
+        float textsep = 10;
         int pw = 0, ph = 0, tw = 0, th = 0;
 
         glPushMatrix();
@@ -1016,7 +1017,7 @@ namespace game
             szy = eszy + vsep;
         } else {
             szx = eszx + hsep;
-            szy = NWEAPONS * (eszy + vsep);
+            szy = NWEAPONS * (eszy + vgap) - vgap + vsep;
         }
 
         if(ammobaroffset_start_x == 1) {
@@ -1064,7 +1065,7 @@ namespace game
             if(ammobarhorizontal) {
                 xpos += eszx + hgap;
             } else {
-                ypos += eszy + vsep;
+                ypos += eszy + vgap;
             }
         }
         draw_text("", 0, 0, 255, 255, 255, 255);
@@ -1220,7 +1221,7 @@ namespace game
 
         char buff[10];
         int r = 255, g = 255, b = 255, a = 255, tw = 0, th = 0;
-        float hsep = 20.0*hpscale*staticscale*((float)newhud_hpgap/100.0f);
+        float hsep = 20.0*((float)newhud_hpgap/100.0f);
         if(coloredhealth && !m_insta) getchpcolors(d, r, g, b, a);
         snprintf(buff, 10, "%d", d->state==CS_DEAD ? 0 : d->health);
         text_bounds(buff, tw, th);
@@ -1268,7 +1269,7 @@ namespace game
         float ammoscale = (1 + newhud_ammosize/10.0)*h/1080.0;
         float xoff = newhud_ammopos_x*conw/1000;
         float yoff = newhud_ammopos_y*conh/1000;
-        float hsep = 20.0*ammoscale*staticscale*((float)newhud_ammogap/100.0f);
+        float hsep = 20.0*((float)newhud_ammogap/100.0f);
         int r = 255, g = 255, b = 255, a = 255, tw = 0, th = 0;
 
         glPushMatrix();
@@ -1346,7 +1347,7 @@ namespace game
         int tw = 0, th = 0;
         float xoff = 0.0, xpos = 0.0, ypos = 0.0;
         float yoff = gameclockoffset_y*conh/1000;
-        float borderx = 10.0*staticscale*gameclockscale;
+        float borderx = 10.0;
         text_bounds(buf, tw, th);
 
         if(gameclockoffset_start_x == 1) {
@@ -1443,7 +1444,7 @@ namespace game
         float scorescale = (1 + hudscoressize/10.0)*h/1080.0;
         float xoff = hudscoresoffset_start_x == 1 ? (1000 - hudscoresoffset_x)*conw/1000 : hudscoresoffset_x*conw/1000;
         float yoff = hudscoresoffset_y*conh/1000;
-        float scoresep = 40*scorescale*staticscale;
+        float scoresep = hudscoresvertical ? 30 : 40;
         float borderx = scoresep/2.0;
 
         int r1, g1, b1, a1, r2, g2, b2, a2,

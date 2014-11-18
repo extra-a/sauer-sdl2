@@ -503,7 +503,7 @@ struct ctfclientmode : clientmode
         float itemsscale = (1 + newhud_itemssize/10.0)*h/1080.0;
         float xoff = newhud_itemspos_reverse_x ? (1000 - newhud_itemspos_x)*conw/1000 : newhud_itemspos_x*conw/1000;
         float yoff = newhud_itemspos_y*conh/1000;
-        float hsep = 20*itemsscale*staticscale;
+        float hsep = 20, hgap = 40;
 
         glPushMatrix();
         if(newhud && !(newhud_itemsdisablewithgui && framehasgui)) {
@@ -521,7 +521,7 @@ struct ctfclientmode : clientmode
                     }
                     if(newhud_itemspos_reverse_x) {
                         off1 = d->quadmillis ?
-                            -hsep - th + (newhud_itemspos_centerfirst ? -th/2 : -th)
+                            -hgap - th + (newhud_itemspos_centerfirst ? -th/2 : -th)
                             : (newhud_itemspos_centerfirst ? -th/2 : -th);
                         if(m_hold) {
                             off1 += (newhud_itemspos_centerfirst && !d->quadmillis ? 0 : -hsep - tw2);
@@ -529,10 +529,10 @@ struct ctfclientmode : clientmode
                         off2 = off1 + th + hsep;
                     } else {
                         off1 = d->quadmillis ?
-                            hsep + (newhud_itemspos_centerfirst ? th/2 : th)
+                            hgap + (newhud_itemspos_centerfirst ? th/2 : th)
                             : (newhud_itemspos_centerfirst ? -th/2 : 0);
-                        off2 = off1 + th + hsep;
                     }
+                    off2 = off1 + th + hsep;
                     drawicon(m_hold ? HICON_NEUTRAL_FLAG : (flags[i].team==ctfteamflag(getcurrentteam()) ? HICON_BLUE_FLAG : HICON_RED_FLAG), xoff/itemsscale + off1, yoff/itemsscale - th/2.0, th);
                     if(m_hold) {
                         draw_textf("%d", xoff/itemsscale + off2, yoff/itemsscale - th/2.0, max(HOLDSECS - (lastmillis - flags[i].owntime)/1000, 0));

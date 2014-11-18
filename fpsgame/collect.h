@@ -451,7 +451,7 @@ struct collectclientmode : clientmode
         float itemsscale = (1 + newhud_itemssize/10.0)*h/1080.0;
         float xoff = newhud_itemspos_reverse_x ? (1000 - newhud_itemspos_x)*conw/1000 : newhud_itemspos_x*conw/1000;
         float yoff = newhud_itemspos_y*conh/1000;
-        float hsep = 20*itemsscale*staticscale;
+        float hsep = 20;
 
         glPushMatrix();
         if(newhud && !(newhud_itemsdisablewithgui && framehasgui)) {

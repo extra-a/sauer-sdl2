@@ -492,7 +492,7 @@ const char *hud_new3 =
     "newhud_ammosize 30\n"
     "newhud_hpdisableininsta 1\n"
     "newhud_hpdisablewithgui 0\n"
-    "newhud_hpgap 60\n"
+    "newhud_hpgap 100\n"
     "newhud_hpiconssize 60\n"
     "newhud_hppos_x 325\n"
     "newhud_hppos_y 950\n"
