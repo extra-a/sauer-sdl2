@@ -622,6 +622,7 @@ namespace game
     int seekmillispos = -1;
     bool demoseekmode = false;
     bool seekintermission = false;
+    bool initdemoseek = false;
 
     extern int gamespeed;
     extern void changegamespeed(int val);
@@ -633,7 +634,8 @@ namespace game
         pausegame(false);
         demoseekmode = true;
         seekintermission = true;
-        seekmillispos = 1;
+        initdemoseek = true;
+        seekmillispos = -1;
         changegamespeed(100000);
     }
 
@@ -650,24 +652,27 @@ namespace game
         }
         demoseekmode = true;
         seekintermission = false;
+        initdemoseek = true;
         changegamespeed(100000);
     }
 
     void checkseek() {
+        if(initdemoseek) {
+            initdemoseek = false;
+            return;
+        }
         if(demoseekmode && !seekintermission) {
             int currentmillis = max(maplimit-lastmillis, 0);
             if(currentmillis <= seekmillispos || !demoplayback || seekmillispos < 0) {
+                conoutf("currentmillis %d seekmillispos %d demoplayback %d",
+                        currentmillis, seekmillispos, demoplayback);
                 seekmillispos = -1;
                 demoseekmode = false;
                 seekintermission = false;
                 changegamespeed(100);
                 pausegame(true);
             }
-        } else if(demoseekmode && seekintermission && intermission ) {
-            if(seekmillispos >= 0) {
-                seekmillispos--;
-                return;
-            }
+        } else if(demoseekmode && seekintermission && intermission) {
             seekmillispos = -1;
             demoseekmode = false;
             seekintermission = false;
