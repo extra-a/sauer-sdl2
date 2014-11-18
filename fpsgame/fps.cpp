@@ -2262,14 +2262,14 @@ namespace game
                 return;
             }
             g->separator();
-            g->textf("%.80s", 0xFFFFDD, NULL, fdemos[i]->name);
+            g->textf("%.100s", 0xFFFFDD, NULL, fdemos[i]->name);
             g->poplist();
             count++;
         }
         if(count < maxcount) {
             g->pushlist();
             g->pushlist();
-            g->strut(95);
+            g->strut(115);
             loopi( maxcount - count) {
                 g->buttonf(" ", 0xFFFFDD, NULL);
             }
