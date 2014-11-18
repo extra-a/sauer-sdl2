@@ -879,6 +879,9 @@ namespace game
         glEnd();
     }
 
+    VARP(newhud_abovehud, 800, 925, 1000);
+    XIDENTHOOK(newhud_abovehud, IDF_EXTENDED);
+
     float abovegameplayhud(int w, int h)
     {
         switch(hudplayer()->state)
@@ -887,6 +890,9 @@ namespace game
             case CS_SPECTATOR:
                 return 1;
             default:
+                if(newhud) {
+                    return newhud_abovehud/1000.f;
+                }
                 return 1650.0f/1800.0f;
         }
     }

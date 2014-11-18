@@ -70,6 +70,7 @@ const char *hud_old =
     "lagometerpos_y 500\n"
     "lagometershowping 1\n"
     "newhud 0\n"
+    "newhud_abovehud 925\n"
     "newhud_ammodisable 0\n"
     "newhud_ammodisableininsta 0\n"
     "newhud_ammodisablewithgui 0\n"
@@ -173,6 +174,7 @@ const char *hud_old_extended =
     "lagometerpos_y 500\n"
     "lagometershowping 1\n"
     "newhud 0\n"
+    "newhud_abovehud 925\n"
     "newhud_ammodisable 0\n"
     "newhud_ammodisableininsta 0\n"
     "newhud_ammodisablewithgui 0\n"
@@ -276,6 +278,7 @@ const char *hud_new1 =
     "lagometerpos_y 500\n"
     "lagometershowping 1\n"
     "newhud 1\n"
+    "newhud_abovehud 925\n"
     "newhud_ammodisable 0\n"
     "newhud_ammodisableininsta 0\n"
     "newhud_ammodisablewithgui 0\n"
@@ -379,6 +382,7 @@ const char *hud_new2 =
     "lagometerpos_y 500\n"
     "lagometershowping 1\n"
     "newhud 1\n"
+    "newhud_abovehud 925\n"
     "newhud_ammodisable 0\n"
     "newhud_ammodisableininsta -1\n"
     "newhud_ammodisablewithgui 0\n"
@@ -482,6 +486,7 @@ const char *hud_new3 =
     "lagometerpos_y 500\n"
     "lagometershowping 1\n"
     "newhud 1\n"
+    "newhud_abovehud 900\n"
     "newhud_ammodisable 0\n"
     "newhud_ammodisableininsta -1\n"
     "newhud_ammodisablewithgui 0\n"
@@ -934,21 +939,18 @@ const char *hud_settings_gui =
     "guislider newhud_itemspos_y\n"
 
     
-    "guitab \"Minicon\"\n"
+    "guitab \"Other\"\n"
 
     "guititle \"Warning: Settings have effect only when new HUD is enabled\"\n"
     "guicheckbox \"Enable new HUD\" newhud\n"
     "guistrut 1\n"
     
-    "guititle \"New HUD chat and system output settings\"\n"
     "guitext \"Minicon Y offset:\" 0\n"
     "guislider newhud_miniconoffset\n"
     "guistrut 1\n"
 
     "guitext \"Minicon lines:\" 0\n"
     "guislider newhud_miniconsize\n"
-    "guistrut 1\n"
-
     "guitext \"Minicon width:\" 0\n"
     "guislider newhud_miniconwidth\n"
     "guistrut 1\n"
@@ -956,6 +958,10 @@ const char *hud_settings_gui =
     "guitext \"System output Y offset:\" 0\n"
     "guislider newhud_sysoutoffset\n"
     "guicheckbox \"Show game HUD in the last line\" newhud_sysoutgamehudlast\n"
+    "guistrut 1\n"
+
+    "guitext \"GUI height limit with HUD:\" 0\n"
+    "guislider newhud_abovehud\n"
     "guistrut 1\n"
 
 "] \"General\"\n";
