@@ -2441,6 +2441,8 @@ void gl_drawhud()
     glEnable(GL_TEXTURE_2D);
     defaultshader->set();
 
+    bool hasgamehud = false;
+
     int conw = int(w/conscale), conh = int(h/conscale), abovehud = conh - FONTH, limitgui = abovehud;
     if(!hidehud && !mainmenu)
     {
@@ -2559,6 +2561,7 @@ void gl_drawhud()
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
             game::gameplayhud(w, h);
             limitgui = abovehud = min(abovehud, int(conh*game::abovegameplayhud(w, h)));
+            hasgamehud = true;
         }
 
         rendertexturepanel(w, h);
@@ -2573,7 +2576,7 @@ void gl_drawhud()
         abovehud -= rendercommand(FONTH/2, abovehud - FONTH/2, conw-FONTH);
         renderconsole(conw, conh, abovehud - FONTH/2);
     } else if(!hidehud && newhud) {
-        int pos = conh - newhud_miniconoffset * conh / 1000;
+        int pos = hasgamehud ? conh - newhud_miniconoffset * conh / 1000 : conh;
         pos -= rendercommand(FONTH/2, pos - FONTH/2, conw-FONTH);
         renderconsole(conw, conh, pos - FONTH/2);
     }
