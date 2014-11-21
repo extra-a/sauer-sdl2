@@ -462,7 +462,6 @@ namespace game
     }
 
     void drawspecs(g3d_gui *g) {
-        g->spring();
         g->pushlist();
         g->strut(15);
         g->text("spectator", 0xFFFF80);
@@ -492,7 +491,6 @@ namespace game
             }
         }
         g->poplist();
-        g->spring();
     }
 
     VAR(needplayersearch, 0, 0, 1);
