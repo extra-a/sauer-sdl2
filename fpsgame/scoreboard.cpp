@@ -469,10 +469,9 @@ namespace game
         
         if(showspectators && spectators.length())
         {
-            if(showclientnum || player1->privilege>=PRIV_MASTER)
+            if(showclientnum || showping || player1->privilege>=PRIV_MASTER)
             {
                 g.pushlist();
-                
                 g.pushlist();
                 g.text("spectator", 0xFFFF80, " ");
                 loopv(spectators) 
@@ -490,11 +489,13 @@ namespace game
                 }
                 g.poplist();
 
-                g.space(1);
-                g.pushlist();
-                g.text("cn", 0xFFFF80);
-                loopv(spectators) g.textf("%d", 0xFFFFDD, NULL, spectators[i]->clientnum);
-                g.poplist();
+                if(showclientnum) {
+                    g.space(1);
+                    g.pushlist();
+                    g.text("cn", 0xFFFF80);
+                    loopv(spectators) g.textf("%d", 0xFFFFDD, NULL, spectators[i]->clientnum);
+                    g.poplist();
+                }
 
                 if(showping && (multiplayer(false) || demoplayback)) {
                        g.space(1);
@@ -508,7 +509,6 @@ namespace game
                        }
                        g.poplist();
                 }
-
                 g.poplist();
             }
             else
