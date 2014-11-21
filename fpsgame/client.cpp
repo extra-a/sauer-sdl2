@@ -1560,6 +1560,7 @@ namespace game
         if(editmode) toggleedit();
     }
 
+    bool lastdemoended = false;
     void gamedisconnect(bool cleanup)
     {
         if(remote) stopfollowing();
@@ -1593,6 +1594,7 @@ namespace game
             nextmode = gamemode = INT_MAX;
             clientmap[0] = '\0';
         }
+        lastdemoended = false;
     }
 
     void toserver(char *text) { conoutf(CON_CHAT, "%s:\f0 %s", colorname(player1), text); addmsg(N_TEXT, "rcs", player1, text); }
@@ -1977,6 +1979,8 @@ namespace game
 
     VARP(autodownloaddemos, 0, 0, 1);
     XIDENTHOOK(autodownloaddemos, IDF_EXTENDED);
+    VARP(autodownloadonlyended, 0, 0, 1);
+    XIDENTHOOK(autodownloadonlyended, IDF_EXTENDED);
 
     #define MAXDEMONAMELEN 200
     #define DEMODNLTIMEOUT 10000
@@ -1986,6 +1990,7 @@ namespace game
 
     void listdemos();
     static void checkrecordeddemo(char* origmsg) {
+        if(autodownloadonlyended && !lastdemoended) return;
         string fmsg;
         filtertext(fmsg, origmsg, true, MAXDEMONAMELEN-1);
         fmsg[MAXDEMONAMELEN-1] = 0;
@@ -2002,6 +2007,7 @@ namespace game
             awaitingdemolist = 1;
             listdemos();
             conoutf("trying to auto download demo \"%s\"", expecteddemoname);
+            lastdemoended = false;
         }
     }
 

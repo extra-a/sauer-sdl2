@@ -577,6 +577,7 @@ namespace game
 		ai::killed(d, actor);
     }
 
+    extern bool lastdemoended;
     void timeupdate(int secs)
     {
         if(secs > 0)
@@ -587,6 +588,7 @@ namespace game
         {
             intermission = true;
             player1->attacking = false;
+            lastdemoended = true;
             if(cmode) cmode->gameover();
             conoutf(CON_GAMEINFO, "\f2intermission:");
             if(dumpstatsongameend) dumpstats();
