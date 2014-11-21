@@ -531,14 +531,20 @@ const char *extended_settings_gui =
     "guitext \"Show player stats bind: \"\n"
     "guikeyfield newstatkeys 20 [looplist kk [@@oldstatkeys] [bind $kk]; looplist kk $newstatkeys [bind $kk showplayerstats]]\n"
     "]\n"
+    "guistrut 1\n"
     "guicheckbox \"Use following player team\" usefollowingplayerteam\n"
+    "guistrut 1\n"
     "guicheckbox \"Autodownload server demos\" autodownloaddemos\n"
+    "guistrut 1\n"
     "guicheckbox \"Frag beep\" fragbeep\n"
+    "guistrut 1\n"
     "guicheckbox \"Log players stats on game end\" dumpstatsongameend\n"
     "guistrut 1\n"
 
-    "guititle \"Scoreboard\"\n"
+    "guitab \"Scoreboard\"\n"
+
     "guicheckbox \"Show flags scored\" showflags\n"
+    "guistrut 1\n"
     "guilist [\n"
     "guicheckbox \"Show frags in all modes\" showfrags\n"
     "guibar\n"
@@ -546,6 +552,7 @@ const char *extended_settings_gui =
     "guibar\n"
     "guicheckbox \"Net colors\" netfragscolors\n"
     "]\n"
+    "guistrut 1\n"
     "guilist [\n"
     "guicheckbox \"Show damage dealt\" showdamagedealt\n"
     "guibar\n"
@@ -553,19 +560,14 @@ const char *extended_settings_gui =
     "guibar\n"
     "guicheckbox \"Net colors\" netdamagecolors\n"
     "]\n"
+    "guistrut 1\n"
     "guilist [\n"
     "guicheckbox \"Show accuracy\" showacc\n"
     "guibar\n"
     "guicheckbox \"Use accuracy from server\" showserveracc\n"
     "]\n"
     "guistrut 1\n"
-
-    "guititle \"Networking\"\n"
-    "guitext \"Position packet delay (less values are smoothing client's position lags):\" 0\n"
-    "guislider positionpacketdelay\n"
-    "guicheckbox \"Disable enet limits (fixes unnecessary client's position packet drops)\" disable_enet_limits\n"
-    "guistrut 1\n"
-
+    "guicheckbox \"Show compact spectators list\" showshortspecslist\n"
 
     "guitab \"Particles\"\n"
 
@@ -613,6 +615,17 @@ const char *extended_settings_gui =
     "guibutton \"New customisable HUD (example3)\" \"hudnew3\"\n"
     "guistrut 1\n"
     "guibar\n"
+    "guistrut 1\n"
+
+
+    "guitab \"Networking\"\n"
+
+    "guititle \"Note: Intended to be used on servers with low packets delay support\"\n"
+    "guistrut 1\n"
+    "guitext \"Position packet delay (less values are smoothing client's position lags):\" 0\n"
+    "guislider positionpacketdelay\n"
+    "guistrut 1\n"
+    "guicheckbox \"Disable enet limits (fixes unnecessary client's position packet drops)\" disable_enet_limits\n"
     "guistrut 1\n"
 
 "] \"General\" \n";

@@ -99,6 +99,9 @@ namespace game
     VARP(showserveracc, 0, 0, 1);
     XIDENTHOOK(showserveracc, IDF_EXTENDED);
 
+    VARP(showshortspecslist, 0, 0, 1);
+    XIDENTHOOK(showshortspecslist, IDF_EXTENDED);
+
     static hashset<teaminfo> teaminfos;
 
     void clearteaminfo()
@@ -469,7 +472,7 @@ namespace game
         
         if(showspectators && spectators.length())
         {
-            if(showclientnum || showping || player1->privilege>=PRIV_MASTER)
+            if(!showshortspecslist && (showclientnum || showping || player1->privilege>=PRIV_MASTER))
             {
                 g.pushlist();
                 g.pushlist();
