@@ -265,13 +265,14 @@ namespace game
     extern int getgundamagereceived(int gun, fpsent* f);
     extern int getgunnetdamage(int gun, fpsent* f);
 
+    #define BLEN 200
+    static char buff[BLEN];
     void printplayerstats(fpsent *d) {
-        #define ROWS 7
-        #define BLEN 100
-        const char* weapname[] = {"SAW", "SG", "CG", "RL", "RF", "GL", "PI"};
-        char buff[BLEN];
-        char *ppos = buff;
         if(!d) return;
+
+        #define ROWS 7
+        const char* weapname[ROWS] = {"SAW", "SG", "CG", "RL", "RF", "GL", "PI"};
+        int len = 0;
         if(getgundamagetotal(-1, d) == 0) return;
         printf("---------------------\n");
         if(d->team && strlen(d->team) && m_teammode) {
@@ -280,59 +281,49 @@ namespace game
             logoutf("%s(%d): score %d frags %d net %d\n", d->name, d->clientnum, d->flags, d->frags, d->frags - d->deaths);
         }
 
-        ppos = buff;
-        snprintf(ppos, BLEN, "%-10s","weapon");
+        len = 0;
+        len += snprintf(buff+len, max(0, BLEN-len), "%-10s","weapon");
         loopi(ROWS) {
-            ppos+=10;
-            snprintf(ppos, BLEN, "%-10s", weapname[i]);
+            len += snprintf(buff+len, max(0, BLEN-len), "%-10s", weapname[i]);
         }
-        ppos+=10;
-        snprintf(ppos, BLEN, "%-10s","total");
+        snprintf(buff+len, max(0, BLEN-len), "%-10s","total");
         logoutf("%s", buff);
 
-        ppos = buff;
-        snprintf(ppos, BLEN, "%-10s", "accuracy");
+        len = 0;
+        len += snprintf(buff+len, max(0, BLEN-len), "%-10s", "accuracy");
         loopi(ROWS) {
-            ppos+=10;
-            snprintf(ppos, BLEN,"%-10.2lf", getweaponaccuracy(i, d));
+            len += snprintf(buff+len, max(0, BLEN-len),"%-10.2lf", getweaponaccuracy(i, d));
         }
-        ppos+=10;
-        snprintf(ppos, BLEN, "%-10.2lf", getweaponaccuracy(-1, d));
+        snprintf(buff+len, max(0, BLEN-len), "%-10.2lf", getweaponaccuracy(-1, d));
         logoutf("%s", buff);
 
-        ppos = buff;
-        snprintf(ppos, BLEN, "%-10s", "damage");
+        len = 0;
+        len += snprintf(buff+len, max(0, BLEN-len), "%-10s", "damage");
         loopi(ROWS) {
-            ppos+=10;
-            snprintf(ppos, BLEN, "%-10d", getgundamagedealt(i, d));
+            len += snprintf(buff+len, max(0, BLEN-len), "%-10d", getgundamagedealt(i, d));
         }
-        ppos+=10;
-        snprintf(ppos, BLEN, "%-10d", getgundamagedealt(-1, d));
+        snprintf(buff+len, max(0, BLEN-len), "%-10d", getgundamagedealt(-1, d));
         logoutf("%s", buff);
 
-        ppos = buff;
-        snprintf(ppos, BLEN, "%-10s", "taken");
+        len = 0;
+        len += snprintf(buff+len, max(0, BLEN-len), "%-10s", "taken");
         loopi(ROWS) {
-            ppos+=10;
-            snprintf(ppos, BLEN, "%-10d", getgundamagereceived(i, d));
+            len += snprintf(buff+len, max(0, BLEN-len), "%-10d", getgundamagereceived(i, d));
         }
-        ppos+=10;
-        snprintf(ppos, BLEN, "%-10d", getgundamagereceived(-1, d));
+        snprintf(buff+len, max(0, BLEN-len), "%-10d", getgundamagereceived(-1, d));
         logoutf("%s", buff);
 
-        ppos = buff;
-        snprintf(ppos, BLEN, "%-10s", "net");
+        len = 0;
+        len += snprintf(buff+len, max(0, BLEN-len), "%-10s", "net");
         loopi(ROWS) {
-            ppos+=10;
-            snprintf(ppos, BLEN, "%-10d", getgunnetdamage(i, d));
+            len += snprintf(buff+len, max(0, BLEN-len), "%-10d", getgunnetdamage(i, d));
         }
-        ppos+=10;
-        snprintf(ppos, BLEN, "%-10d", getgunnetdamage(-1, d));
+        snprintf(buff+len, max(0, BLEN-len), "%-10d", getgunnetdamage(-1, d));
         logoutf("%s", buff);
 
-        #undef BLEN
         #undef ROWS
     }
+    #undef BLEN
 
     void dumpstats() {
         loopv(clients) {
