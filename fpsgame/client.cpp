@@ -1977,7 +1977,7 @@ namespace game
 
     VARP(autodownloaddemos, 0, 0, 1);
     XIDENTHOOK(autodownloaddemos, IDF_EXTENDED);
-    VARP(autodownloadonlyended, 0, 0, 1);
+    VARFP(autodownloadonlyended, 0, 0, 1, { lastdemoended = false; } );
     XIDENTHOOK(autodownloadonlyended, IDF_EXTENDED);
 
     #define MAXDEMONAMELEN 200
