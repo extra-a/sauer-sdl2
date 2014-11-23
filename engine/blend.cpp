@@ -513,7 +513,7 @@ struct BlendBrush
 
     void gentex()
     {
-        if(!tex){ glGenTextures(1, &tex); }
+        if(!tex) glGenTextures(1, &tex);
         uchar *buf = new uchar[2*w*h];
         uchar *dst = buf, *src = data;
         loopi(h)

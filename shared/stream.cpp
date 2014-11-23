@@ -480,7 +480,7 @@ const char *findfile(const char *filename, const char *mode)
 bool listdir(const char *dirname, bool rel, const char *ext, vector<char *> &files)
 {
     size_t extsize = ext ? strlen(ext)+1 : 0;
-    #ifdef WIN32
+#ifdef WIN32
     defformatstring(pathname)(rel ? ".\\%s\\*.%s" : "%s\\*.%s", dirname, ext ? ext : "*");
     WIN32_FIND_DATA FindFileData;
     HANDLE Find = FindFirstFile(pathname, &FindFileData);

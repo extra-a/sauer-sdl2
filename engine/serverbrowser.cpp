@@ -212,9 +212,6 @@ int connectwithtimeout(ENetSocket sock, const char *hostname, const ENetAddress 
     return -1;
 }
  
-VAR(pingcoloring, 0, 1, 1);
-XIDENTHOOK(pingcoloring, IDF_EXTENDED);
-
 struct pingattempts
 {
     enum { MAXATTEMPTS = 2 };
@@ -253,7 +250,7 @@ struct pingattempts
             if(del) attempts[k] = 0;
             return true;
         }
-        return !pingcoloring;
+        return false;
     }
 
 };

@@ -94,7 +94,7 @@ static void animateexplosion()
     static int lastexpmillis = 0;
     if(expverts && lastexpmillis == lastmillis)
     {
-        if(hasVBO){ glBindBuffer_(GL_ARRAY_BUFFER_ARB, expvbuf); }
+        if(hasVBO) glBindBuffer_(GL_ARRAY_BUFFER_ARB, expvbuf);
         return;
     }
     lastexpmillis = lastmillis;

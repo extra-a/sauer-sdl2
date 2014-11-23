@@ -2,23 +2,23 @@
 
 #include "cube.h"
 
-void *operator new(size_t size) throw()
+void *operator new(size_t size)
 {
     void *p = malloc(size);
     if(!p) abort();
     return p;
 }
 
-void *operator new[](size_t size) throw()
+void *operator new[](size_t size)
 {
     void *p = malloc(size);
     if(!p) abort();
     return p;
 }
 
-void operator delete(void *p) throw() { if(p) free(p); }
+void operator delete(void *p) { if(p) free(p); }
 
-void operator delete[](void *p) throw() { if(p) free(p); }
+void operator delete[](void *p) { if(p) free(p); }
 
 #ifndef WIN32
 #include <unistd.h>

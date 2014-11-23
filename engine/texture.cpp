@@ -2578,7 +2578,7 @@ void reloadtex(char *name)
     t->id = 0;
     if(!reloadtexture(*t))
     {
-        if(t->id){ glDeleteTextures(1, &t->id); }
+        if(t->id) glDeleteTextures(1, &t->id);
         *t = oldtex;
         conoutf(CON_ERROR, "failed to reload texture %s", name);
     }

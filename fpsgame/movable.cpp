@@ -1,6 +1,8 @@
 // movable.cpp: implements physics for inanimate models
 #include "game.h"
 
+extern int physsteps;
+
 namespace game
 {
     enum

@@ -34,7 +34,7 @@ void destroyvbo(GLuint vbo)
     vbi.uses--;
     if(!vbi.uses) 
     {
-        if(hasVBO) { glDeleteBuffers_(1, &vbo); }
+        if(hasVBO) glDeleteBuffers_(1, &vbo);
         else if(vbi.data) delete[] vbi.data;
         vbos.remove(vbo);
     }

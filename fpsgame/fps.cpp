@@ -371,7 +371,7 @@ namespace game
         }
         updateweapons(curtime);
         otherplayers(curtime);
-        ai::update(curtime);
+        ai::update();
         moveragdolls();
         gets2c();
         updatemovables(curtime);
@@ -856,6 +856,7 @@ namespace game
         else if(d->type==ENT_AI) suicidemonster((monster *)d);
         else if(d->type==ENT_INANIMATE) suicidemovable((movable *)d);
     }
+    ICOMMAND(suicide, "", (), suicide(player1));
     ICOMMAND(kill, "", (), suicide(player1));
 
     bool needminimap() { return m_ctf || m_protect || m_hold || m_capture || m_collect; }

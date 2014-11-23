@@ -511,7 +511,7 @@ void gl_checkextensions()
 #endif
 #ifdef WIN32
             intel_immediate_bug = 1;
-            //intel_vertexarray_bug = 1;
+            intel_vertexarray_bug = 1;
 #endif
         }
 
@@ -902,8 +902,6 @@ FVARP(zoomaccel, 0, 0, 1000);
 VARP(zoomautosens, 0, 1, 1);
 FVARP(sensitivity, 1e-3f, 3, 1000);
 FVARP(sensitivityscale, 1e-3f, 1, 1000);
-FVARP(sdl2_sensitivity_adjust, 1e-3f, 1, 1000);
-XIDENTHOOK(sdl2_sensitivity_adjust, IDF_EXTENDED);
 VARP(invmouse, 0, 0, 1);
 FVARP(mouseaccel, 0, 0, 1000);
  
@@ -942,7 +940,7 @@ void mousemove(int dx, int dy)
         }
     }
     if(curaccel && (dx || dy)) cursens += curaccel * sqrtf(dx*dx + dy*dy)/max(elapsedtime, 1);
-    cursens /= 33.0f*sensitivityscale/sdl2_sensitivity_adjust;
+    cursens /= 33.0f*sensitivityscale;
     camera1->yaw += dx*cursens;
     camera1->pitch -= dy*cursens*(invmouse ? -1 : 1);
     fixcamerarange();

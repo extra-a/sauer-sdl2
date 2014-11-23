@@ -337,8 +337,6 @@ namespace game
         loopi(min(damage/25, 40)+1) spawnbouncer(from, vel, d, BNC_GIBS);
     }
 
-    extern bool isdamgeignored(fpsent *f1, fpsent *f2);
-
     void hit(int damage, dynent *d, fpsent *at, const vec &vel, int gun, float info1, int info2 = 1)
     {
         if(at==player1 && d!=at)
