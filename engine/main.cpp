@@ -1144,7 +1144,12 @@ int getclockmillis()
 VAR(numcpus, 1, 1, 16);
 
 
+#ifdef __APPLE__
+extern "C" {
+int mymain(int argc, char **argv)
+#else
 int main(int argc, char **argv)
+#endif
 {
     #if defined(WIN32) && !defined(_DEBUG) && !defined(__GNUC__)
     // atexit((void (__cdecl *)(void))_CrtDumpMemoryLeaks);
@@ -1418,3 +1423,8 @@ int main(int argc, char **argv)
     } __except(stackdumper(0, GetExceptionInformation()), EXCEPTION_CONTINUE_SEARCH) { return 0; }
     #endif
 }
+
+#ifdef __APPLE__
+}
+#endif
+
