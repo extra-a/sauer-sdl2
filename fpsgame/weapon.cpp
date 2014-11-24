@@ -309,6 +309,12 @@ namespace game
 
     VARP(blood, 0, 1, 1);
 
+    VARP(damagecolor_r, 0, 255, 255);
+    XIDENTHOOK(damagecolor_r, IDF_EXTENDED);
+    VARP(damagecolor_g, 0, 75, 255);
+    XIDENTHOOK(damagecolor_g, IDF_EXTENDED);
+    VARP(damagecolor_b, 0, 25, 255);
+    XIDENTHOOK(damagecolor_b, IDF_EXTENDED);
     void damageeffect(int damage, fpsent *d, bool thirdperson)
     {
         vec p = d->o;
@@ -316,8 +322,9 @@ namespace game
         if(blood) particle_splash(PART_BLOOD, damage/10, 1000, p, 0x60FFFF, 2.96f);
         if(thirdperson)
         {
+            int color = (damagecolor_r << 16) + (damagecolor_g << 8) + damagecolor_b;
             defformatstring(ds)("%d", damage);
-            particle_textcopy(d->abovehead(), ds, PART_TEXT, 2000, 0xFF4B19, 4.0f, -8);
+            particle_textcopy(d->abovehead(), ds, PART_TEXT, 2000, color, 4.0f, -8);
         }
     }
 

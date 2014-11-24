@@ -821,17 +821,35 @@ namespace game
 
     VARP(teamcolortext, 0, 1, 1);
 
+    VARP(playerteamcolor, 0, 1, 7);
+    XIDENTHOOK(playerteamcolor, IDF_EXTENDED);
+    VARP(enemyteamcolor, 0, 3, 7);
+    XIDENTHOOK(enemyteamcolor, IDF_EXTENDED);
+
+    const char* colorstrings[8] = { "\f0", "\f1", "\f2", "\f3", "\f4", "\f5", "\f6", "\f7" };
+    static const char* getteamcolorstring(bool sameteam) {
+        if(!sameteam) {
+            return colorstrings[enemyteamcolor];
+        } else {
+            return colorstrings[playerteamcolor];
+        }
+    }
+
     const char *teamcolorname(fpsent *d, const char *alt)
     {
+        static char b[10];
         if(!teamcolortext || !m_teammode) return colorname(d, NULL, "", "", alt);
-        return colorname(d, NULL, isteam(d->team, getcurrentteam()) ? "\fs\f1" : "\fs\f3", "\fr", alt); 
+        sprintf(b, "\fs%s", getteamcolorstring(isteam(d->team, getcurrentteam())));
+        return colorname(d, NULL, b, "\fr", alt);
     }
 
     const char *teamcolor(const char *name, bool sameteam, const char *alt)
     {
         if(!teamcolortext || !m_teammode) return sameteam || !alt ? name : alt;
         cidx = (cidx+1)%3;
-        formatstring(cname[cidx])(sameteam ? "\fs\f1%s\fr" : "\fs\f3%s\fr", sameteam || !alt ? name : alt);
+        formatstring(cname[cidx])("\fs%s%s\fr",
+                     getteamcolorstring(sameteam),
+                     sameteam || !alt ? name : alt);
         return cname[cidx];
     }    
     

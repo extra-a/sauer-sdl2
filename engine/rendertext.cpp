@@ -196,6 +196,22 @@ static float draw_char(Texture *&tex, int c, float x, float y, float scale)
     return scale*info.advance;
 }
 
+int getcolorbynum(int n) {
+    int color;
+    switch(n) {
+    case 0: color = 0x40FF80; break;   // green: player talk
+    case 1: color = 0x60A0FF; break;   // blue: "echo" command
+    case 2: color = 0xFFC040; break;   // yellow: gameplay messages 
+    case 3: color = 0xFF4040; break;   // red: important errors
+    case 4: color = 0x808080; break;   // gray
+    case 5: color = 0xC040C0; break;   // magenta
+    case 6: color = 0xFF8000; break;   // orange
+    case 7: color = 0xFFFFFF; break;   // white
+    default: color = 0xFFFFFF; break;   // white
+    }
+    return color;
+}
+
 //stack[sp] is current color index
 static void text_color(char c, char *stack, int size, int &sp, bvec color, int a) 
 {

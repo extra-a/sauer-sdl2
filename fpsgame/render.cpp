@@ -190,6 +190,8 @@ namespace game
     }
 
     VARP(teamskins, 0, 0, 1);
+    extern int playerteamcolor;
+    extern int enemyteamcolor;
 
     void rendergame(bool mainpass)
     {
@@ -215,7 +217,7 @@ namespace game
             renderplayer(d, getplayermodelinfo(d), team, 1, mainpass);
             copystring(d->info, colorname(d));
             if(d->maxhealth>100) { defformatstring(sn)(" +%d", d->maxhealth-100); concatstring(d->info, sn); }
-            if(d->state!=CS_DEAD) particle_text(d->abovehead(), d->info, PART_TEXT, 1, team ? (team==1 ? 0x6496FF : 0xFF4B19) : 0x1EC850, 2.0f);
+            if(d->state!=CS_DEAD) particle_text(d->abovehead(), d->info, PART_TEXT, 1, team ? (team==1 ? getcolorbynum(playerteamcolor) : getcolorbynum(enemyteamcolor)) : 0x1EC850, 2.0f);
         }
         loopv(ragdolls)
         {
