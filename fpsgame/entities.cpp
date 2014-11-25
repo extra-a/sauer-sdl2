@@ -183,12 +183,12 @@ namespace entities
         if(d==player1) switch(type)
         {
             case I_BOOST:
-                conoutf(CON_GAMEINFO, "\f2you have a permanent +10 health bonus! (%d)", d->maxhealth);
+                conoutf(CON_GAMEINFO, "%syou have a permanent +10 health bonus! (%d)", getmsgcolorstring(), d->maxhealth);
                 playsound(S_V_BOOST, NULL, NULL, 0, 0, 0, -1, 0, 3000);
                 break;
 
             case I_QUAD:
-                conoutf(CON_GAMEINFO, "\f2you got the quad!");
+                conoutf(CON_GAMEINFO, "%syou got the quad!", getmsgcolorstring());
                 playsound(S_V_QUAD, NULL, NULL, 0, 0, 0, -1, 0, 3000);
                 break;
         }
@@ -311,7 +311,7 @@ namespace entities
                 if(d!=player1) break;
                 if(n==respawnent) break;
                 respawnent = n;
-                conoutf(CON_GAMEINFO, "\f2respawn point set!");
+                conoutf(CON_GAMEINFO, "%srespawn point set!", getmsgcolorstring());
                 playsound(S_V_RESPAWNPOINT);
                 break;
 
@@ -352,7 +352,7 @@ namespace entities
         {
             d->quadmillis = 0;
             playsound(S_PUPOUT, d==player1 ? NULL : &d->o);
-            if(d==player1) conoutf(CON_GAMEINFO, "\f2quad damage is over");
+            if(d==player1) conoutf(CON_GAMEINFO, "%squad damage is over", getmsgcolorstring());
         }
     }
 

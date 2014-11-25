@@ -1089,6 +1089,7 @@ namespace game
     extern void drawicon(int icon, float x, float y, float sz = 120);
     const char *mastermodecolor(int n, const char *unknown);
     const char *mastermodeicon(int n, const char *unknown);
+    const char* getmsgcolorstring();
 
     // client
     extern bool connected, remote, demoplayback;

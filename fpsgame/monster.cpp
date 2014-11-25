@@ -341,7 +341,7 @@ namespace game
 
     void endsp(bool allkilled)
     {
-        conoutf(CON_GAMEINFO, allkilled ? "\f2you have cleared the map!" : "\f2you reached the exit!");
+        conoutf(CON_GAMEINFO, allkilled ? "%syou have cleared the map!" : "%syou reached the exit!", getmsgcolorstring());
         monstertotal = 0;
         game::addmsg(N_FORCEINTERMISSION, "r");
     }
@@ -353,14 +353,14 @@ namespace game
         numkilled++;
         player1->frags = numkilled;
         remain = monstertotal-numkilled;
-        if(remain>0 && remain<=5) conoutf(CON_GAMEINFO, "\f2only %d monster(s) remaining", remain);
+        if(remain>0 && remain<=5) conoutf(CON_GAMEINFO, "%sonly %d monster(s) remaining", getmsgcolorstring(), remain);
     }
 
     void updatemonsters(int curtime)
     {
         if(m_dmsp && spawnremain && lastmillis>nextmonster)
         {
-            if(spawnremain--==monstertotal) { conoutf(CON_GAMEINFO, "\f2The invasion has begun!"); playsound(S_V_FIGHT); }
+            if(spawnremain--==monstertotal) { conoutf(CON_GAMEINFO, "%sThe invasion has begun!", getmsgcolorstring()); playsound(S_V_FIGHT); }
             nextmonster = lastmillis+1000;
             spawnmonster();
         }
@@ -414,20 +414,20 @@ namespace game
 
     void spsummary(int accuracy)
     {
-        conoutf(CON_GAMEINFO, "\f2--- single player time score: ---");
+        conoutf(CON_GAMEINFO, "%s--- single player time score: ---", getmsgcolorstring());
         int pen, score = 0;
-        pen = ((lastmillis-maptime)*100)/game::scaletime(1000); score += pen; if(pen) conoutf(CON_GAMEINFO, "\f2time taken: %d seconds (%d simulated seconds)", pen, (lastmillis-maptime)/1000);
-        pen = player1->deaths*60; score += pen; if(pen) conoutf(CON_GAMEINFO, "\f2time penalty for %d deaths (1 minute each): %d seconds", player1->deaths, pen);
-        pen = remain*10;          score += pen; if(pen) conoutf(CON_GAMEINFO, "\f2time penalty for %d monsters remaining (10 seconds each): %d seconds", remain, pen);
-        pen = (10-skill)*20;      score += pen; if(pen) conoutf(CON_GAMEINFO, "\f2time penalty for lower skill level (20 seconds each): %d seconds", pen);
-        pen = 100-accuracy;       score += pen; if(pen) conoutf(CON_GAMEINFO, "\f2time penalty for missed shots (1 second each %%): %d seconds", pen);
+        pen = ((lastmillis-maptime)*100)/game::scaletime(1000); score += pen; if(pen) conoutf(CON_GAMEINFO, "%stime taken: %d seconds (%d simulated seconds)", getmsgcolorstring(), pen, (lastmillis-maptime)/1000);
+        pen = player1->deaths*60; score += pen; if(pen) conoutf(CON_GAMEINFO, "%stime penalty for %d deaths (1 minute each): %d seconds", getmsgcolorstring(), player1->deaths, pen);
+        pen = remain*10;          score += pen; if(pen) conoutf(CON_GAMEINFO, "%stime penalty for %d monsters remaining (10 seconds each): %d seconds", getmsgcolorstring(), remain, pen);
+        pen = (10-skill)*20;      score += pen; if(pen) conoutf(CON_GAMEINFO, "%stime penalty for lower skill level (20 seconds each): %d seconds", getmsgcolorstring(), pen);
+        pen = 100-accuracy;       score += pen; if(pen) conoutf(CON_GAMEINFO, "%stime penalty for missed shots (1 second each %%): %d seconds", getmsgcolorstring(), pen);
         defformatstring(aname)("bestscore_%s", getclientmap());
         const char *bestsc = getalias(aname);
         int bestscore = *bestsc ? parseint(bestsc) : score;
         if(score<bestscore) bestscore = score;
         defformatstring(nscore)("%d", bestscore);
         alias(aname, nscore);
-        conoutf(CON_GAMEINFO, "\f2TOTAL SCORE (time + time penalties): %d seconds (best so far: %d seconds)", score, bestscore);
+        conoutf(CON_GAMEINFO, "%sTOTAL SCORE (time + time penalties): %d seconds (best so far: %d seconds)", getmsgcolorstring(), score, bestscore);
     }
 }
 

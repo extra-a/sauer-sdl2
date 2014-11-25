@@ -1595,10 +1595,23 @@ namespace game
         lastdemoended = false;
     }
 
-    void toserver(char *text) { conoutf(CON_CHAT, "%s:\f0 %s", colorname(player1), text); addmsg(N_TEXT, "rcs", player1, text); }
+    extern const char* getcolorstring(uint n);
+
+    VARP(chatcolor, 0, 0, 9);
+    XIDENTHOOK(chatcolor, IDF_EXTENDED);
+    VARP(teamchatcolor, 0, 1, 9);
+    XIDENTHOOK(teamchatcolor, IDF_EXTENDED);
+
+    void toserver(char *text) {
+        conoutf(CON_CHAT, "%s:%s %s", colorname(player1), getcolorstring(chatcolor), text);
+        addmsg(N_TEXT, "rcs", player1, text);
+    }
     COMMANDN(say, toserver, "C");
 
-    void sayteam(char *text) { conoutf(CON_TEAMCHAT, "%s:\f1 %s", colorname(player1), text); addmsg(N_SAYTEAM, "rcs", player1, text); }
+    void sayteam(char *text) {
+        conoutf(CON_TEAMCHAT, "%s:%s %s", colorname(player1), getcolorstring(teamchatcolor), text);
+        addmsg(N_SAYTEAM, "rcs", player1, text);
+    }
     COMMAND(sayteam, "C");
 
     ICOMMAND(servcmd, "C", (char *cmd), addmsg(N_SERVCMD, "rs", cmd));
@@ -2109,7 +2122,7 @@ namespace game
                 if(isignored(d->clientnum)) break;
                 if(d->state!=CS_DEAD && d->state!=CS_SPECTATOR)
                     particle_textcopy(d->abovehead(), text, PART_TEXT, 2000, 0x32FF64, 4.0f, -8);
-                conoutf(CON_CHAT, "%s:\f0 %s", colorname(d), text);
+                conoutf(CON_CHAT, "%s:%s %s", colorname(d), getcolorstring(chatcolor), text);
                 break;
             }
 
@@ -2122,7 +2135,7 @@ namespace game
                 if(!t || isignored(t->clientnum)) break;
                 if(t->state!=CS_DEAD && t->state!=CS_SPECTATOR)
                     particle_textcopy(t->abovehead(), text, PART_TEXT, 2000, 0x6496FF, 4.0f, -8);
-                conoutf(CON_TEAMCHAT, "%s:\f1 %s", colorname(t), text);
+                conoutf(CON_TEAMCHAT, "%s:%s %s", colorname(t), getcolorstring(teamchatcolor), text);
                 break;
             }
 
@@ -2638,8 +2651,8 @@ namespace game
             case N_ANNOUNCE:
             {
                 int t = getint(p);
-                if     (t==I_QUAD)  { playsound(S_V_QUAD10, NULL, NULL, 0, 0, 0, -1, 0, 3000);  conoutf(CON_GAMEINFO, "\f2quad damage will spawn in 10 seconds!"); }
-                else if(t==I_BOOST) { playsound(S_V_BOOST10, NULL, NULL, 0, 0, 0, -1, 0, 3000); conoutf(CON_GAMEINFO, "\f2+10 health will spawn in 10 seconds!"); }
+                if     (t==I_QUAD)  { playsound(S_V_QUAD10, NULL, NULL, 0, 0, 0, -1, 0, 3000);  conoutf(CON_GAMEINFO, "%squad damage will spawn in 10 seconds!", getmsgcolorstring()); }
+                else if(t==I_BOOST) { playsound(S_V_BOOST10, NULL, NULL, 0, 0, 0, -1, 0, 3000); conoutf(CON_GAMEINFO, "%s+10 health will spawn in 10 seconds!", getmsgcolorstring()); }
                 break;
             }
 

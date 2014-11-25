@@ -207,6 +207,8 @@ int getcolorbynum(int n) {
     case 5: color = 0xC040C0; break;   // magenta
     case 6: color = 0xFF8000; break;   // orange
     case 7: color = 0xFFFFFF; break;   // white
+    case 8: color = 0xC0C0C0; break;   // dim
+    case 9: color = 0x40C0C0; break;   // cyan
     default: color = 0xFFFFFF; break;   // white
     }
     return color;
@@ -235,7 +237,8 @@ static void text_color(char c, char *stack, int size, int &sp, bvec color, int a
             case '5': color = bvec(192,  64, 192); break;   // magenta
             case '6': color = bvec(255, 128,   0); break;   // orange
             case '7': color = bvec(255, 255, 255); break;   // white
-            // provided color: everything else
+            case '8': color = bvec(192, 192, 192); break;   // dim
+            case '9': color = bvec(64,  192, 192); break;   // cyan
         }
         glColor4ub(color.x, color.y, color.z, a);
     } 

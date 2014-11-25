@@ -434,7 +434,7 @@ namespace game
             respawnself();
             if(m_classicsp)
             {
-                conoutf(CON_GAMEINFO, "\f2You wasted another life! The monsters stole your armour and some ammo...");
+                conoutf(CON_GAMEINFO, "%sYou wasted another life! The monsters stole your armour and some ammo...", getmsgcolorstring());
                 loopi(NUMGUNS) if(i!=GUN_PISTOL && (player1->ammo[i] = savedammo[i]) > 5) player1->ammo[i] = max(player1->ammo[i]/3, 5);
             }
         }
@@ -548,20 +548,20 @@ namespace game
             aname = colorname(actor, NULL, "", "", "you");
         }
         if(actor->type==ENT_AI)
-            conoutf(contype, "\f2%s got killed by %s!", dname, aname);
+            conoutf(contype, "%s%s got killed by %s!", getmsgcolorstring(), dname, aname);
         else if(d==actor || actor->type==ENT_INANIMATE)
-            conoutf(contype, "\f2%s suicided%s", dname, d==player1 ? "!" : "");
+            conoutf(contype, "%s%s suicided%s", getmsgcolorstring(), dname, d==player1 ? "!" : "");
         else if(isteam(d->team, actor->team))
         {
             contype |= CON_TEAMKILL;
             if(actor==player1) conoutf(contype, "\f6%s fragged a teammate (%s)", aname, dname);
             else if(d==player1) conoutf(contype, "\f6%s got fragged by a teammate (%s)", dname, aname);
-            else conoutf(contype, "\f2%s fragged a teammate (%s)", aname, dname);
+            else conoutf(contype, "%s%s fragged a teammate (%s)", getmsgcolorstring(), aname, dname);
         }
         else
         {
-            if(d==player1) conoutf(contype, "\f2%s got fragged by %s", dname, aname);
-            else conoutf(contype, "\f2%s fragged %s", aname, dname);
+            if(d==player1) conoutf(contype, "%s%s got fragged by %s", getmsgcolorstring(), dname, aname);
+            else conoutf(contype, "%s%s fragged %s", getmsgcolorstring(), aname, dname);
         }
         if(fragbeep && h==actor && !isteam(d->team, h->team) && d != h) playsound(S_FRAGBEEP);
         deathstate(d);
@@ -581,14 +581,14 @@ namespace game
             player1->attacking = false;
             lastdemoended = true;
             if(cmode) cmode->gameover();
-            conoutf(CON_GAMEINFO, "\f2intermission:");
+            conoutf(CON_GAMEINFO, "%sintermission:", getmsgcolorstring());
             if(dumpstatsongameend) dumpstats();
-            conoutf(CON_GAMEINFO, "\f2game has ended!");
-            if(m_ctf) conoutf(CON_GAMEINFO, "\f2player frags: %d, flags: %d, deaths: %d", player1->frags, player1->flags, player1->deaths);
-            else if(m_collect) conoutf(CON_GAMEINFO, "\f2player frags: %d, skulls: %d, deaths: %d", player1->frags, player1->flags, player1->deaths);
-            else conoutf(CON_GAMEINFO, "\f2player frags: %d, deaths: %d", player1->frags, player1->deaths);
+            conoutf(CON_GAMEINFO, "%sgame has ended!", getmsgcolorstring());
+            if(m_ctf) conoutf(CON_GAMEINFO, "%splayer frags: %d, flags: %d, deaths: %d", getmsgcolorstring(), player1->frags, player1->flags, player1->deaths);
+            else if(m_collect) conoutf(CON_GAMEINFO, "\%splayer frags: %d, skulls: %d, deaths: %d", getmsgcolorstring(), player1->frags, player1->flags, player1->deaths);
+            else conoutf(CON_GAMEINFO, "%splayer frags: %d, deaths: %d", getmsgcolorstring(), player1->frags, player1->deaths);
             int accuracy = (player1->totaldamage*100)/max(player1->totalshots, 1);
-            conoutf(CON_GAMEINFO, "\f2player total damage dealt: %d, damage wasted: %d, accuracy(%%): %d", player1->totaldamage, player1->totalshots-player1->totaldamage, accuracy);
+            conoutf(CON_GAMEINFO, "%splayer total damage dealt: %d, damage wasted: %d, accuracy(%%): %d", getmsgcolorstring(), player1->totaldamage, player1->totalshots-player1->totaldamage, accuracy);
             if(m_sp) spsummary(accuracy);
 
             showscores(true);
@@ -707,13 +707,13 @@ namespace game
             cmode->setup();
         }
 
-        conoutf(CON_GAMEINFO, "\f2game mode is %s", server::modename(gamemode));
+        conoutf(CON_GAMEINFO, "%sgame mode is %s", getmsgcolorstring(), server::modename(gamemode));
 
         if(m_sp)
         {
             defformatstring(scorename)("bestscore_%s", getclientmap());
             const char *best = getalias(scorename);
-            if(*best) conoutf(CON_GAMEINFO, "\f2try to beat your best score so far: %s", best);
+            if(*best) conoutf(CON_GAMEINFO, "%stry to beat your best score so far: %s", getmsgcolorstring(), best);
         }
         else
         {
@@ -821,12 +821,27 @@ namespace game
 
     VARP(teamcolortext, 0, 1, 1);
 
-    VARP(playerteamcolor, 0, 1, 7);
+    VARP(playerteamcolor, 0, 1, 9);
     XIDENTHOOK(playerteamcolor, IDF_EXTENDED);
-    VARP(enemyteamcolor, 0, 3, 7);
+    VARP(enemyteamcolor, 0, 3, 9);
     XIDENTHOOK(enemyteamcolor, IDF_EXTENDED);
+    VARP(gamemessagescolor, 0, 2, 9);
+    XIDENTHOOK(gamemessagescolor, IDF_EXTENDED);
 
-    const char* colorstrings[8] = { "\f0", "\f1", "\f2", "\f3", "\f4", "\f5", "\f6", "\f7" };
+    #define MAX_COLORS 10
+    const char* colorstrings[MAX_COLORS] = { "\f0", "\f1", "\f2", "\f3", "\f4",
+                                             "\f5", "\f6", "\f7", "\f8", "\f9"};
+    const char* getcolorstring(uint n) {
+        if(n < MAX_COLORS) {
+            return colorstrings[n];
+        }
+        return colorstrings[7];
+    }
+
+    const char* getmsgcolorstring() {
+        return colorstrings[gamemessagescolor];
+    }
+
     static const char* getteamcolorstring(bool sameteam) {
         if(!sameteam) {
             return colorstrings[enemyteamcolor];
