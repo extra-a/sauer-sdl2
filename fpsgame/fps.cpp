@@ -585,7 +585,7 @@ namespace game
             if(dumpstatsongameend) dumpstats();
             conoutf(CON_GAMEINFO, "%sgame has ended!", getmsgcolorstring());
             if(m_ctf) conoutf(CON_GAMEINFO, "%splayer frags: %d, flags: %d, deaths: %d", getmsgcolorstring(), player1->frags, player1->flags, player1->deaths);
-            else if(m_collect) conoutf(CON_GAMEINFO, "\%splayer frags: %d, skulls: %d, deaths: %d", getmsgcolorstring(), player1->frags, player1->flags, player1->deaths);
+            else if(m_collect) conoutf(CON_GAMEINFO, "%splayer frags: %d, skulls: %d, deaths: %d", getmsgcolorstring(), player1->frags, player1->flags, player1->deaths);
             else conoutf(CON_GAMEINFO, "%splayer frags: %d, deaths: %d", getmsgcolorstring(), player1->frags, player1->deaths);
             int accuracy = (player1->totaldamage*100)/max(player1->totalshots, 1);
             conoutf(CON_GAMEINFO, "%splayer total damage dealt: %d, damage wasted: %d, accuracy(%%): %d", getmsgcolorstring(), player1->totaldamage, player1->totalshots-player1->totaldamage, accuracy);
