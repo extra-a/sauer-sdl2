@@ -552,7 +552,12 @@ void setfullscreen(bool enable)
 {
     if(!screen) return;
     //initwarning(enable ? "fullscreen" : "windowed");
-    SDL_SetWindowFullscreen(screen, enable ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
+    #ifdef __APPLE__
+    int sflags = SDL_WINDOW_FULLSCREEN;
+    #else
+    int sflags = SDL_WINDOW_FULLSCREEN_DESKTOP;
+    #endif
+    SDL_SetWindowFullscreen(screen, enable ? sflags : 0);
     if(!enable) 
     {
         SDL_SetWindowSize(screen, scr_w, scr_h);
@@ -635,7 +640,11 @@ void setupscreen(int &useddepthbits, int &usedfsaa)
     {
         winw = desktopw;
         winh = desktoph;
+        #ifdef __APPLE__
+        flags |= SDL_WINDOW_FULLSCREEN;
+        #else
         flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
+        #endif
         initwindowpos = true;
     }
 
