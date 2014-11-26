@@ -1364,7 +1364,7 @@ int main(int argc, char **argv)
     inputgrab(grabinput = true);
     ignoremousemotion();
 
-    conoutf("\f0Sauerbraten SDL2 Client\f1 Version 2.0.beta.1");
+    conoutf("\f0Sauerbraten SDL2 Client\f1 Version 2.0.beta.2");
 
     for(;;)
     {
