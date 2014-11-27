@@ -110,7 +110,8 @@ bool initwarning(const char *desc, int level, int type)
 #define SCR_DEFAULTH 768
 VARF(scr_w, SCR_MINW, -1, SCR_MAXW, initwarning("screen resolution"));
 VARF(scr_h, SCR_MINH, -1, SCR_MAXH, initwarning("screen resolution"));
-VARF(hdpi, 0, 1, 1, initwarning("screen resolution"));
+VARF(highdpi, 0, 1, 1, initwarning("screen resolution"));
+VARF(realfullscreen, 0, 0, 1, initwarning("screen resolution"));
 VAR(colorbits, 0, 0, 32);
 VARF(depthbits, 0, 0, 32, initwarning("depth-buffer precision"));
 VARF(stencilbits, 0, 0, 32, initwarning("stencil-buffer precision"));
@@ -127,8 +128,10 @@ void writeinitcfg()
     f->printf("// automatically written on exit, DO NOT MODIFY\n// modify settings in game\n");
     extern int fullscreen;
     f->printf("fullscreen %d\n", fullscreen);
+    f->printf("realfullscreen %d\n", realfullscreen);
     f->printf("scr_w %d\n", scr_w);
     f->printf("scr_h %d\n", scr_h);
+    f->printf("highdpi %d\n", highdpi);
     f->printf("colorbits %d\n", colorbits);
     f->printf("depthbits %d\n", depthbits);
     f->printf("stencilbits %d\n", stencilbits);
@@ -553,7 +556,7 @@ void setfullscreen(bool enable)
 {
     if(!screen) return;
     //initwarning(enable ? "fullscreen" : "windowed");
-    int sflags = SDL_WINDOW_FULLSCREEN_DESKTOP;
+    int sflags = realfullscreen ? SDL_WINDOW_FULLSCREEN : SDL_WINDOW_FULLSCREEN_DESKTOP;
     SDL_SetWindowFullscreen(screen, enable ? sflags : 0);
     if(!enable) 
     {
@@ -633,12 +636,12 @@ void setupscreen(int &useddepthbits, int &usedfsaa)
     scr_h = min(scr_h, desktoph);
 
     int winx = SDL_WINDOWPOS_UNDEFINED, winy = SDL_WINDOWPOS_UNDEFINED, winw = scr_w, winh = scr_h, flags = SDL_WINDOW_RESIZABLE;
-    if(hdpi) flags |= SDL_WINDOW_ALLOW_HIGHDPI;
+    if(highdpi) flags |= SDL_WINDOW_ALLOW_HIGHDPI;
     if(fullscreen)
     {
         winw = desktopw;
         winh = desktoph;
-        flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
+        flags |= realfullscreen ? SDL_WINDOW_FULLSCREEN : SDL_WINDOW_FULLSCREEN_DESKTOP;
         initwindowpos = true;
     }
 
