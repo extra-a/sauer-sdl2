@@ -1342,7 +1342,7 @@ namespace server
     {
         char buf[2*sizeof(string)];
         formatstring(buf)("%d %d ", cn, sessionid);
-        copystring(&buf[strlen(buf)], pwd);
+        concatstring(buf, pwd, sizeof(buf));
         if(!hashstring(buf, result, maxlen)) *result = '\0';
     }
 
