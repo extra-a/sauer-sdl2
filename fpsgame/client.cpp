@@ -2723,36 +2723,36 @@ namespace game
     }
 
     static void sanitisedemoname(char *s, int len, bool f) {
-        int k = 0, isescaped = 0;
+        int j = 0, k = 0, isescaped = 0;
         loopi(len) {
             if( isescaped ) {
                 isescaped = 0;
-                continue;
-            }
-            // better demo names
-            if( s[i] == ':' && f) {
-                if( k < 2 ) {
-                    s[i] = '-';
-                } else {
-                    s[i] = ',';
-                }
-                k++;
                 continue;
             }
             if( s[i] == '\f' ) {
                 isescaped = 1;
                 continue;
             }
-            if(s[i] > 127) {
-                s[i] = '_';
+            if( s[i] == ':' && f) {
+                if( k < 2 ) {
+                    k++;
+                    s[j] = '-';
+                } else {
+                    s[j] = ',';
+                }
+            } else if(s[i] > 127) {
+                s[j] = '_';
+            } else if(s[i] == '<' || s[i] == '>' || s[i] == ':' ||
+                      s[i] == '"' || s[i] == '/' || s[i] == '\\' ||
+                      s[i] == '|' || s[i] == '?' || s[i] == '*' ||
+                      !isprint(s[i])) {
+                s[j] = ' ';
+            } else {
+                s[j] = s[i];
             }
-            if(s[i] == '<' || s[i] == '>' || s[i] == ':' ||
-               s[i] == '"' || s[i] == '/' || s[i] == '\\' ||
-               s[i] == '|' || s[i] == '?' || s[i] == '*' ||
-               !isprint(s[i])) {
-                    s[i] = ' ';
-            }
+            j++;
         }
+        s[j] = 0;
     }
 
     void receivefile(packetbuf &p)
