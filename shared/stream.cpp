@@ -834,7 +834,6 @@ struct gzstream : stream
         else if(writing && deflateInit2(&zfile, level, Z_DEFLATED, -MAX_WBITS, min(MAX_MEM_LEVEL, 8), Z_DEFAULT_STRATEGY) != Z_OK) writing = false;
         if(!reading && !writing) return false;
 
-        autoclose = needclose;
         file = f;
         crc = crc32(0, NULL, 0);
         buf = new uchar[BUFSIZE];
@@ -844,6 +843,8 @@ struct gzstream : stream
             if(!checkheader()) { stopreading(); return false; }
         }
         else if(writing) writeheader();
+
+        autoclose = needclose;
         return true;
     }
 
@@ -1066,11 +1067,11 @@ struct utf8stream : stream
         }
         if(!reading && !writing) return false;
        
-        autoclose = needclose;
         file = f;
        
         if(reading) checkheader();
  
+        autoclose = needclose;
         return true;
     } 
 
@@ -1218,7 +1219,7 @@ stream *opengzfile(const char *filename, const char *mode, stream *file, int lev
     stream *source = file ? file : openfile(filename, mode);
     if(!source) return NULL;
     gzstream *gz = new gzstream;
-    if(!gz->open(source, mode, !file, level)) { if(!file) delete source; return NULL; }
+    if(!gz->open(source, mode, !file, level)) { if(!file) delete source; delete gz; return NULL; }
     return gz;
 }
 
@@ -1227,7 +1228,7 @@ stream *openutf8file(const char *filename, const char *mode, stream *file)
     stream *source = file ? file : openfile(filename, mode);
     if(!source) return NULL;
     utf8stream *utf8 = new utf8stream;
-    if(!utf8->open(source, mode, !file)) { if(!file) delete source; return NULL; }
+    if(!utf8->open(source, mode, !file)) { if(!file) delete source; delete utf8; return NULL; }
     return utf8;
 }
 
