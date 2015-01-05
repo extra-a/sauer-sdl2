@@ -147,6 +147,18 @@ namespace game
                 best.drop();
     }
 
+    void getteamscores(vector<teamscore> &ts)
+    {
+        if(cmode && cmode->hidefrags()) {
+            cmode->getteamscores(ts);
+            ts.sort(teamscore::compare);
+        } else {
+            teamscore s;
+            enumerates(teaminfos, teaminfo, t, s = teamscore(t.team, t.frags); ts.add(s));
+            ts.sort(teamscore::compare);
+        }
+    }
+
     void getbestteams(vector<const char *> &best)
     {
         if(cmode && cmode->hidefrags()) 

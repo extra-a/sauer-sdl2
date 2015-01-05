@@ -276,9 +276,9 @@ namespace game
         if(getgundamagetotal(-1, d) == 0) return;
         printf("---------------------\n");
         if(d->team && strlen(d->team) && m_teammode) {
-            logoutf("%s(%d): score %d frags %d net %d (team: %s)\n", d->name, d->clientnum, d->flags, d->frags, d->frags - d->deaths, d->team);
+            logoutf("%s(%d): scored %d, frags %d, net %d (team: %s)\n", d->name, d->clientnum, d->flags, d->frags, d->frags - d->deaths, d->team);
         } else {
-            logoutf("%s(%d): score %d frags %d net %d\n", d->name, d->clientnum, d->flags, d->frags, d->frags - d->deaths);
+            logoutf("%s(%d): scored %d, frags %d, net %d\n", d->name, d->clientnum, d->flags, d->frags, d->frags - d->deaths);
         }
 
         len = 0;
@@ -325,7 +325,17 @@ namespace game
     }
     #undef BLEN
 
+    extern void getteamscores(vector<teamscore> &ts);
+
     void dumpstats() {
+        if(m_teammode) {
+            vector<teamscore> teamscores;
+            getteamscores(teamscores);
+            printf("---------------------\n");
+            loopv(teamscores) {
+                logoutf("%s: %d", teamscores[i].team, teamscores[i].score);
+            }
+        }
         loopv(clients) {
             fpsent *d = clients[i];
             printplayerstats(d);
