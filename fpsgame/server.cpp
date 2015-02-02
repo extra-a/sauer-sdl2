@@ -1328,6 +1328,7 @@ namespace server
         {
             case 'a': case 'A': u.privilege = PRIV_ADMIN; break;
             case 'm': case 'M': default: u.privilege = PRIV_AUTH; break;
+            case 'n': case 'N': u.privilege = PRIV_NONE; break;
         }
     }
     COMMAND(adduser, "ssss");
@@ -1369,10 +1370,7 @@ namespace server
         {
             bool haspass = adminpass[0] && checkpassword(ci, adminpass, pass);
             int wantpriv = ci->local || haspass ? PRIV_ADMIN : authpriv;
-            if(ci->privilege)
-            {
-                if(wantpriv <= ci->privilege) return true;
-            }
+            if(wantpriv <= ci->privilege) return true;
             else if(wantpriv <= PRIV_MASTER && !force)
             {
                 if(ci->state.state==CS_SPECTATOR) 
