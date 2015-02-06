@@ -1292,7 +1292,7 @@ int main(int argc, char **argv)
     inbetweenframes = true;
     renderbackground("initializing...");
 
-    logoutf("init: gl: effects");
+    logoutf("init: effects");
     loadshaders();
     particleinit();
     initdecals();
