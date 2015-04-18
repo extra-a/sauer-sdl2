@@ -1907,17 +1907,17 @@ namespace game
             }
         }
 
-        if(ammobar && !m_edit && d->state!=CS_DEAD && d->state!=CS_SPECTATOR &&
+        if(ammobar && d->state!=CS_EDITING && d->state!=CS_DEAD && d->state!=CS_SPECTATOR &&
            ! (ammobardisablewithgui && framehasgui) &&
            ! (m_insta && ammobardisableininsta)) {
             drawammobar(d, w, h);
         }
 
-        if(gameclock && !m_edit && !(gameclockdisablewithgui && framehasgui)) {
+        if(gameclock && d->state!=CS_EDITING && !(gameclockdisablewithgui && framehasgui)) {
             drawclock(w, h);
         }
 
-        if(hudscores && !m_edit && !(hudscoresdisablewithgui && framehasgui)) {
+        if(hudscores && d->state!=CS_EDITING && !(hudscoresdisablewithgui && framehasgui)) {
             drawscores(w, h);
         }
 
