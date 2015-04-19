@@ -2003,7 +2003,7 @@ namespace game
     static void checkrecordeddemo(char* origmsg) {
         if(autodownloadonlyended && !lastdemoended) return;
         string fmsg;
-        filtertext(fmsg, origmsg, true, MAXDEMONAMELEN-1);
+        filtertext(fmsg, origmsg, true, false, MAXDEMONAMELEN-1);
         fmsg[MAXDEMONAMELEN-1] = 0;
         char* msg = strstr(fmsg, "demo ");
         if(!msg) return;
