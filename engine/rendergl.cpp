@@ -2468,15 +2468,33 @@ void gl_drawhud()
                 getfps(nextfps[0], nextfps[1], nextfps[2]);
                 loopi(3) if(prevfps[i]==curfps[i]) curfps[i] = nextfps[i];
                 int tw, th;
-                if(showfpsrange) {
-                    snprintf(buff, 20, "%d+%d-%d fps", curfps[0], curfps[1], curfps[2]);
-                    text_bounds(buff, tw, th);
+                extern int vsync;
+                extern int tearfree;
+                extern int getfpsalt(int id);
+                if(!vsync && tearfree) {
+                    int avgdt = getfpsalt(2);
+                    char buffer[100];
+                    char buffer2[100];
+                    snprintf(buffer, 100, "fps:%d draw:%d.%01dms wait:%d.%01dms", getfpsalt(0), avgdt/1000, avgdt%1000/100, getfpsalt(7)/1000, getfpsalt(7)%1000/100);
+                    snprintf(buffer2, 100, "sfps:%d.%03d errors(ms): %d.%01d %d.%01d %d.%01d", getfpsalt(5)/1000, getfpsalt(5)%1000, getfpsalt(3)/1000, getfpsalt(3)%1000/100, getfpsalt(6)/1000, getfpsalt(6)%1000/100, getfpsalt(8)/1000, getfpsalt(8)%1000/100);
+                    int tw2, th2;
+                    text_bounds(buffer2, tw2, th2);
+                    draw_textf(buffer2, conw-(2*FONTH+tw2), conh-FONTH*3/2-roffset);
+                    roffset += FONTH;
+                    text_bounds(buffer, tw, th);
+                    draw_textf(buffer, conw-(2*FONTH+tw), conh-FONTH*3/2-roffset);
+                    roffset += FONTH;
                 } else {
-                    snprintf(buff, 20, "%d fps", curfps[0]);
-                    text_bounds(buff, tw, th);
+                    if(showfpsrange) {
+                        snprintf(buff, 20, "%d+%d-%d fps", curfps[0], curfps[1], curfps[2]);
+                        text_bounds(buff, tw, th);
+                    } else {
+                        snprintf(buff, 20, "%d fps", curfps[0]);
+                        text_bounds(buff, tw, th);
+                        draw_text(buff, conw - FONTH/2 - tw, conh-FONTH*3/2-roffset);
+                        roffset += FONTH;
+                    }
                 }
-                draw_text(buff, conw - FONTH/2 - tw, conh-FONTH*3/2-roffset);
-                roffset += FONTH;
             }
 
             if(wallclock)

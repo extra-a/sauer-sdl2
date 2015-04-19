@@ -612,6 +612,316 @@ void cleargamma()
 
 VAR(dbgmodes, 0, 0, 1);
 
+#ifdef WIN32
+#include <d3d9.h>
+const TCHAR windowClass[] = "syncwin";
+LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
+    return DefWindowProc(hWnd, message, wParam, lParam);
+}
+#endif
+
+VARP(forcetearfreemethod, 0, 0, 4);
+XIDENTHOOK(forcetearfreemethod, IDF_EXTENDED);
+
+struct SyncWindow
+{
+    int isconstructed;
+    int isbroken;
+    int synctype;
+    ullong lasttimestamp;
+    static const size_t historysize = 10;
+    ullong* timestamphistory;
+    SDL_mutex *stamp_mutex;
+    SDL_Thread *thread;
+    int killthread;
+#ifdef WIN32
+    HINSTANCE inst;
+    HWND hWnd;
+    IDirect3D9 *pD3D;
+    IDirect3DDevice9 *pDevice;
+#endif
+    SDL_Window *window;
+    SDL_GLContext glcontext;
+    SyncWindow();
+    ~SyncWindow();
+    ullong getlastsyncstamp();
+    uint getsyncinterval();
+};
+
+
+ullong SyncWindow::getlastsyncstamp()
+{
+    ullong stamp;
+    SDL_LockMutex(stamp_mutex);
+    stamp = lasttimestamp;
+    SDL_UnlockMutex(stamp_mutex);
+    return stamp;
+}
+
+uint SyncWindow::getsyncinterval()
+{
+    ullong interval = 0;
+    SDL_LockMutex(stamp_mutex);
+    loopi(historysize-1) {
+        if(timestamphistory[i+1]) interval += timestamphistory[i] - timestamphistory[i+1];
+    }
+    SDL_UnlockMutex(stamp_mutex);
+    interval/=historysize-1;
+    if(interval > 33333333U || ! interval) return 33333333U;
+    return static_cast<uint>(interval);
+}
+
+void precisenanosleep(ullong nsec);
+static inline void sleepwrapper(llong sec, llong nsec);
+static inline ullong tick_nsec();
+
+VAR(dxvblankwait, 100, 250, 1000);
+VAR(dxvblankmaxtime, 1000, 2500, 5000);
+VAR(debugsyncthreadinfo, 0, 1, 1);
+typedef int (APIENTRY * glXGetVideoSyncSGI_fn)(uint *count);
+typedef int (APIENTRY * glXWaitVideoSyncSGI_fn)(int divisor,
+                                                int remainder,
+                                                uint *count);
+
+int syncwindow_threadfn(void *data)
+{
+    ullong timestamp;
+    SyncWindow *obj = static_cast<SyncWindow*>(data);
+    int synctype = obj->synctype;
+    glXGetVideoSyncSGI_fn getsyncstamp = NULL;
+    glXWaitVideoSyncSGI_fn waitforsync = NULL;
+    int i = 0;
+
+    if(synctype == 1 || synctype == 2) {
+        if(synctype == 1 || synctype == 2) {
+            obj->window = SDL_CreateWindow("Sync Window", 0, 0, 100, 100, SDL_WINDOW_OPENGL | SDL_WINDOW_HIDDEN);
+            SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+            obj->glcontext = SDL_GL_CreateContext(obj->window);
+            glFinish();
+        }
+        while(SDL_GL_MakeCurrent(obj->window, obj->glcontext)) {
+            sleepwrapper(0,250000000);
+            i++;
+            if(debugsyncthreadinfo) conoutf("Setting GL context failed (attempt %d), error: %s", i, SDL_GetError());
+            if(i >= 20) {
+                conoutf("Setting GL context error, tearfree is disabled");
+                obj->isbroken++;
+                return -1;
+            }
+        }
+        if(i && debugsyncthreadinfo) {
+            conoutf("Setting GL context success (attempt %d)", i+1);
+        }
+        i = 0;
+    }
+
+    bool is_init = false;
+    if(synctype == 2) {
+        SDL_GL_SetSwapInterval(1);
+    }
+
+    uint sync_counter = 0;
+    if(synctype == 1) {
+        getsyncstamp = (glXGetVideoSyncSGI_fn)SDL_GL_GetProcAddress("glXGetVideoSyncSGI");
+        waitforsync = (glXWaitVideoSyncSGI_fn)SDL_GL_GetProcAddress("glXWaitVideoSyncSGI");
+        if(!getsyncstamp || !waitforsync) {
+            conoutf("Openg GL sync extension initialisation error, tearfree is disabled");
+            obj->isbroken++;
+            return -1;
+        }
+        int err = getsyncstamp(&sync_counter);
+        if(err) {
+            conoutf("Openg GL timestamp error, tearfree is disabled");
+            obj->isbroken++;
+            return -1;
+        }
+        is_init = true;
+    }
+
+    while(true) {
+
+        if(obj->killthread) {
+            if(synctype == 1 || synctype == 2) {
+                SDL_GL_DeleteContext(obj->glcontext);
+                SDL_DestroyWindow(obj->window);
+            }
+            return 0;
+        }
+
+#ifdef WIN32
+        if(synctype == 3 || synctype == 4) {
+            D3DRASTER_STATUS rStatus;
+            timespec t, _;
+            t.tv_sec = 0;
+            t.tv_nsec = dxvblankmaxtime*1000;
+            sleepwrapper(&t, &_);
+            obj->pDevice->GetRasterStatus(0, &rStatus);
+            t.tv_nsec = dxvblankwait*1000;
+            while(!rStatus.InVBlank){
+                sleepwrapper(&t, &_);
+                obj->pDevice->GetRasterStatus(0, &rStatus);
+            }
+        }
+#endif
+
+        if(synctype == 2) {
+            if(!is_init) {
+                if(SDL_GL_GetCurrentWindow() != obj->window || SDL_GL_GetCurrentContext() != obj->glcontext || ! SDL_GL_GetSwapInterval()) {
+                    i++;
+                    if(debugsyncthreadinfo) conoutf("GL context params mismatch (attempt %d)", i);
+                    if(i > 20) {
+                        conoutf("Setting GL params failed, tearfree is disabled");
+                        obj->isbroken++;
+                        return -1;
+                    }
+                    SDL_GL_MakeCurrent(obj->window, obj->glcontext);
+                    SDL_GL_SetSwapInterval(1);
+                    sleepwrapper(0, 250000000);
+                    continue;
+                } else {
+                    if(i && debugsyncthreadinfo) conoutf("GL context params are set (attempt %d)", i+1);
+                    is_init = true;
+                }
+            }
+            SDL_GL_SwapWindow(obj->window);
+            glFinish();
+        }
+
+        if(synctype == 1) {
+            int t = (sync_counter + 1) % 2;
+            waitforsync(2, t, &sync_counter);
+        }
+
+        timestamp = tick_nsec();
+
+        SDL_LockMutex(obj->stamp_mutex);
+        obj->lasttimestamp = timestamp;
+        memmove(obj->timestamphistory + 1, obj->timestamphistory, (obj->historysize-1)*sizeof(ullong));
+        obj->timestamphistory[0] = timestamp;
+        SDL_UnlockMutex(obj->stamp_mutex);
+    }
+}
+
+
+SyncWindow::SyncWindow()
+{
+    isconstructed = 0;
+    isbroken = 0;
+    lasttimestamp = 0;
+    stamp_mutex = SDL_CreateMutex();
+    killthread = 0;
+    synctype = 0;
+    timestamphistory = new ullong[historysize];
+    loopi(historysize) {
+        timestamphistory[i] = 0;
+    }
+    if(!forcetearfreemethod) {
+#ifdef WIN32
+        synctype = 3;
+#else
+        synctype = 1;
+#endif
+    } else {
+#ifndef WIN32
+        if(forcetearfreemethod == 3 || forcetearfreemethod == 4) {
+            conoutf("No DX support found, tearfree is disabled");
+            return;
+        }
+#endif
+        synctype = forcetearfreemethod;
+    }
+#ifdef WIN32
+    if(synctype == 3 || synctype == 4) {
+        HWND currenthwnd = GetActiveWindow();
+        inst = (HINSTANCE)GetModuleHandle(NULL);
+        WNDCLASSEX wc = {};
+        wc.cbSize = sizeof(WNDCLASSEX);
+        wc.hInstance = inst;
+        wc.lpszClassName = windowClass;
+        wc.lpfnWndProc = WindowProc;
+        if(!RegisterClassEx(&wc)) {
+            conoutf("Error registering WIN32 Sync Window Class, tearfree is disabled");
+            return;
+        }
+
+        int sz = 100;
+
+        hWnd = CreateWindowEx(WS_EX_NOACTIVATE, windowClass, "Sync Window", WS_VISIBLE, 0, 0, sz, sz, NULL, NULL, inst, NULL);
+        if(!hWnd) {
+            conoutf("Error creating WIN32 Sync Window, tearfree is disabled");
+            UnregisterClass(windowClass, inst);
+            return;
+        }
+
+        ShowWindow(hWnd, SW_HIDE);
+        UpdateWindow(hWnd);
+
+        pD3D = Direct3DCreate9(D3D_SDK_VERSION);
+
+        if(!pD3D) {
+            conoutf("Error creating D3D, tearfree is disabled");
+            DestroyWindow(hWnd);
+            UnregisterClass(windowClass,inst);
+            return;
+        }
+
+        pDevice = NULL;
+        D3DPRESENT_PARAMETERS params;
+        ZeroMemory(&params, sizeof(params));
+        params.Windowed = TRUE;
+        params.BackBufferWidth = sz;
+        params.BackBufferHeight = sz;
+        params.BackBufferCount = 1;
+        params.BackBufferFormat = D3DFMT_UNKNOWN;
+        params.SwapEffect = D3DSWAPEFFECT_DISCARD;
+        if(synctype == 3) params.PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE;
+        if(synctype == 4) params.PresentationInterval = D3DPRESENT_INTERVAL_ONE;
+
+        HRESULT res = pD3D->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, hWnd, D3DCREATE_SOFTWARE_VERTEXPROCESSING, &params, &pDevice);
+        if(FAILED(res)) {
+            conoutf("Error creating D3D device %p: %ld, tearfree is disabled", pDevice, res);
+            pD3D->Release();
+            DestroyWindow(hWnd);
+            UnregisterClass(windowClass,inst);
+            return;
+        }
+
+        ShowWindow(currenthwnd, SW_SHOWMAXIMIZED);
+        UpdateWindow(currenthwnd);
+    }
+#endif
+    isconstructed = 1;
+    thread = SDL_CreateThread(syncwindow_threadfn, "SyncWindow Thread", this);
+}
+
+SyncWindow::~SyncWindow()
+{
+    int code;
+    killthread++;
+    if(isconstructed) {
+        SDL_WaitThread(thread, &code);
+#ifdef WIN32
+        if(synctype == 3 || synctype == 4) {
+            pDevice->Release();
+            pD3D->Release();
+            DestroyWindow(hWnd);
+            UnregisterClass(windowClass,inst);
+        }
+#endif
+    }
+    delete[] timestamphistory;
+    SDL_DestroyMutex(stamp_mutex);
+}
+
+
+SyncWindow *syncwin;
+
+bool checksyncwin() {
+    if(!syncwin) return false;
+    if(!syncwin->isconstructed || syncwin->isbroken) return false;
+    return true;
+}
+
 void setupscreen(int &useddepthbits, int &usedfsaa)
 {
     if(glcontext)
@@ -1017,6 +1327,230 @@ VAR(menufps, 0, 60, 1000);
 VARP(maxfps, 0, 200, 1000);
 
 
+VARFP(tearfree, 0, 0, 1, {
+        conoutf(CON_WARN, "tearfree is an experimental feature.");
+        if(vsync) conoutf(CON_WARN, "tearfree not working with vsync on.");
+    });
+XIDENTHOOK(tearfree, IDF_EXTENDED);
+VARP(forcemincycletime, 0, 2000, 6000);
+XIDENTHOOK(forcemincycletime, IDF_EXTENDED);
+VARP(maxtearcompensatedelta, 10, 25, 100);
+XIDENTHOOK(maxtearcompensatedelta, IDF_EXTENDED);
+VARP(adjusttearcompensate, -33000, 0, 33000);
+XIDENTHOOK(adjusttearcompensate, IDF_EXTENDED);
+
+
+#ifdef __APPLE__
+
+#include <mach/mach_time.h>
+static inline ullong tick_nsec(){
+        static mach_timebase_info_data_t tb;
+        if(!tb.denom) mach_timebase_info(&tb);
+        return (mach_absolute_time()*ullong(tb.numer))/tb.denom;
+}
+
+static inline void sleepwrapper(llong sec, llong nsec) {
+    timespec t, _;
+    t.tv_sec = (time_t)sec;
+    t.tv_nsec = (long)nsec;
+    nanosleep(&t, &_);
+}
+
+#define main SDL_main
+
+#elif WIN32
+
+typedef long (__stdcall *FPNtDelayExecution)(BOOLEAN arg1, PLARGE_INTEGER arg2);
+
+FPNtDelayExecution NtDelayExecution;
+
+static inline ullong tick() {
+    FILETIME ft;
+    GetSystemTimeAsFileTime(&ft);
+    ullong currenttick = (ullong)ft.dwLowDateTime + ((ullong)(ft.dwHighDateTime) << 32);
+    currenttick *= 100ULL;
+    return currenttick;
+}
+
+static inline void sleepwrapper(llong sec, llong nsec) {
+    LARGE_INTEGER time;
+    time.QuadPart = (LONGLONG)(sec * 10000000LL + nsec/100LL);
+    NtDelayExecution(false, &time);
+}
+
+static void initntdllprocs() {
+    HMODULE hModule=GetModuleHandle(TEXT("ntdll.dll"));
+    if(!hModule) fatal("Can't open ntdll.dll");
+    NtDelayExecution = (FPNtDelayExecution)GetProcAddress(hModule, "NtDelayExecution");
+    if(!NtDelayExecution) fatal("Can't load function NtDelayExecution");
+}
+
+#else
+
+static inline ullong tick_nsec(){
+    timespec t;
+    clock_gettime(CLOCK_MONOTONIC, &t);
+    return t.tv_sec * 1000000000ULL + t.tv_nsec;
+}
+
+static inline void sleepwrapper(llong sec, llong nsec) {
+    timespec t, _;
+    t.tv_sec = (time_t)sec;
+    t.tv_nsec = (long)nsec;
+    nanosleep(&t, &_);
+}
+
+#endif
+
+#define NFPS 9
+llong currentfps[9] = {0, // 0. fps
+                       0, // 1. ifps
+                       0, // 2. average draw time
+                       0, // 3. OS scheduler error
+                       0, // 4. average draw time jump (not showed)
+                       0, // 5. tearfree sync fps
+                       0, // 6. tearfree absolute error sum
+                       0, // 7. tearfree draw time wait
+                       0, // 8. tearfree draw error
+};
+
+void updatefpsalt(int which, int value = 1) {
+        static llong fpsaccumulator[9] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+        static int fpsbasemillis = 0, drawmillistot = 0, syncupdates = 0;
+	if(totalmillis - fpsbasemillis >= 1000){
+		loopi(9){
+			currentfps[i] = fpsaccumulator[i];
+			fpsaccumulator[i] = 0;
+		}
+		if(drawmillistot){
+                        currentfps[2]/=drawmillistot;
+                        currentfps[4]/=drawmillistot;
+                        currentfps[7]/=drawmillistot;
+                }
+                if(syncupdates) {
+                    currentfps[5]/=syncupdates;
+                    currentfps[6]/=syncupdates;
+                }
+		drawmillistot = 0;
+                syncupdates = 0;
+		fpsbasemillis = totalmillis;
+	}
+	fpsaccumulator[which]+=value;
+	if(which==2) drawmillistot++;
+	if(which==5) syncupdates++;
+}
+
+int getfpsalt(int id)
+{
+    int n = clamp(id, 0, NFPS-1);
+    return currentfps[n];
+}
+
+VARP(expectedschederror, 0, 200, 1000);
+XIDENTHOOK(expectedschederror, IDF_EXTENDED);
+
+VARP(allowschedulerbusywait, 0, 1, 1);
+XIDENTHOOK(allowschedulerbusywait, IDF_EXTENDED);
+
+void precisenanosleep(ullong nsec) {
+    if(!nsec) return;
+    ullong start = tick_nsec();
+    if(nsec > expectedschederror * 1000ULL || !allowschedulerbusywait) {
+        ullong delta = allowschedulerbusywait ? expectedschederror * 1000 : 0;
+        ullong t = nsec - delta;
+        sleepwrapper(0, t);
+    }
+    while(tick_nsec() < nsec + start){};
+}
+
+ullong calcnextdraw( ullong lastdraw, ullong &tick_now) {
+        ullong timestamp = syncwin->getlastsyncstamp();
+        uint curentsyncinterval = syncwin->getsyncinterval();
+        tick_now = tick_nsec();
+
+        if(adjusttearcompensate) {
+            int adjustns = adjusttearcompensate*1000;
+            adjustns = adjustns < 0 ? max(adjustns, - static_cast<int>(curentsyncinterval)) : min(adjustns, static_cast<int>(curentsyncinterval));
+            ullong adjustedtimestamp = timestamp > abs(adjustns) ? timestamp + adjustns : timestamp;
+            ullong prevadjustedtimestamp = adjustedtimestamp > curentsyncinterval ? adjustedtimestamp - curentsyncinterval : 0;
+            if(adjustns >= 0) {
+                timestamp = adjustedtimestamp <= tick_now ? adjustedtimestamp : prevadjustedtimestamp;
+            } else {
+                timestamp = adjustedtimestamp + curentsyncinterval <= tick_now ? adjustedtimestamp + curentsyncinterval : adjustedtimestamp;
+            }
+        }
+
+        ullong shifttime = forcemincycletime*1000LL;
+        timestamp = timestamp >  shifttime? timestamp - shifttime : timestamp;
+
+        uint syncfps = static_cast<uint>(floor(1000000000000L/curentsyncinterval + 0.5));
+        ullong nextdrawtime = lastdraw + curentsyncinterval;
+        llong maxdelta = maxtearcompensatedelta*1000;
+        llong error = 0;
+        if( timestamp > lastdraw && timestamp - lastdraw > abs(curentsyncinterval/2)) {
+            ullong prevtimestamp = timestamp > curentsyncinterval ? timestamp - curentsyncinterval : timestamp;
+            error = static_cast<llong>(lastdraw) - static_cast<llong>(prevtimestamp);
+        } else {
+            error =  static_cast<llong>(lastdraw) - static_cast<llong>(timestamp);
+        }
+        llong delta = error < 0 ? max(error, -maxdelta) : min(error, maxdelta);
+        ullong nextdraw = nextdrawtime - delta;
+
+        updatefpsalt(6, abs(error/1000));
+        updatefpsalt(5, syncfps);
+        return nextdraw;
+}
+
+void limitfpsalt(ullong &tick_now)
+{
+    static ullong lastdraw = 0;
+    if(!lastdraw) lastdraw = tick_now;
+    int fpslimit = 0;
+    ullong nextdraw = tick_now;
+    if(!vsync && tearfree) {
+        if(!syncwin) syncwin = new SyncWindow;
+        if(!checksyncwin()) {
+            conoutf("asd");
+            delete syncwin;
+            syncwin = NULL;
+            tearfree = 0;
+            return limitfpsalt(tick_now);
+        }
+        if(forcetearfreemethod && (syncwin->synctype != forcetearfreemethod)) {
+            delete syncwin;
+            syncwin = new SyncWindow;
+            return limitfpsalt(tick_now);
+        }
+        fpslimit = 1;
+        nextdraw = calcnextdraw(lastdraw, tick_now);
+    } else {
+        if(syncwin) {
+            delete syncwin;
+            syncwin = NULL;
+        }
+        fpslimit = (mainmenu || minimized) && menufps ? (maxfps ? min(maxfps, menufps) : menufps) : maxfps;
+        nextdraw = (fpslimit ? 1000000000ULL / fpslimit : 0) + lastdraw;
+        updatefpsalt(5, 0);
+        updatefpsalt(6, 0);
+    }
+    if(!vsync && tearfree) {
+        if( !(fpslimit && nextdraw < tick_now) ) {
+            ullong t = max(0ULL, nextdraw - tick_now);
+            precisenanosleep(t);
+        }
+    } else {
+        if(! (nextdraw < tick_now)) {
+            ullong t = max(0ULL, nextdraw - tick_now);
+            precisenanosleep(t);
+        }
+    }
+    tick_now = tick_nsec();
+    if(vsync || !maxfps) updatefpsalt(3,0);
+    else updatefpsalt(3, (tick_now - nextdraw)/1000);
+    lastdraw = tick_now;
+    return;
+}
+
 void limitfps(int &millis, int curmillis)
 {
     int limit = (mainmenu || minimized) && menufps ? (maxfps ? min(maxfps, menufps) : menufps) : maxfps;
@@ -1372,11 +1906,18 @@ int main(int argc, char **argv)
 
     conoutf("\f0Sauerbraten SDL2 Client\f1 Version 2.0.2");
 
+    ullong prevcycletime = 0;
     for(;;)
     {
         static int frames = 0;
         int millis = getclockmillis();
-        limitfps(millis, totalmillis);
+        ullong tick = tick_nsec();
+        if(!vsync && tearfree) {
+            limitfpsalt(tick);
+            millis = getclockmillis();
+        } else {
+            limitfps(millis, totalmillis);
+        }
         elapsedtime = millis - totalmillis;
         static int timeerr = 0;
         int scaledtime = game::scaletime(elapsedtime) + timeerr;
@@ -1399,6 +1940,11 @@ int main(int argc, char **argv)
 
         serverslice(false, 0);
 
+        updatefpsalt(1);
+        updatefpsalt(0);
+
+        ullong drawstart = tick_nsec();
+
         if(frames) updatefpshistory(elapsedtime);
         frames++;
 
@@ -1414,12 +1960,42 @@ int main(int argc, char **argv)
             continue;
         }
 
+        ullong cyclestart = tick_nsec();
         inbetweenframes = false;
         if(mainmenu) gl_drawmainmenu();
         else gl_drawframe();
-        swapbuffers();
         framehasgui = false;
+        glFinish();
+
+        ullong endtick = tick_nsec();
+
+        // additional time before swapping buffers
+        if(!vsync && tearfree) {
+            if(cyclestart+(1000ULL*forcemincycletime) > endtick) {
+                ullong t = (cyclestart+(1000ULL*forcemincycletime))-endtick;
+                precisenanosleep(t);
+          }
+        }
+
         renderedframe = inbetweenframes = true;
+        ullong drawend = tick_nsec();
+        swapbuffers();
+
+        ullong lastwaittime = drawend - endtick;
+        ullong lastdrawtime = drawend - drawstart;
+        ullong lastcycletime = drawend - cyclestart;
+
+        if(lastdrawtime) {
+            updatefpsalt(2, lastdrawtime/1000);
+            updatefpsalt(7, lastwaittime/1000);
+            if(lastcycletime && prevcycletime) {
+                if(lastcycletime > forcemincycletime*1000U) updatefpsalt(8, (lastcycletime - forcemincycletime*1000U)/1000);
+                else updatefpsalt(8, 0);
+                if(vsync) updatefpsalt(4,0);
+                else lastcycletime > prevcycletime ? updatefpsalt(4, (lastcycletime - prevcycletime)/1000) : updatefpsalt(4, (prevcycletime - lastcycletime)/1000);
+            }
+            prevcycletime = lastcycletime;
+        }
     }
     
     ASSERT(0);   
