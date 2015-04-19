@@ -751,14 +751,12 @@ int syncwindow_threadfn(void *data)
 #ifdef WIN32
         if(synctype == 3 || synctype == 4) {
             D3DRASTER_STATUS rStatus;
-            timespec t, _;
-            t.tv_sec = 0;
-            t.tv_nsec = dxvblankmaxtime*1000;
-            sleepwrapper(&t, &_);
+            ullong nsec = dxvblankmaxtime*1000;
+            sleepwrapper(0, nsec);
             obj->pDevice->GetRasterStatus(0, &rStatus);
-            t.tv_nsec = dxvblankwait*1000;
+            nsec = dxvblankwait*1000;
             while(!rStatus.InVBlank){
-                sleepwrapper(&t, &_);
+                sleepwrapper(0, nsec);
                 obj->pDevice->GetRasterStatus(0, &rStatus);
             }
         }
@@ -1364,7 +1362,7 @@ typedef long (__stdcall *FPNtDelayExecution)(BOOLEAN arg1, PLARGE_INTEGER arg2);
 
 FPNtDelayExecution NtDelayExecution;
 
-static inline ullong tick() {
+static inline ullong tick_nsec() {
     FILETIME ft;
     GetSystemTimeAsFileTime(&ft);
     ullong currenttick = (ullong)ft.dwLowDateTime + ((ullong)(ft.dwHighDateTime) << 32);
@@ -1487,7 +1485,7 @@ ullong calcnextdraw( ullong lastdraw, ullong &tick_now) {
         ullong nextdrawtime = lastdraw + curentsyncinterval;
         llong maxdelta = maxtearcompensatedelta*1000;
         llong error = 0;
-        if( timestamp > lastdraw && timestamp - lastdraw > abs(curentsyncinterval/2)) {
+        if( timestamp > lastdraw && timestamp - lastdraw > curentsyncinterval/2) {
             ullong prevtimestamp = timestamp > curentsyncinterval ? timestamp - curentsyncinterval : timestamp;
             error = static_cast<llong>(lastdraw) - static_cast<llong>(prevtimestamp);
         } else {
@@ -1694,6 +1692,10 @@ int main(int argc, char **argv)
     #if defined(WIN32) && !defined(_DEBUG) && !defined(__GNUC__)
     // atexit((void (__cdecl *)(void))_CrtDumpMemoryLeaks);
     __try {
+    #endif
+
+    #if defined(WIN32)
+    initntdllprocs()
     #endif
 
     #if !defined(WIN32) && !defined(_DEBUG) && defined(__GNUC__)
