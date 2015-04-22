@@ -1402,7 +1402,7 @@ static inline void sleepwrapper(llong sec, llong nsec) {
 
 #define NFPS 9
 llong currentfps[9] = {0, // 0. fps
-                       0, // 1. ifps
+                       0, // 1. ifps (not used)
                        0, // 2. average draw time
                        0, // 3. OS scheduler error
                        0, // 4. average draw time jump (not showed)
@@ -1681,29 +1681,16 @@ int getclockmillis()
 
 VAR(numcpus, 1, 1, 16);
 
+struct args {
+    int argc;
+    char** argv;
+};
 
-#ifdef __APPLE__
-extern "C" {
-int mymain(int argc, char **argv)
-#else
-int main(int argc, char **argv)
-#endif
+int gameloop (void* p)
 {
-    #if defined(WIN32) && !defined(_DEBUG) && !defined(__GNUC__)
-    // atexit((void (__cdecl *)(void))_CrtDumpMemoryLeaks);
-    __try {
-    #endif
-
-    #if defined(WIN32)
-    initntdllprocs()
-    #endif
-
-    #if !defined(WIN32) && !defined(_DEBUG) && defined(__GNUC__)
-    signal(SIGFPE, handler);
-    signal(SIGSEGV, handler);
-    signal(SIGBUS, handler);
-    signal(SIGABRT, handler);
-    #endif
+    struct args* a = (struct args*)p;
+    int argc = a->argc;
+    char** argv = a->argv;
 
     setlogfile(NULL);
 
@@ -1999,7 +1986,38 @@ int main(int argc, char **argv)
             prevcycletime = lastcycletime;
         }
     }
-    
+    return 0;
+}
+
+#ifdef __APPLE__
+extern "C" {
+int mymain(int argc, char **argv)
+#else
+int main(int argc, char **argv)
+#endif
+{
+    #if defined(WIN32) && !defined(_DEBUG) && !defined(__GNUC__)
+    // atexit((void (__cdecl *)(void))_CrtDumpMemoryLeaks);
+    __try {
+    #endif
+
+    #if defined(WIN32)
+    initntdllprocs()
+    #endif
+
+    #if !defined(WIN32) && !defined(_DEBUG) && defined(__GNUC__)
+    signal(SIGFPE, handler);
+    signal(SIGSEGV, handler);
+    signal(SIGBUS, handler);
+    signal(SIGABRT, handler);
+    #endif
+
+    struct args a;
+    a.argc = argc;
+    a.argv = argv;
+    SDL_Thread* main_thread = SDL_CreateThread(gameloop, "mainloop", (void *)(&a));
+    SDL_WaitThread(main_thread, NULL);
+
     ASSERT(0);   
     return EXIT_FAILURE;
 
