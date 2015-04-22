@@ -1401,7 +1401,6 @@ void limitfpsalt(ullong &tick_now)
     if(!vsync && tearfree) {
         if(!syncwin) syncwin = new SyncWindow;
         if(!checksyncwin()) {
-            conoutf("asd");
             delete syncwin;
             syncwin = NULL;
             tearfree = 0;
@@ -1786,7 +1785,7 @@ int gameloop (void* p)
     inputgrab(grabinput = true);
     ignoremousemotion();
 
-    conoutf("\f0Sauerbraten SDL2 Client\f1 Version 2.0.2");
+    conoutf("\f0Sauerbraten SDL2 Client\f1 Version 2.1.0");
 
     ullong prevcycletime = 0;
     for(;;)
