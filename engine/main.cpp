@@ -612,15 +612,7 @@ void cleargamma()
 
 VAR(dbgmodes, 0, 0, 1);
 
-#ifdef WIN32
-#include <d3d9.h>
-const TCHAR windowClass[] = "syncwin";
-LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
-    return DefWindowProc(hWnd, message, wParam, lParam);
-}
-#endif
-
-VARP(forcetearfreemethod, 0, 0, 4);
+VARP(forcetearfreemethod, 0, 0, 2);
 XIDENTHOOK(forcetearfreemethod, IDF_EXTENDED);
 
 struct SyncWindow
@@ -634,12 +626,6 @@ struct SyncWindow
     SDL_mutex *stamp_mutex;
     SDL_Thread *thread;
     int killthread;
-#ifdef WIN32
-    HINSTANCE inst;
-    HWND hWnd;
-    IDirect3D9 *pD3D;
-    IDirect3DDevice9 *pDevice;
-#endif
     SDL_Window *window;
     SDL_GLContext glcontext;
     SyncWindow();
@@ -748,20 +734,6 @@ int syncwindow_threadfn(void *data)
             return 0;
         }
 
-#ifdef WIN32
-        if(synctype == 3 || synctype == 4) {
-            D3DRASTER_STATUS rStatus;
-            ullong nsec = dxvblankmaxtime*1000;
-            sleepwrapper(0, nsec);
-            obj->pDevice->GetRasterStatus(0, &rStatus);
-            nsec = dxvblankwait*1000;
-            while(!rStatus.InVBlank){
-                sleepwrapper(0, nsec);
-                obj->pDevice->GetRasterStatus(0, &rStatus);
-            }
-        }
-#endif
-
         if(synctype == 2) {
             if(!is_init) {
                 if(SDL_GL_GetCurrentWindow() != obj->window || SDL_GL_GetCurrentContext() != obj->glcontext || ! SDL_GL_GetSwapInterval()) {
@@ -814,80 +786,10 @@ SyncWindow::SyncWindow()
         timestamphistory[i] = 0;
     }
     if(!forcetearfreemethod) {
-#ifdef WIN32
-        synctype = 3;
-#else
         synctype = 1;
-#endif
     } else {
-#ifndef WIN32
-        if(forcetearfreemethod == 3 || forcetearfreemethod == 4) {
-            conoutf("No DX support found, tearfree is disabled");
-            return;
-        }
-#endif
         synctype = forcetearfreemethod;
     }
-#ifdef WIN32
-    if(synctype == 3 || synctype == 4) {
-        HWND currenthwnd = GetActiveWindow();
-        inst = (HINSTANCE)GetModuleHandle(NULL);
-        WNDCLASSEX wc = {};
-        wc.cbSize = sizeof(WNDCLASSEX);
-        wc.hInstance = inst;
-        wc.lpszClassName = windowClass;
-        wc.lpfnWndProc = WindowProc;
-        if(!RegisterClassEx(&wc)) {
-            conoutf("Error registering WIN32 Sync Window Class, tearfree is disabled");
-            return;
-        }
-
-        int sz = 100;
-
-        hWnd = CreateWindowEx(WS_EX_NOACTIVATE, windowClass, "Sync Window", WS_VISIBLE, 0, 0, sz, sz, NULL, NULL, inst, NULL);
-        if(!hWnd) {
-            conoutf("Error creating WIN32 Sync Window, tearfree is disabled");
-            UnregisterClass(windowClass, inst);
-            return;
-        }
-
-        ShowWindow(hWnd, SW_HIDE);
-        UpdateWindow(hWnd);
-
-        pD3D = Direct3DCreate9(D3D_SDK_VERSION);
-
-        if(!pD3D) {
-            conoutf("Error creating D3D, tearfree is disabled");
-            DestroyWindow(hWnd);
-            UnregisterClass(windowClass,inst);
-            return;
-        }
-
-        pDevice = NULL;
-        D3DPRESENT_PARAMETERS params;
-        ZeroMemory(&params, sizeof(params));
-        params.Windowed = TRUE;
-        params.BackBufferWidth = sz;
-        params.BackBufferHeight = sz;
-        params.BackBufferCount = 1;
-        params.BackBufferFormat = D3DFMT_UNKNOWN;
-        params.SwapEffect = D3DSWAPEFFECT_DISCARD;
-        if(synctype == 3) params.PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE;
-        if(synctype == 4) params.PresentationInterval = D3DPRESENT_INTERVAL_ONE;
-
-        HRESULT res = pD3D->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, hWnd, D3DCREATE_SOFTWARE_VERTEXPROCESSING, &params, &pDevice);
-        if(FAILED(res)) {
-            conoutf("Error creating D3D device %p: %ld, tearfree is disabled", pDevice, res);
-            pD3D->Release();
-            DestroyWindow(hWnd);
-            UnregisterClass(windowClass,inst);
-            return;
-        }
-
-        ShowWindow(currenthwnd, SW_SHOWMAXIMIZED);
-        UpdateWindow(currenthwnd);
-    }
-#endif
     isconstructed = 1;
     thread = SDL_CreateThread(syncwindow_threadfn, "SyncWindow Thread", this);
 }
@@ -898,19 +800,10 @@ SyncWindow::~SyncWindow()
     killthread++;
     if(isconstructed) {
         SDL_WaitThread(thread, &code);
-#ifdef WIN32
-        if(synctype == 3 || synctype == 4) {
-            pDevice->Release();
-            pD3D->Release();
-            DestroyWindow(hWnd);
-            UnregisterClass(windowClass,inst);
-        }
-#endif
     }
     delete[] timestamphistory;
     SDL_DestroyMutex(stamp_mutex);
 }
-
 
 SyncWindow *syncwin;
 
@@ -1326,7 +1219,7 @@ VARP(maxfps, 0, 200, 1000);
 
 
 VARFP(tearfree, 0, 0, 1, {
-        conoutf(CON_WARN, "tearfree is an experimental feature.");
+        if(tearfree) conoutf(CON_WARN, "tearfree is an experimental feature.");
         if(vsync) conoutf(CON_WARN, "tearfree not working with vsync on.");
     });
 XIDENTHOOK(tearfree, IDF_EXTENDED);
@@ -2002,7 +1895,7 @@ int main(int argc, char **argv)
     #endif
 
     #if defined(WIN32)
-    initntdllprocs()
+    initntdllprocs();
     #endif
 
     #if !defined(WIN32) && !defined(_DEBUG) && defined(__GNUC__)

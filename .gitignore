@@ -6,6 +6,10 @@
 sauer_client
 sauer_server
 vcpp/sauerbraten.suo
+vcpp/sauerbraten.sdf
+vcpp/sauerbraten.opensdf
 vcpp/sauerbraten.vcxproj.user
 vcpp/Debug/
 vcpp/Release/
+vcpp/ipch
+vcpp/sauerbraten.v12.suo
