@@ -10,7 +10,6 @@ float staticscale = 0.33;
 VARFP(hudscale, 50, 100, 300, { staticscale = 0.33*(hudscale/100.0f); })
 XIDENTHOOK(hudscale, IDF_EXTENDED);
 
-
 #include <sys/stat.h>
 
 namespace game
@@ -20,6 +19,7 @@ namespace game
     int respawnent = -1;
     int lasthit = 0, lastspawnattempt = 0;
 
+    int lastfollowkiller = -1;
     int following = -1, followdir = 0;
 
     fpsent *player1 = NULL;         // our client
@@ -135,6 +135,7 @@ namespace game
     {
         if(following<0) return;
         following = -1;
+        lastfollowkiller = -1;
         followdir = 0;
         conoutf("follow off");
     }
@@ -368,6 +369,7 @@ namespace game
     }
 
     extern void checkseek();
+    extern void checkautofollow();
     void updateworld()        // main game update loop
     {
         if(!maptime) { maptime = lastmillis; maprealtime = totalmillis; return; }
@@ -411,6 +413,7 @@ namespace game
                 else if(cmode) cmode->checkitems(player1);
             }
         }
+        checkautofollow();
         if(player1->clientnum>=0) c2sinfo();   // do this last, to reduce the effective frame lag
         checkseek();
     }
@@ -548,6 +551,9 @@ namespace game
         else if((d->state!=CS_ALIVE && d->state != CS_LAGGED && d->state != CS_SPAWNING) || intermission) return;
 
         fpsent *h = followingplayer();
+        if(h==d && d!=actor) {
+            lastfollowkiller = actor->clientnum;
+        }
         if(!h) h = player1;
         int contype = d==h || actor==h ? CON_FRAG_SELF : CON_FRAG_OTHER;
         const char *dname = "", *aname = "";
@@ -579,7 +585,7 @@ namespace game
         }
         if(fragbeep && h==actor && !isteam(d->team, h->team) && d != h) playsound(S_FRAGBEEP);
         deathstate(d);
-		ai::killed(d, actor);
+        ai::killed(d, actor);
     }
 
     extern bool lastdemoended;
@@ -659,6 +665,9 @@ namespace game
         unignore(cn);
         fpsent *d = clients[cn];
         if(!d) return;
+        if(lastfollowkiller == d->clientnum) {
+            lastfollowkiller = -1;
+        }
         if(notify && d->name[0]) conoutf("\f4leave:\f7 %s", colorname(d));
         removeweapons(d);
         removetrackedparticles(d);

@@ -23,6 +23,7 @@ extern ENetAddress masteraddress;
 
 namespace server
 {
+    bool flagstatechanged = false;
     struct server_entity            // server side version of "entity" type
     {
         int type;

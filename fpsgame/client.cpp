@@ -835,10 +835,90 @@ namespace game
     #include "ctf.h"
     #include "collect.h"
 
+    bool flagstatechanged = false;
     clientmode *cmode = NULL;
     captureclientmode capturemode;
     ctfclientmode ctfmode;
     collectclientmode collectmode;
+
+    extern int lastfollowkiller;
+
+    VARP(autofollowflagcarrier, 0, 0, 1);
+    XIDENTHOOK(autofollowflagcarrier, IDF_EXTENDED);
+
+    VARP(autofollowchangewhenkilled, 0, 0, 2);
+    XIDENTHOOK(autofollowchangewhenkilled, IDF_EXTENDED);
+
+    VARP(autofollowonlysameteam, 0, 0, 1);
+    XIDENTHOOK(autofollowonlysameteam, IDF_EXTENDED);
+
+    int getmaxhpteammate(fpsent* f) {
+        int n = -1;
+        int maxhp = -1;
+        loopv(players) {
+            fpsent* c = players[i];
+            if(c && isteam(f->team, c->team) && c-> state == CS_ALIVE) {
+                maxhp = c->health > maxhp ? c->health : maxhp;
+                n = c->clientnum;
+            }
+        }
+        return n;
+    }
+
+    void checkautofollow() {
+        int killer = lastfollowkiller;
+        lastfollowkiller = -1;
+        bool statechanged = flagstatechanged;
+        flagstatechanged = false;
+        fpsent* f = followingplayer();
+        if(!f) return;
+
+        int possiblefollow = -1;
+        if(autofollowflagcarrier && statechanged) {
+            int owner = -1;
+            fpsent* fo = NULL;
+            loopv(ctfmode.flags) {
+                fo = ctfmode.flags[i].owner;
+                if(!fo) {
+                    continue;
+                }
+                owner = fo->clientnum;
+                if(owner < 0) {
+                    continue;
+                }
+                if(owner == f->clientnum) {
+                    return;
+                }
+                if(autofollowonlysameteam && m_teammode) {
+                    fpsent* c = clients[owner];
+                    if(c && isteam(f->team, c->team)) {
+                        possiblefollow = owner;
+                    }
+                } else {
+                    possiblefollow = owner;
+                }
+            }
+        }
+
+        if(possiblefollow < 0 && autofollowchangewhenkilled && killer >= 0) {
+            if(autofollowonlysameteam && m_teammode) {
+                possiblefollow = getmaxhpteammate(f);
+            } else {
+                if(autofollowchangewhenkilled == 2 && m_teammode) {
+                    fpsent* k = clients[killer];
+                    if(k) {
+                        possiblefollow = getmaxhpteammate(k);
+                    }
+                } else {
+                    possiblefollow = killer;
+                }
+            }
+        }
+
+        if(possiblefollow >= 0 && clients[possiblefollow]) {
+            following = possiblefollow;
+        }
+    }
 
     void setclientmode()
     {

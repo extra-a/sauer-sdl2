@@ -6,6 +6,8 @@ extern const char* getcurrentteam();
 #define ctfteamflag(s) (!strcmp(s, "good") ? 1 : (!strcmp(s, "evil") ? 2 : 0))
 #define ctfflagteam(i) (i==1 ? "good" : (i==2 ? "evil" : NULL))
 
+extern bool flagstatechanged;
+
 #ifdef SERVMODE
 VAR(ctftkpenalty, 0, 1, 1);
 
@@ -804,6 +806,7 @@ struct ctfclientmode : clientmode
     void dropflag(fpsent *d, int i, int version, const vec &droploc)
     {
         if(!flags.inrange(i)) return;
+        flagstatechanged = true;
         flag &f = flags[i];
         f.version = version;
         f.interploc = interpflagpos(f, f.interpangle);
@@ -925,6 +928,7 @@ struct ctfclientmode : clientmode
     void takeflag(fpsent *d, int i, int version)
     {
         if(!flags.inrange(i)) return;
+        flagstatechanged = true;
         flag &f = flags[i];
         f.version = version;
         f.interploc = interpflagpos(f, f.interpangle);
