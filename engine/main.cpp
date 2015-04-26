@@ -612,8 +612,8 @@ void cleargamma()
 
 VAR(dbgmodes, 0, 0, 1);
 
-VARP(forcetearfreemethod, 0, 0, 2);
-XIDENTHOOK(forcetearfreemethod, IDF_EXTENDED);
+VARP(tearfree_method, 0, 0, 2);
+XIDENTHOOK(tearfree_method, IDF_EXTENDED);
 
 struct SyncWindow
 {
@@ -661,8 +661,7 @@ void precisenanosleep(ullong nsec);
 static inline void sleepwrapper(llong sec, llong nsec);
 static inline ullong tick_nsec();
 
-VAR(dxvblankwait, 100, 250, 1000);
-VAR(dxvblankmaxtime, 1000, 2500, 5000);
+
 VAR(debugsyncthreadinfo, 0, 1, 1);
 typedef int (APIENTRY * glXGetVideoSyncSGI_fn)(uint *count);
 typedef int (APIENTRY * glXWaitVideoSyncSGI_fn)(int divisor,
@@ -785,10 +784,10 @@ SyncWindow::SyncWindow()
     loopi(historysize) {
         timestamphistory[i] = 0;
     }
-    if(!forcetearfreemethod) {
+    if(!tearfree_method) {
         synctype = 1;
     } else {
-        synctype = forcetearfreemethod;
+        synctype = tearfree_method;
     }
     isconstructed = 1;
     thread = SDL_CreateThread(syncwindow_threadfn, "SyncWindow Thread", this);
@@ -1223,12 +1222,12 @@ VARFP(tearfree, 0, 0, 1, {
         if(vsync) conoutf(CON_WARN, "tearfree not working with vsync on.");
     });
 XIDENTHOOK(tearfree, IDF_EXTENDED);
-VARP(forcemincycletime, 0, 2000, 6000);
-XIDENTHOOK(forcemincycletime, IDF_EXTENDED);
-VARP(maxtearcompensatedelta, 10, 25, 100);
-XIDENTHOOK(maxtearcompensatedelta, IDF_EXTENDED);
-VARP(adjusttearcompensate, -33000, 0, 33000);
-XIDENTHOOK(adjusttearcompensate, IDF_EXTENDED);
+VARP(tearfree_mincycletime, 0, 2000, 6000);
+XIDENTHOOK(tearfree_mincycletime, IDF_EXTENDED);
+VARP(tearfree_maxcompensatedelta, 10, 25, 100);
+XIDENTHOOK(tearfree_maxcompensatedelta, IDF_EXTENDED);
+VARP(tearfree_adjustcompensate, -33000, 0, 33000);
+XIDENTHOOK(tearfree_adjustcompensate, IDF_EXTENDED);
 
 
 #ifdef __APPLE__
@@ -1337,17 +1336,17 @@ int getfpsalt(int id)
     return currentfps[n];
 }
 
-VARP(expectedschederror, 0, 200, 1000);
-XIDENTHOOK(expectedschederror, IDF_EXTENDED);
+VARP(tearfree_expectedtimererror, 0, 200, 1000);
+XIDENTHOOK(tearfree_expectedtimererror, IDF_EXTENDED);
 
-VARP(allowschedulerbusywait, 0, 1, 1);
-XIDENTHOOK(allowschedulerbusywait, IDF_EXTENDED);
+VARP(tearfree_allowbusywait, 0, 1, 1);
+XIDENTHOOK(tearfree_allowbusywait, IDF_EXTENDED);
 
 void precisenanosleep(ullong nsec) {
     if(!nsec) return;
     ullong start = tick_nsec();
-    if(nsec > expectedschederror * 1000ULL || !allowschedulerbusywait) {
-        ullong delta = allowschedulerbusywait ? expectedschederror * 1000 : 0;
+    if(nsec > tearfree_expectedtimererror * 1000ULL || !tearfree_allowbusywait) {
+        ullong delta = tearfree_allowbusywait ? tearfree_expectedtimererror * 1000 : 0;
         ullong t = nsec - delta;
         sleepwrapper(0, t);
     }
@@ -1359,8 +1358,8 @@ ullong calcnextdraw( ullong lastdraw, ullong &tick_now) {
         uint curentsyncinterval = syncwin->getsyncinterval();
         tick_now = tick_nsec();
 
-        if(adjusttearcompensate) {
-            int adjustns = adjusttearcompensate*1000;
+        if(tearfree_adjustcompensate) {
+            int adjustns = tearfree_adjustcompensate*1000;
             adjustns = adjustns < 0 ? max(adjustns, - static_cast<int>(curentsyncinterval)) : min(adjustns, static_cast<int>(curentsyncinterval));
             ullong adjustedtimestamp = timestamp > abs(adjustns) ? timestamp + adjustns : timestamp;
             ullong prevadjustedtimestamp = adjustedtimestamp > curentsyncinterval ? adjustedtimestamp - curentsyncinterval : 0;
@@ -1371,12 +1370,12 @@ ullong calcnextdraw( ullong lastdraw, ullong &tick_now) {
             }
         }
 
-        ullong shifttime = forcemincycletime*1000LL;
+        ullong shifttime = tearfree_mincycletime*1000LL;
         timestamp = timestamp >  shifttime? timestamp - shifttime : timestamp;
 
         uint syncfps = static_cast<uint>(floor(1000000000000L/curentsyncinterval + 0.5));
         ullong nextdrawtime = lastdraw + curentsyncinterval;
-        llong maxdelta = maxtearcompensatedelta*1000;
+        llong maxdelta = tearfree_maxcompensatedelta*1000;
         llong error = 0;
         if( timestamp > lastdraw && timestamp - lastdraw > curentsyncinterval/2) {
             ullong prevtimestamp = timestamp > curentsyncinterval ? timestamp - curentsyncinterval : timestamp;
@@ -1406,7 +1405,7 @@ void limitfpsalt(ullong &tick_now)
             tearfree = 0;
             return limitfpsalt(tick_now);
         }
-        if(forcetearfreemethod && (syncwin->synctype != forcetearfreemethod)) {
+        if(tearfree_method && (syncwin->synctype != tearfree_method)) {
             delete syncwin;
             syncwin = new SyncWindow;
             return limitfpsalt(tick_now);
@@ -1852,8 +1851,8 @@ int gameloop (void* p)
 
         // additional time before swapping buffers
         if(!vsync && tearfree) {
-            if(cyclestart+(1000ULL*forcemincycletime) > endtick) {
-                ullong t = (cyclestart+(1000ULL*forcemincycletime))-endtick;
+            if(cyclestart+(1000ULL*tearfree_mincycletime) > endtick) {
+                ullong t = (cyclestart+(1000ULL*tearfree_mincycletime))-endtick;
                 precisenanosleep(t);
           }
         }
@@ -1870,7 +1869,7 @@ int gameloop (void* p)
             updatefpsalt(2, lastdrawtime/1000);
             updatefpsalt(7, lastwaittime/1000);
             if(lastcycletime && prevcycletime) {
-                if(lastcycletime > forcemincycletime*1000U) updatefpsalt(8, (lastcycletime - forcemincycletime*1000U)/1000);
+                if(lastcycletime > tearfree_mincycletime*1000U) updatefpsalt(8, (lastcycletime - tearfree_mincycletime*1000U)/1000);
                 else updatefpsalt(8, 0);
                 if(vsync) updatefpsalt(4,0);
                 else lastcycletime > prevcycletime ? updatefpsalt(4, (lastcycletime - prevcycletime)/1000) : updatefpsalt(4, (prevcycletime - lastcycletime)/1000);
