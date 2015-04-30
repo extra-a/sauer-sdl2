@@ -852,6 +852,9 @@ namespace game
     VARP(autofollowonlysameteam, 0, 0, 1);
     XIDENTHOOK(autofollowonlysameteam, IDF_EXTENDED);
 
+    VARP(autofollowdelay, 0, 100, 200);
+    XIDENTHOOK(autofollowdelay, IDF_EXTENDED);
+
     int getmaxhpteammate(fpsent* f) {
         int n = -1;
         int maxhp = -1;
@@ -866,14 +869,19 @@ namespace game
     }
 
     void checkautofollow() {
+        static uint eventtime = 0;
+        static int possiblefollow = -1;
+
+        fpsent* f = followingplayer();
+        if(!f) return;
+
+        uint current_tick = SDL_GetTicks();
+
         int killer = lastfollowkiller;
         lastfollowkiller = -1;
         bool statechanged = flagstatechanged;
         flagstatechanged = false;
-        fpsent* f = followingplayer();
-        if(!f) return;
 
-        int possiblefollow = -1;
         if(autofollowflagcarrier && statechanged) {
             int owner = -1;
             fpsent* fo = NULL;
@@ -893,9 +901,11 @@ namespace game
                     fpsent* c = clients[owner];
                     if(c && isteam(f->team, c->team)) {
                         possiblefollow = owner;
+                        eventtime = current_tick;
                     }
                 } else {
                     possiblefollow = owner;
+                    eventtime = current_tick;
                 }
             }
         }
@@ -903,20 +913,24 @@ namespace game
         if(possiblefollow < 0 && autofollowchangewhenkilled && killer >= 0) {
             if(autofollowonlysameteam && m_teammode) {
                 possiblefollow = getmaxhpteammate(f);
+                eventtime = current_tick;
             } else {
                 if(autofollowchangewhenkilled == 2 && m_teammode) {
                     fpsent* k = clients[killer];
                     if(k) {
                         possiblefollow = getmaxhpteammate(k);
+                        eventtime = current_tick;
                     }
                 } else {
                     possiblefollow = killer;
+                    eventtime = current_tick;
                 }
             }
         }
 
-        if(possiblefollow >= 0 && clients[possiblefollow]) {
+        if(possiblefollow >= 0 && clients[possiblefollow] && current_tick > eventtime + autofollowdelay) {
             following = possiblefollow;
+            possiblefollow = -1;
         }
     }
 
