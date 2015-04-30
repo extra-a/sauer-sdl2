@@ -551,7 +551,7 @@ namespace game
         else if((d->state!=CS_ALIVE && d->state != CS_LAGGED && d->state != CS_SPAWNING) || intermission) return;
 
         fpsent *h = followingplayer();
-        if(h==d && d!=actor) {
+        if(h==d) {
             lastfollowkiller = actor->clientnum;
         }
         if(!h) h = player1;
