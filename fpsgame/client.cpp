@@ -1,4 +1,5 @@
 #include "game.h"
+#include "limits.h"
 
 #ifdef WIN32
 #include "io.h"
@@ -857,12 +858,18 @@ namespace game
 
     int getmaxhpteammate(fpsent* f) {
         int n = -1;
-        int maxhp = -1;
+        int maxvalue = INT_MIN;
         loopv(players) {
             fpsent* c = players[i];
-            if(c && isteam(f->team, c->team) && c-> state == CS_ALIVE) {
-                maxhp = c->health > maxhp ? c->health : maxhp;
-                n = c->clientnum;
+            if(c && isteam(f->team, c->team) && c->state == CS_ALIVE) {
+                if(!m_insta && c->health > maxvalue) {
+                    maxvalue = c->health;
+                    n = c->clientnum;
+                }
+                if(m_insta && c->frags > maxvalue) {
+                   maxvalue = c->frags;
+                   n = c->clientnum;
+                }
             }
         }
         return n;
@@ -902,10 +909,12 @@ namespace game
                     if(c && isteam(f->team, c->team)) {
                         possiblefollow = owner;
                         eventtime = current_tick;
+                        break;
                     }
                 } else {
                     possiblefollow = owner;
                     eventtime = current_tick;
+                    break;
                 }
             }
         }
@@ -913,18 +922,18 @@ namespace game
         if(possiblefollow < 0 && autofollowchangewhenkilled && killer >= 0) {
             if(autofollowonlysameteam && m_teammode) {
                 possiblefollow = getmaxhpteammate(f);
-                eventtime = current_tick;
             } else {
                 if(autofollowchangewhenkilled == 2 && m_teammode) {
                     fpsent* k = clients[killer];
                     if(k) {
                         possiblefollow = getmaxhpteammate(k);
-                        eventtime = current_tick;
                     }
                 } else {
                     possiblefollow = killer;
-                    eventtime = current_tick;
                 }
+            }
+            if(possiblefollow >= 0) {
+                eventtime = current_tick;
             }
         }
 
