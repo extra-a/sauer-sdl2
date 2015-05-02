@@ -891,6 +891,7 @@ namespace game
 
         if(autofollowflagcarrier && statechanged) {
             int owner = -1;
+            int newfollow = -1;
             fpsent* fo = NULL;
             loopv(ctfmode.flags) {
                 fo = ctfmode.flags[i].owner;
@@ -902,20 +903,21 @@ namespace game
                     continue;
                 }
                 if(owner == f->clientnum) {
+                    newfollow = -1;
                     return;
                 }
                 if(autofollowonlysameteam && m_teammode) {
                     fpsent* c = clients[owner];
                     if(c && isteam(f->team, c->team)) {
-                        possiblefollow = owner;
-                        eventtime = current_tick;
-                        break;
+                        newfollow = owner;
                     }
                 } else {
-                    possiblefollow = owner;
-                    eventtime = current_tick;
-                    break;
+                    newfollow = owner;
                 }
+            }
+            if(newfollow >= 0) {
+                possiblefollow = newfollow;
+                eventtime = current_tick;
             }
         }
 
