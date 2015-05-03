@@ -1784,7 +1784,7 @@ int gameloop (void* p)
     inputgrab(grabinput = true);
     ignoremousemotion();
 
-    conoutf("\f0Sauerbraten SDL2 Client\f1 Version 2.2.1");
+    conoutf("\f0Sauerbraten SDL2 Client\f1 Version 2.2.2");
 
     ullong prevcycletime = 0;
     for(;;)
