@@ -794,6 +794,11 @@ namespace game
         else if(d->gunselect!=GUN_FIST && d->gunselect!=GUN_BITE) adddecal(DECAL_BULLET, to, vec(from).sub(to).normalize(), d->gunselect==GUN_RIFLE ? 3.0f : 2.0f);
     }
 
+    void shootrumble(int gun)
+    {
+        rumblehaptics(1, gunsrumble[gun].power, gunsrumble[gun].duration);
+    }
+
     void shoot(fpsent *d, const vec &targ)
     {
         int prevaction = d->lastaction, attacktime = lastmillis-prevaction;
@@ -839,6 +844,9 @@ namespace game
         if(!guns[d->gunselect].projspeed) raydamage(from, to, d);
 
         shoteffects(d->gunselect, from, to, d, true, 0, prevaction);
+
+        if(d==player1)
+            shootrumble(d->gunselect);
 
         if(d==player1 || d->ai)
         {

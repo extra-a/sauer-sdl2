@@ -600,6 +600,16 @@ int gethapticmode(int num) {
     return v;
 }
 
+void rumblehaptics(int mode, int power, int duration) {
+    power = clamp(power, 0, 100);
+    duration = clamp(duration, 0, 1000);
+    loopi(nhaptics) {
+        if(gethapticmode(i) & mode) {
+            SDL_HapticRumblePlay(haptics[i], power * gethapticcap(i)/10000.0, duration);
+        }
+    }
+}
+
 void inithaptics(bool enable) {
    if(!SDL_WasInit(SDL_INIT_HAPTIC)) return;
    if(nhaptics && haptics) {

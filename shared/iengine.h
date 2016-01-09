@@ -600,3 +600,4 @@ extern void setselectedserver(uint host, int port);
 extern vector<serverinfodata *> getservers();
 
 extern int getcolorbynum(int n);
+extern void rumblehaptics(int mode, int power = 100, int duration = 500);
