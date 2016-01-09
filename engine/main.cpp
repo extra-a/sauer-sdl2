@@ -475,6 +475,94 @@ void renderprogress(float bar, const char *text, GLuint tex, bool background)   
     swapbuffers(false);
 }
 
+int selectedpadnum = -1;
+int njoysticks = 0;
+SDL_Joystick **joysticks = NULL;
+int nhaptics = 0;
+SDL_Haptic **haptics = NULL;
+
+SVARP(selectedjoystick, "");
+XIDENTHOOK(selectedjoystick, IDF_EXTENDED);
+
+void initjoysticks(bool enable) {
+    if(!SDL_WasInit(SDL_INIT_JOYSTICK)) return;
+    if(njoysticks && joysticks) {
+        loopi(njoysticks) {
+            if(joysticks[i])
+                SDL_JoystickClose(joysticks[i]);
+        }
+        njoysticks = 0;
+        delete[] joysticks;
+        joysticks = NULL;
+    }
+    selectedpadnum = -1;
+    if(enable) {
+        char guid_str[1024];
+        njoysticks = SDL_NumJoysticks();
+        if(njoysticks <= 0) return;
+        joysticks = new SDL_Joystick*[njoysticks];
+        loopi(njoysticks) {
+            joysticks[i] = SDL_JoystickOpen(i);
+            if(joysticks[i]) {
+                SDL_JoystickGUID guid = SDL_JoystickGetGUID(joysticks[i]);
+                SDL_JoystickGetGUIDString(guid, guid_str, sizeof(guid_str));
+                if(!strcmp(selectedjoystick, guid_str)) {
+                    selectedpadnum = i;
+                    conoutf("selected gamepad#%d: %s", i, SDL_JoystickName(joysticks[i]));
+                } else {
+                    conoutf("gamepad#%d: %s", i, SDL_JoystickName(joysticks[i]));
+                }
+            }
+        }
+        if(njoysticks > 0 && selectedpadnum < 0) {
+            if(joysticks[0]) {
+                conoutf("Setting '%s' as the main gamepad",  SDL_JoystickName(joysticks[0]));
+                selectedpadnum = 0;
+                SDL_JoystickGUID guid = SDL_JoystickGetGUID(joysticks[0]);
+                SDL_JoystickGetGUIDString(guid, guid_str, sizeof(guid_str));
+                setsvar("selectedjoystick", guid_str);
+            }
+        }
+    }
+}
+
+void inithaptics(bool enable) {
+   if(!SDL_WasInit(SDL_INIT_HAPTIC)) return;
+   if(nhaptics && haptics) {
+        loopi(nhaptics) {
+            if(haptics[i])
+                SDL_HapticClose(haptics[i]);
+        }
+        nhaptics = 0;
+        delete[] haptics;
+        haptics = NULL;
+    }
+    if(enable) {
+        nhaptics = SDL_NumHaptics();
+        if(nhaptics <= 0) return;
+        haptics = new SDL_Haptic*[nhaptics];
+        loopi(nhaptics) {
+            haptics[i] = SDL_HapticOpen(i);
+        }
+        loopi(nhaptics) {
+            conoutf("haptic#%d: %s", i, SDL_HapticName(i));
+        }
+    }
+}
+
+VARP(joystick, 0, 0, 1);
+XIDENTHOOK(joystick, IDF_EXTENDED);
+
+VARP(haptic, 0, 0, 1);
+XIDENTHOOK(haptic, IDF_EXTENDED);
+
+void reconfigrejoysticks() {
+    initjoysticks(joystick);
+    inithaptics(haptic);
+}
+
+COMMAND(reconfigrejoysticks, "");
+
 VARNP(relativemouse, userelativemouse, 0, 1, 1);
 XIDENTHOOK(relativemouse, IDF_EXTENDED);
 
@@ -1202,6 +1290,14 @@ void checkinput()
                 if(event.wheel.x > 0) { processkey(-35, true); processkey(-35, false); }
                 else if(event.wheel.x < 0) { processkey(-36, true); processkey(-36, false); }
                 break;
+            case SDL_JOYDEVICEADDED:
+            case SDL_JOYDEVICEREMOVED:
+                reconfigrejoysticks();
+                break;
+            case SDL_JOYBUTTONDOWN:
+                break;
+            case SDL_JOYAXISMOTION:
+                break;
         }
     }
     if(mousemoved) resetmousemotion();
@@ -1662,8 +1758,8 @@ int gameloop (void* p)
     {
         logoutf("init: sdl");
 
-        if(SDL_Init(SDL_INIT_TIMER|SDL_INIT_VIDEO|SDL_INIT_AUDIO)<0) fatal("Unable to initialize SDL: %s", SDL_GetError());
-
+        if(SDL_Init(SDL_INIT_TIMER|SDL_INIT_VIDEO|SDL_INIT_AUDIO|SDL_INIT_JOYSTICK|SDL_INIT_HAPTIC)<0)
+            fatal("Unable to initialize SDL: %s", SDL_GetError());
         SDL_version compiled;
         SDL_version linked;
         SDL_VERSION(&compiled);
