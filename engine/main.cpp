@@ -478,6 +478,7 @@ void renderprogress(float bar, const char *text, GLuint tex, bool background)   
 int selectedpadnum = -1;
 int njoysticks = 0;
 SDL_Joystick **joysticks = NULL;
+const int maxhaptics = 10;
 int nhaptics = 0;
 SDL_Haptic **haptics = NULL;
 
@@ -526,6 +527,79 @@ void initjoysticks(bool enable) {
     }
 }
 
+VARP(haptic0Mode, 0, 0, 3);
+XIDENTHOOK(haptic0Mode, IDF_EXTENDED);
+VARP(haptic0Cap, 0, 50, 100);
+XIDENTHOOK(haptic0Cap, IDF_EXTENDED);
+
+VARP(haptic1Mode, 0, 0, 3);
+XIDENTHOOK(haptic1Mode, IDF_EXTENDED);
+VARP(haptic1Cap, 0, 50, 100);
+XIDENTHOOK(haptic1Cap, IDF_EXTENDED);
+
+VARP(haptic2Mode, 0, 0, 3);
+XIDENTHOOK(haptic2Mode, IDF_EXTENDED);
+VARP(haptic2Cap, 0, 50, 100);
+XIDENTHOOK(haptic2Cap, IDF_EXTENDED);
+
+VARP(haptic3Mode, 0, 0, 3);
+XIDENTHOOK(haptic3Mode, IDF_EXTENDED);
+VARP(haptic3Cap, 0, 50, 100);
+XIDENTHOOK(haptic3Cap, IDF_EXTENDED);
+
+VARP(haptic4Mode, 0, 0, 3);
+XIDENTHOOK(haptic4Mode, IDF_EXTENDED);
+VARP(haptic4Cap, 0, 50, 100);
+XIDENTHOOK(haptic4Cap, IDF_EXTENDED);
+
+VARP(haptic5Mode, 0, 0, 3);
+XIDENTHOOK(haptic5Mode, IDF_EXTENDED);
+VARP(haptic5Cap, 0, 50, 100);
+XIDENTHOOK(haptic5Cap, IDF_EXTENDED);
+
+VARP(haptic6Mode, 0, 0, 3);
+XIDENTHOOK(haptic6Mode, IDF_EXTENDED);
+VARP(haptic6Cap, 0, 50, 100);
+XIDENTHOOK(haptic6Cap, IDF_EXTENDED);
+
+VARP(haptic7Mode, 0, 0, 3);
+XIDENTHOOK(haptic7Mode, IDF_EXTENDED);
+VARP(haptic7Cap, 0, 50, 100);
+XIDENTHOOK(haptic7Cap, IDF_EXTENDED);
+
+VARP(haptic8Mode, 0, 0, 3);
+XIDENTHOOK(haptic8Mode, IDF_EXTENDED);
+VARP(haptic8Cap, 0, 50, 100);
+XIDENTHOOK(haptic8Cap, IDF_EXTENDED);
+
+VARP(haptic9Mode, 0, 0, 3);
+XIDENTHOOK(haptic9Mode, IDF_EXTENDED);
+VARP(haptic9Cap, 0, 50, 100);
+XIDENTHOOK(haptic9Cap, IDF_EXTENDED);
+
+
+int gethapticcap(int num) {
+    #define MAXPATLEN 200
+    static char cmdbuff[MAXPATLEN];
+    snprintf(cmdbuff, MAXPATLEN, "$haptic%dCap", num);
+    const char* result = executestr(cmdbuff);
+    if(!result) return 0;
+    int v = parseint(result);
+    DELETEA(result);
+    return v;
+}
+
+int gethapticmode(int num) {
+    #define MAXPATLEN 200
+    static char cmdbuff[MAXPATLEN];
+    snprintf(cmdbuff, MAXPATLEN, "$haptic%dMode", num);
+    const char* result = executestr(cmdbuff);
+    if(!result) return 0;
+    int v = parseint(result);
+    DELETEA(result);
+    return v;
+}
+
 void inithaptics(bool enable) {
    if(!SDL_WasInit(SDL_INIT_HAPTIC)) return;
    if(nhaptics && haptics) {
@@ -540,12 +614,19 @@ void inithaptics(bool enable) {
     if(enable) {
         nhaptics = SDL_NumHaptics();
         if(nhaptics <= 0) return;
+        nhaptics = clamp(nhaptics, 0, maxhaptics);
         haptics = new SDL_Haptic*[nhaptics];
         loopi(nhaptics) {
             haptics[i] = SDL_HapticOpen(i);
+            if(haptics[i]) {
+                SDL_HapticRumbleInit(haptics[i]);
+            }
         }
         loopi(nhaptics) {
-            conoutf("haptic#%d: %s", i, SDL_HapticName(i));
+            conoutf("haptic#%d: %s, mode: %d, cap: %d", i
+                    , SDL_HapticName(i), gethapticmode(i), gethapticcap(i));
+            if(gethapticmode(i))
+                SDL_HapticRumblePlay(haptics[i], gethapticcap(i)/100.0, 1000);
         }
     }
 }
