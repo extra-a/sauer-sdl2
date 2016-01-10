@@ -371,7 +371,7 @@ static const struct gunrumbleinfo { int id, power, duration; } gunsrumble[NUMGUN
 {
     { S_PUNCH1,     50, 100},
     { S_SG,        100, 150},
-    { S_CG,         25, 100},
+    { S_CG,         25, 50},
     { S_RLFIRE,     50, 100},
     { S_RIFLE,     100, 150},
     { S_FLAUNCH,    50, 100},

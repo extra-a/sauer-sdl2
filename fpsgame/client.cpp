@@ -2059,6 +2059,12 @@ namespace game
         return isteam(f1->team, f2->team);
     }
 
+    void selfdamagerumble(int damage) {
+        damage = clamp(damage, 0, 100);
+        int time = 2*damage;
+        rumblehaptics(2, damage, time);
+    }
+
     void adddmg(fpsent *target, fpsent *from, int damage, int gun) {
         if(gun == 0 && (damage != 50 || (from->quadmillis && damage != 200))) {
             gun = from->lastprojectile;
@@ -2083,6 +2089,9 @@ namespace game
         }
         if(from && !isdamgeignored(target, from) && gun >= 0 && gun < MAXWEAPONS) {
             from->detaileddamagedealt[gun] += damage;
+        }
+        if(target == player1) {
+            selfdamagerumble(damage);
         }
     }
 
