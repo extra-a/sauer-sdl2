@@ -325,6 +325,7 @@ engine/main.o: engine/engine.h shared/cube.h shared/tools.h shared/geom.h
 engine/main.o: shared/ents.h shared/command.h shared/iengine.h shared/igame.h
 engine/main.o: engine/world.h engine/glexts.h engine/octa.h engine/lightmap.h
 engine/main.o: engine/bih.h engine/texture.h engine/model.h engine/varray.h
+engine/main.o: engine/controllerdb.h
 engine/material.o: engine/engine.h shared/cube.h shared/tools.h shared/geom.h
 engine/material.o: shared/ents.h shared/command.h shared/iengine.h
 engine/material.o: shared/igame.h engine/world.h engine/glexts.h

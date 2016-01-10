@@ -1,6 +1,7 @@
 // main.cpp: initialisation & main loop
 
 #include "engine.h"
+#include "controllerdb.h"
 
 extern void cleargamma();
 
@@ -475,51 +476,55 @@ void renderprogress(float bar, const char *text, GLuint tex, bool background)   
     swapbuffers(false);
 }
 
-int selectedpadnum = -1;
-int njoysticks = 0;
-SDL_Joystick **joysticks = NULL;
+int selectedcontrollernum = -1;
+int ngamecontrollers = 0;
+SDL_GameController **gamecontrollers = NULL;
 const int maxhaptics = 10;
 int nhaptics = 0;
 SDL_Haptic **haptics = NULL;
 
-SVARP(selectedjoystick, "");
-XIDENTHOOK(selectedjoystick, IDF_EXTENDED);
+SVARP(gamecontroller, "");
+XIDENTHOOK(gamecontroller, IDF_EXTENDED);
 
-void initjoysticks(bool enable) {
-    if(!SDL_WasInit(SDL_INIT_JOYSTICK)) return;
-    if(njoysticks && joysticks) {
-        loopi(njoysticks) {
-            if(joysticks[i])
-                SDL_JoystickClose(joysticks[i]);
+void initgamecontrollers(bool enable) {
+    if(ngamecontrollers && gamecontrollers) {
+        loopi(ngamecontrollers) {
+            if(gamecontrollers[i])
+                SDL_GameControllerClose(gamecontrollers[i]);
         }
-        njoysticks = 0;
-        delete[] joysticks;
-        joysticks = NULL;
+        ngamecontrollers = 0;
+        delete[] gamecontrollers;
+        gamecontrollers = NULL;
     }
-    selectedpadnum = -1;
+    selectedcontrollernum = -1;
     if(enable) {
         char guid_str[1024];
-        njoysticks = SDL_NumJoysticks();
-        if(njoysticks <= 0) return;
-        joysticks = new SDL_Joystick*[njoysticks];
-        loopi(njoysticks) {
-            joysticks[i] = SDL_JoystickOpen(i);
-            if(joysticks[i]) {
-                SDL_JoystickGUID guid = SDL_JoystickGetGUID(joysticks[i]);
+        ngamecontrollers = SDL_NumJoysticks();
+        if(ngamecontrollers <= 0) return;
+        SDL_RWops* bindings = SDL_RWFromConstMem(gamepadmappingsdb, strlen(gamepadmappingsdb));
+        SDL_GameControllerAddMappingsFromRW(bindings, 1);
+        gamecontrollers = new SDL_GameController*[ngamecontrollers];
+        loopi(ngamecontrollers) {
+            gamecontrollers[i] = SDL_GameControllerOpen(i);
+            conoutf("%s", SDL_GetError());
+            if(gamecontrollers[i]) {
+                SDL_Joystick* j = SDL_GameControllerGetJoystick(gamecontrollers[i]);
+                SDL_JoystickGUID guid = SDL_JoystickGetGUID(j);
                 SDL_JoystickGetGUIDString(guid, guid_str, sizeof(guid_str));
-                if(!strcmp(selectedjoystick, guid_str)) {
-                    selectedpadnum = i;
-                    conoutf("selected gamepad#%d: %s", i, SDL_JoystickName(joysticks[i]));
+                if(!strcmp(gamecontroller, guid_str)) {
+                    selectedcontrollernum = i;
+                    conoutf("selected gamepad#%d: %s", i, SDL_GameControllerName(gamecontrollers[i]));
                 } else {
-                    conoutf("gamepad#%d: %s", i, SDL_JoystickName(joysticks[i]));
+                    conoutf("gamepad#%d: %s", i, SDL_GameControllerName(gamecontrollers[i]));
                 }
             }
         }
-        if(njoysticks > 0 && selectedpadnum < 0) {
-            if(joysticks[0]) {
-                conoutf("Setting '%s' as the main gamepad",  SDL_JoystickName(joysticks[0]));
-                selectedpadnum = 0;
-                SDL_JoystickGUID guid = SDL_JoystickGetGUID(joysticks[0]);
+        if(ngamecontrollers > 0 && selectedcontrollernum < 0) {
+            if(gamecontrollers[0]) {
+                conoutf("Setting '%s' as the main gamepad",  SDL_GameControllerName(gamecontrollers[0]));
+                selectedcontrollernum = 0;
+                SDL_Joystick* j = SDL_GameControllerGetJoystick(gamecontrollers[0]);
+                SDL_JoystickGUID guid = SDL_JoystickGetGUID(j);
                 SDL_JoystickGetGUIDString(guid, guid_str, sizeof(guid_str));
                 setsvar("selectedjoystick", guid_str);
             }
@@ -611,7 +616,6 @@ void rumblehaptics(int mode, int power, int duration) {
 }
 
 void inithaptics(bool enable) {
-   if(!SDL_WasInit(SDL_INIT_HAPTIC)) return;
    if(nhaptics && haptics) {
         loopi(nhaptics) {
             if(haptics[i])
@@ -641,18 +645,16 @@ void inithaptics(bool enable) {
     }
 }
 
-VARP(joystick, 0, 0, 1);
-XIDENTHOOK(joystick, IDF_EXTENDED);
+VARFP(gamepad, 0, 0, 1, initwarning("gamepad", INIT_LOAD));
+XIDENTHOOK(gamepad, IDF_EXTENDED);
 
-VARP(haptic, 0, 0, 1);
+VARFP(haptic, 0, 0, 1, initwarning("haptic", INIT_LOAD));
 XIDENTHOOK(haptic, IDF_EXTENDED);
 
-void reconfigrejoysticks() {
-    initjoysticks(joystick);
+void reconfigrecontrollers() {
+    initgamecontrollers(gamepad);
     inithaptics(haptic);
 }
-
-COMMAND(reconfigrejoysticks, "");
 
 VARNP(relativemouse, userelativemouse, 0, 1, 1);
 XIDENTHOOK(relativemouse, IDF_EXTENDED);
@@ -1273,6 +1275,23 @@ void checkunfocused(SDL_Event event) {
     hasalt = false;
 }
 
+VARP(stickdeadzone, 0, 20, 40);
+XIDENTHOOK(stickdeadzone, IDF_EXTENDED);
+
+void caxismove(SDL_ControllerAxisEvent caxis) {
+    if(caxis.which != selectedcontrollernum) return;
+    int dz = 32767 * (stickdeadzone/100.0);
+    if(abs(caxis.value) > dz)
+        conoutf("%s: %d"
+                , SDL_GameControllerGetStringForAxis((SDL_GameControllerAxis)caxis.axis)
+                , caxis.value);
+}
+
+void cbuttonpress(SDL_ControllerButtonEvent cbutton) {
+    if(cbutton.which != selectedcontrollernum) return;
+    conoutf("Button %s", SDL_GameControllerGetStringForButton((SDL_GameControllerButton)cbutton.button));
+}
+
 void checkinput()
 {
     SDL_Event event;
@@ -1383,11 +1402,13 @@ void checkinput()
                 break;
             case SDL_JOYDEVICEADDED:
             case SDL_JOYDEVICEREMOVED:
-                reconfigrejoysticks();
+                reconfigrecontrollers();
                 break;
-            case SDL_JOYBUTTONDOWN:
+            case SDL_CONTROLLERBUTTONDOWN:
+                cbuttonpress(event.cbutton);
                 break;
-            case SDL_JOYAXISMOTION:
+            case SDL_CONTROLLERAXISMOTION:
+                caxismove(event.caxis);
                 break;
         }
     }
@@ -1849,7 +1870,7 @@ int gameloop (void* p)
     {
         logoutf("init: sdl");
 
-        if(SDL_Init(SDL_INIT_TIMER|SDL_INIT_VIDEO|SDL_INIT_AUDIO|SDL_INIT_JOYSTICK|SDL_INIT_HAPTIC)<0)
+        if(SDL_Init(SDL_INIT_TIMER|SDL_INIT_VIDEO|SDL_INIT_AUDIO|SDL_INIT_JOYSTICK|SDL_INIT_GAMECONTROLLER|SDL_INIT_HAPTIC)<0)
             fatal("Unable to initialize SDL: %s", SDL_GetError());
         SDL_version compiled;
         SDL_version linked;
