@@ -506,7 +506,6 @@ void initgamecontrollers(bool enable) {
         gamecontrollers = new SDL_GameController*[ngamecontrollers];
         loopi(ngamecontrollers) {
             gamecontrollers[i] = SDL_GameControllerOpen(i);
-            conoutf("%s", SDL_GetError());
             if(gamecontrollers[i]) {
                 SDL_Joystick* j = SDL_GameControllerGetJoystick(gamecontrollers[i]);
                 SDL_JoystickGUID guid = SDL_JoystickGetGUID(j);
@@ -526,7 +525,8 @@ void initgamecontrollers(bool enable) {
                 SDL_Joystick* j = SDL_GameControllerGetJoystick(gamecontrollers[0]);
                 SDL_JoystickGUID guid = SDL_JoystickGetGUID(j);
                 SDL_JoystickGetGUIDString(guid, guid_str, sizeof(guid_str));
-                setsvar("selectedjoystick", guid_str);
+                conoutf(guid_str);
+                setsvar("gamecontroller", guid_str);
             }
         }
     }
