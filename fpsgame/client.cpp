@@ -2055,7 +2055,7 @@ namespace game
 
     bool isdamgeignored(fpsent *f1, fpsent *f2) {
         if(!f1 || !f2) return true;
-        if(f1 == f2) return false;
+        if(f1 == f2) return true;
         return isteam(f1->team, f2->team);
     }
 
