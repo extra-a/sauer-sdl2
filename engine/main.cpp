@@ -503,6 +503,8 @@ void initgamecontrollers(bool enable) {
         if(ngamecontrollers <= 0) return;
         SDL_RWops* bindings = SDL_RWFromConstMem(gamepadmappingsdb, strlen(gamepadmappingsdb));
         SDL_GameControllerAddMappingsFromRW(bindings, 1);
+        const char* s = findfile("gamecontrollerdb.txt","r");
+        if(s) SDL_GameControllerAddMappingsFromFile(s);
         gamecontrollers = new SDL_GameController*[ngamecontrollers];
         loopi(ngamecontrollers) {
             gamecontrollers[i] = SDL_GameControllerOpen(i);
