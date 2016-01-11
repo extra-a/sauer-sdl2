@@ -516,6 +516,8 @@ void initgamecontrollers(bool enable) {
                 } else {
                     conoutf("gamepad#%d: %s", i, SDL_GameControllerName(gamecontrollers[i]));
                 }
+            } else {
+                conoutf("failed to setup gamepad#%d: %s", i , SDL_GetError());
             }
         }
         if(ngamecontrollers > 0 && selectedcontrollernum < 0) {
