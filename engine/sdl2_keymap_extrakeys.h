@@ -70,7 +70,7 @@ static const sdl2_keymap sdl2_keymap_extrakeys[] = {
                 // gamepad map
                 sdl2_keymap(0xFF000001, "gbtn_lefttrigger"),
                 sdl2_keymap(0xFF000002, "gbtn_righttrigger"),
-                sdl2_keymap(0xFF000003, "gbnt_leftshoulder"),
+                sdl2_keymap(0xFF000003, "gbtn_leftshoulder"),
                 sdl2_keymap(0xFF000004, "gbtn_rightshoulder"),
                 sdl2_keymap(0xFF000005, "gbtn_x"),
                 sdl2_keymap(0xFF000006, "gbtn_y"),

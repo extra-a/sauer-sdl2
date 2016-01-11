@@ -451,7 +451,7 @@ void execgamepadbind(const char* name, bool isdown) {
     if(!fakekey) return;
     execbind(*fakekey, isdown);
     if(isdown) {
-        conoutf("Button pressed %s", buff);
+        // conoutf("Button pressed %s", buff);
     } else {
         // conoutf("Button released %s", buff);
     }
