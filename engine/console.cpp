@@ -205,7 +205,7 @@ VARF(sdl2_keymap_hack, 0, 1, 1, sdl2_keymap_hack_check());
 void keymap(int *code, char *key)
 {
     if(identflags&IDF_OVERRIDDEN) { conoutf(CON_ERROR, "cannot override keymap %d", *code); return; }
-    if(sdl2_keymap_hack_effective){
+    if(sdl2_keymap_hack_effective) {
         if(!keyms.numelems) loopi(arraylen(sdl2_keymap_extrakeys)){		//add tesseract imported keymap
             const sdl2_keymap& sdl2km = sdl2_keymap_extrakeys[i];
             keym &km = keyms[sdl2km.code];
@@ -441,6 +441,20 @@ void execbind(keym &k, bool isdown)
         if(keyaction!=action) delete[] keyaction;
     }
     k.pressed = isdown;
+}
+
+void execgamepadbind(const char* name, bool isdown) {
+    #define MAXSLEN 200
+    static char buff[MAXSLEN];
+    snprintf(buff, MAXSLEN, "gbtn_%s", name);
+    keym *fakekey = findbind(buff);
+    if(!fakekey) return;
+    execbind(*fakekey, isdown);
+    if(isdown) {
+        conoutf("Button pressed %s", buff);
+    } else {
+        // conoutf("Button released %s", buff);
+    }
 }
 
 bool consoleinput(const char *str, int len)

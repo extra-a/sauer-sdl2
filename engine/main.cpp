@@ -1309,14 +1309,7 @@ int getstickdzmagnitude() {
     return maxstickval * (stickdeadzone/100.0);
 }
 
-static void execgamepadbind(const char* name, bool isdown) {
-    // TODO
-    if(isdown) {
-        conoutf("Button pressed %s", name);
-    } else {
-        conoutf("Button released %s", name);
-    }
-}
+extern void execgamepadbind(const char* name, bool isdown);
 
 struct TriggerInfo {
     hashset<const char*> activetriggers;

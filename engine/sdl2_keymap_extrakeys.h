@@ -66,7 +66,30 @@ static const sdl2_keymap sdl2_keymap_extrakeys[] = {
 		sdl2_keymap(0x40000075, "HELP"),
 		sdl2_keymap(0x40000046, "PRINT"),
 		sdl2_keymap(0x4000009a, "SYSREQ"),
-		sdl2_keymap(0x40000076, "MENU")
+		sdl2_keymap(0x40000076, "MENU"),
+                // gamepad map
+                sdl2_keymap(0xFF000001, "gbtn_lefttrigger"),
+                sdl2_keymap(0xFF000002, "gbtn_righttrigger"),
+                sdl2_keymap(0xFF000003, "gbnt_leftshoulder"),
+                sdl2_keymap(0xFF000004, "gbtn_rightshoulder"),
+                sdl2_keymap(0xFF000005, "gbtn_x"),
+                sdl2_keymap(0xFF000006, "gbtn_y"),
+                sdl2_keymap(0xFF000007, "gbtn_a"),
+                sdl2_keymap(0xFF000008, "gbtn_b"),
+                sdl2_keymap(0xFF000009, "gbtn_start"),
+                sdl2_keymap(0xFF00000a, "gbtn_back"),
+                sdl2_keymap(0xFF00000b, "gbtn_guide"),
+                sdl2_keymap(0xFF00000c, "gbtn_leftstick"),
+                sdl2_keymap(0xFF00000d, "gbtn_rightstick"),
+                sdl2_keymap(0xFF00000e, "gbtn_spup"),
+                sdl2_keymap(0xFF00000f, "gbtn_spright"),
+                sdl2_keymap(0xFF000010, "gbtn_spdown"),
+                sdl2_keymap(0xFF000011, "gbtn_spleft"),
+                sdl2_keymap(0xFF000012, "gbtn_dpup"),
+                sdl2_keymap(0xFF000013, "gbtn_dpright"),
+                sdl2_keymap(0xFF000014, "gbtn_dpdown"),
+                sdl2_keymap(0xFF000015, "gbtn_dpleft")
+
 };
 
 #endif /* SDL2_KEYMAP_EXTRAKEYS_H_ */
