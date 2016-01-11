@@ -1418,9 +1418,14 @@ void caxismove(SDL_ControllerAxisEvent caxis) {
     }
 }
 
-void cbuttonpress(SDL_ControllerButtonEvent cbutton) {
+void cbuttonevent(SDL_ControllerButtonEvent cbutton) {
     if(cbutton.which != selectedcontrollernum) return;
-    conoutf("Button %s", getbuttonname(cbutton));
+    if(!isfocused) return;
+    if(cbutton.state == SDL_RELEASED) {
+        conoutf("Button released %s", getbuttonname(cbutton));
+    } else {
+        conoutf("Button pressed %s", getbuttonname(cbutton));
+    }
 }
 
 void checkinput()
@@ -1536,7 +1541,8 @@ void checkinput()
                 reconfigrecontrollers();
                 break;
             case SDL_CONTROLLERBUTTONDOWN:
-                cbuttonpress(event.cbutton);
+            case SDL_CONTROLLERBUTTONUP:
+                cbuttonevent(event.cbutton);
                 break;
             case SDL_CONTROLLERAXISMOTION:
                 caxismove(event.caxis);
