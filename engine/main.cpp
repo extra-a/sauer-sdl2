@@ -1305,6 +1305,15 @@ int getstickdzmagnitude() {
     return maxstickval * (stickdeadzone/100.0);
 }
 
+static void execgamepadbind(const char* name, bool isdown) {
+    // TODO
+    if(isdown) {
+        conoutf("Button pressed %s", name);
+    } else {
+        conoutf("Button released %s", name);
+    }
+}
+
 struct TriggerInfo {
     hashset<const char*> activetriggers;
     void add(const char* name) {
@@ -1390,14 +1399,14 @@ struct AxisButtonsInfo {
         enumerate(activatebuttons, const char*, name,
                   {
                       if(!activebuttons.find(name, NULL)) {
-                          conoutf("Button pressed %s", name);
+                          execgamepadbind(name, true);
                           activebuttons[name] = name;
                       }
                   });
         enumerate(activebuttons, const char*, name,
                   {
                       if(!activatebuttons.find(name, NULL)) {
-                          conoutf("Button released %s", name);
+                          execgamepadbind(name, false);
                           activebuttons.remove(name);
                       }
                   });
@@ -1405,7 +1414,7 @@ struct AxisButtonsInfo {
     }
     void stopall() {
         enumerate(activebuttons, const char*, name,
-                  { conoutf("Button released %s", name); });
+                  { execgamepadbind(name, false); });
         activebuttons.clear();
         activatebuttons.clear();
     }
@@ -1479,10 +1488,10 @@ void caxismove(SDL_ControllerAxisEvent caxis) {
         bool active = triggerinfo.isactive(name);
         if(val > dz && !active) {
             triggerinfo.add(name);
-            conoutf("Button pressed %s", name);
+            execgamepadbind(name, true);
         } else if (active && val < dz) {
             triggerinfo.remove(name);
-            conoutf("Button released %s", name);
+            execgamepadbind(name, false);
         }
     } else if(isbuttonemulation(caxis)) {
         axisinfo.add(name, val);
@@ -1511,9 +1520,9 @@ void cbuttonevent(SDL_ControllerButtonEvent cbutton) {
     if(cbutton.which != selectedcontrollernum) return;
     if(!isfocused) return;
     if(cbutton.state == SDL_RELEASED) {
-        conoutf("Button released %s", getbuttonname(cbutton));
+        execgamepadbind(getbuttonname(cbutton), false);
     } else {
-        conoutf("Button pressed %s", getbuttonname(cbutton));
+        execgamepadbind(getbuttonname(cbutton), true);
     }
 }
 
