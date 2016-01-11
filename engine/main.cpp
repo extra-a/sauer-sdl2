@@ -1287,7 +1287,7 @@ XIDENTHOOK(triggerlevel, IDF_EXTENDED);
 
 const int maxstickval = 32767;
 
-static struct {
+struct TriggerInfo {
     hashset<const char*> activetriggers;
     void add(const char* name) {
         activetriggers[name] = name;
@@ -1296,36 +1296,57 @@ static struct {
         activetriggers.remove(name);
     }
     bool isactive(const char* name) {
-        const char* f = NULL;
-        const char* c = activetriggers.find(name, f);
+        const char* c = activetriggers.find(name, NULL);
         return c ? true : false;
     }
 } triggerinfo;
 
-int getstickdz() {
-    return maxstickval * (stickdeadzone/100.0);
-}
 
 int gettriggerdz() {
     return maxstickval * (triggerlevel/100.0);
 }
 
-static struct {
+struct AxisInfo {
     hashtable<const char*, int> axisvalues;
+    hashset<const char*> activeaxis;
+    hashtable<const char*, const char*> pairs;
+    AxisInfo() {
+        pairs["rightx"] = "righty";
+        pairs["righty"] = "rightx";
+        pairs["lefty"] = "leftx";
+        pairs["leftx"] = "lefty";
+    }
     void add(const char* name, int val) {
         axisvalues[name] = val;
     }
-    void remove(const char* name) {
-        axisvalues.remove(name);
-    }
-    double get(const char* name) {
+    int getvalue(const char* name) {
         int v = axisvalues.find(name, 0);
-        if(!v) return 0.0;
+        if(!v) return 0;
         return v; 
     }
+    const char* findpair(const char* name) {
+        return pairs.find(name, NULL);
+    }
+    int getpairvalue(const char* name) {
+        const char* pairname = pairs.find(name, NULL);
+        if(!pairname) return 0;
+        return getvalue(pairname);
+    }
+    void setactive(const char* name) {
+        const char* pair = findpair(name);
+        activeaxis[name] = name;
+        activeaxis[pair] = pair;
+    }
+    void setinactive(const char* name) {
+        const char* pair = findpair(name);
+        activeaxis.remove(name);
+        activeaxis.remove(pair);
+    }
     bool isactive(const char* name) {
-        int v = axisvalues.find(name, 0);
-        return v ? true : false;
+        const char* pair = findpair(name);
+        const char* c1 = activeaxis.find(name, NULL);
+        const char* c2 = activeaxis.find(pair, NULL);
+        return c1 && c2;
     }
 } axisinfo;
 
@@ -1337,11 +1358,27 @@ const char* getbuttonname(SDL_ControllerButtonEvent cbutton) {
     return SDL_GameControllerGetStringForButton((SDL_GameControllerButton)cbutton.button);
 }
 
+int getstickdzmagnitude() {
+    return maxstickval * (stickdeadzone/100.0);
+}
+
+bool isdzactive(const char* name) {
+    long v = abs(axisinfo.getvalue(name));
+    long vp = abs(axisinfo.getpairvalue(name));
+    int dz = getstickdzmagnitude();
+    long l = sqrt(pow(v,2) + pow(vp,2));
+    return l < dz;
+}
+
 double clampedstickvel(const char* name) {
-    int v = axisinfo.get(name);
-    if(!v) return 0.0;
-    int dz = getstickdz();
-    double activeval = (double)(v < 0 ? v+dz : v-dz);
+    int v = axisinfo.getvalue(name);
+    long vp = axisinfo.getpairvalue(name);
+    int dz = getstickdzmagnitude();
+    long l = sqrt(pow(v,2) + pow(vp,2));
+    long la = l - dz;
+    if(la <= 0.0) return 0.0;
+    long vd = dz*abs(v)/l;
+    double activeval = (double)(v < 0 ? v+vd : v-vd);
     double activescale = (double)(maxstickval-dz);
     double result = clamp(activeval/activescale, -1.0, 1.0);
     return result; 
@@ -1364,20 +1401,19 @@ void caxismove(SDL_ControllerAxisEvent caxis) {
         bool active = triggerinfo.isactive(name);
         if(val > dz && !active) {
             triggerinfo.add(name);
-            conoutf("Trigger %s pressed", name);
+            conoutf("Button %s", name);
         } else if (active && val < dz) {
             triggerinfo.remove(name);
-            conoutf("Trigger %s released", getaxisname(caxis));
         }
     } else {
-        int dz = getstickdz();
-        bool active = axisinfo.isactive(name);
-        if(abs(val) > dz) {
-            axisinfo.add(name, val);
-            conoutf("Stick velchange %s: %lf", getaxisname(caxis), clampedstickvel(name));
-        } else if(active && abs(val) < dz) {
-            axisinfo.remove(name);
-            conoutf("Stick stop %s: %lf", getaxisname(caxis), clampedstickvel(name));
+        axisinfo.add(name, val);
+        bool activedz = isdzactive(name);
+        if(!activedz) {
+            axisinfo.setactive(name);
+            conoutf("Stick %s: %lf", name, clampedstickvel(name));
+        } else if(axisinfo.isactive(name)) {
+            axisinfo.setinactive(name);
+            conoutf("Stict stop %s %s", name, axisinfo.findpair(name));
         }
     }
 }
