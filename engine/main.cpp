@@ -1485,7 +1485,7 @@ bool isbuttonemulation(SDL_ControllerAxisEvent caxis) {
 
 void caxismove(SDL_ControllerAxisEvent caxis) {
     if(caxis.which != selectedcontrollernum) return;
-    int val = caxis.value;
+    int val = clamp(caxis.value, -maxstickval, maxstickval);
     const char* name = getaxisname(caxis);
     if(istrigger(caxis)) {
         int dz = gettriggerdz();
