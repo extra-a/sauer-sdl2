@@ -1282,6 +1282,9 @@ void checkunfocused(SDL_Event event) {
 VARP(stickdeadzone, 0, 20, 40);
 XIDENTHOOK(stickdeadzone, IDF_EXTENDED);
 
+VARP(stickpadlevel, 10, 50, 90);
+XIDENTHOOK(stickpadlevel, IDF_EXTENDED);
+
 VARP(sticksens, 1, 10, 50);
 XIDENTHOOK(sticksens, IDF_EXTENDED);
 
@@ -1289,6 +1292,18 @@ VARP(triggerlevel, 10, 75, 100);
 XIDENTHOOK(triggerlevel, IDF_EXTENDED);
 
 const int maxstickval = 32767;
+
+int gettriggerdz() {
+    return maxstickval * (triggerlevel/100.0);
+}
+
+int getstickpaddz() {
+    return maxstickval * (stickpadlevel/100.0);
+}
+
+int getstickdzmagnitude() {
+    return maxstickval * (stickdeadzone/100.0);
+}
 
 struct TriggerInfo {
     hashset<const char*> activetriggers;
@@ -1303,11 +1318,6 @@ struct TriggerInfo {
         return c ? true : false;
     }
 } triggerinfo;
-
-
-int gettriggerdz() {
-    return maxstickval * (triggerlevel/100.0);
-}
 
 struct AxisInfo {
     hashtable<const char*, int> axisvalues;
@@ -1353,6 +1363,54 @@ struct AxisInfo {
     }
 } axisinfo;
 
+static bool checkrange(double val, double min, double max) {
+    return val >= min && val <= max;
+}
+
+struct AxisButtonsInfo {
+    hashset<const char*> activebuttons;
+    hashset<const char*> activatebuttons;
+    void setactivate(double a) {
+        activatebuttons.clear();
+        if(checkrange(a, 22.5, 157.5)) {
+            activatebuttons["spleft"] = "spleft";
+        }
+        if(checkrange(a, 112.5, 247.5)) {
+            activatebuttons["spdown"] = "spdown";
+        }
+        if(checkrange(a, 202.5, 337.5)) {
+            activatebuttons["spright"] = "spright";
+        }
+        if(checkrange(a, 0, 67.5) || checkrange(a, 292.5, 360.0)) {
+            activatebuttons["spup"] = "spup";
+        }
+    }
+    void update(double angle) {
+        setactivate(angle);
+        enumerate(activatebuttons, const char*, name,
+                  {
+                      if(!activebuttons.find(name, NULL)) {
+                          conoutf("Button pressed %s", name);
+                          activebuttons[name] = name;
+                      }
+                  });
+        enumerate(activebuttons, const char*, name,
+                  {
+                      if(!activatebuttons.find(name, NULL)) {
+                          conoutf("Button released %s", name);
+                          activebuttons.remove(name);
+                      }
+                  });
+        activatebuttons.clear();
+    }
+    void stopall() {
+        enumerate(activebuttons, const char*, name,
+                  { conoutf("Button released %s", name); });
+        activebuttons.clear();
+        activatebuttons.clear();
+    }
+} axisbuttonsinfo;
+
 const char* getaxisname(SDL_ControllerAxisEvent caxis) {
     return SDL_GameControllerGetStringForAxis((SDL_GameControllerAxis)caxis.axis);
 }
@@ -1361,14 +1419,9 @@ const char* getbuttonname(SDL_ControllerButtonEvent cbutton) {
     return SDL_GameControllerGetStringForButton((SDL_GameControllerButton)cbutton.button);
 }
 
-int getstickdzmagnitude() {
-    return maxstickval * (stickdeadzone/100.0);
-}
-
-bool isdzactive(const char* name) {
+bool isdzactive(const char* name, int dz) {
     long v = abs(axisinfo.getvalue(name));
     long vp = abs(axisinfo.getpairvalue(name));
-    int dz = getstickdzmagnitude();
     long l = sqrt(pow(v,2) + pow(vp,2));
     return l < dz;
 }
@@ -1387,9 +1440,31 @@ double clampedstickvel(const char* name) {
     return result; 
 }
 
+double getbuttonemulationangle(const char* name) {
+    double x, y;
+    if(!strcmp(name, "leftx")) {
+        x = clampedstickvel(name);
+        y = clampedstickvel(axisinfo.findpair(name));
+    } else {
+        x = clampedstickvel(axisinfo.findpair(name));
+        y = clampedstickvel(name);
+    }
+    double l = sqrt(pow(x,2) + pow(y,2));
+    double f = acos(y/l) * 180.0 / PI;
+    return (x<0.0 ? -f : f) + 180.0;
+}
+
 bool istrigger(SDL_ControllerAxisEvent caxis) {
     const char* axisname = getaxisname(caxis);
     if(!strcmp(axisname, "lefttrigger") || !strcmp(axisname, "righttrigger")) {
+        return true;
+    }
+    return false;
+}
+
+bool isbuttonemulation(SDL_ControllerAxisEvent caxis) {
+    const char* axisname = getaxisname(caxis);
+    if(!strcmp(axisname, "leftx") || !strcmp(axisname, "lefty")) {
         return true;
     }
     return false;
@@ -1409,9 +1484,19 @@ void caxismove(SDL_ControllerAxisEvent caxis) {
             triggerinfo.remove(name);
             conoutf("Button released %s", name);
         }
+    } else if(isbuttonemulation(caxis)) {
+        axisinfo.add(name, val);
+        bool activedz = isdzactive(name, getstickpaddz());
+        if(!activedz) {
+            axisinfo.setactive(name);
+            axisbuttonsinfo.update(getbuttonemulationangle(name));
+        } else if(axisinfo.isactive(name)) {
+            axisinfo.setinactive(name);
+            axisbuttonsinfo.stopall();
+        }
     } else {
         axisinfo.add(name, val);
-        bool activedz = isdzactive(name);
+        bool activedz = isdzactive(name, getstickdzmagnitude());
         if(!activedz) {
             axisinfo.setactive(name);
             // conoutf("Stick %s: %lf", name, clampedstickvel(name));
