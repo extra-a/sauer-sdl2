@@ -645,15 +645,19 @@ void inithaptics(bool enable) {
     }
 }
 
-VARFP(gamepad, 0, 0, 1, initwarning("gamepad", INIT_LOAD));
+void reconfigrecontrollers();
+
+VARFP(gamepad, 0, 0, 1, reconfigrecontrollers());
 XIDENTHOOK(gamepad, IDF_EXTENDED);
 
-VARFP(haptic, 0, 0, 1, initwarning("haptic", INIT_LOAD));
+VARFP(haptic, 0, 0, 1, reconfigrecontrollers());
 XIDENTHOOK(haptic, IDF_EXTENDED);
 
 void reconfigrecontrollers() {
-    initgamecontrollers(gamepad);
-    inithaptics(haptic);
+    if(initing < INIT_LOAD) {
+        initgamecontrollers(gamepad);
+        inithaptics(haptic);
+    }
 }
 
 VARNP(relativemouse, userelativemouse, 0, 1, 1);
