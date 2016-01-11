@@ -1278,18 +1278,109 @@ void checkunfocused(SDL_Event event) {
 VARP(stickdeadzone, 0, 20, 40);
 XIDENTHOOK(stickdeadzone, IDF_EXTENDED);
 
+VARP(triggerlevel, 10, 75, 100);
+XIDENTHOOK(triggerlevel, IDF_EXTENDED);
+
+const int maxstickval = 32767;
+
+static struct {
+    hashset<const char*> activetriggers;
+    void add(const char* name) {
+        activetriggers[name] = name;
+    }
+    void remove(const char* name) {
+        activetriggers.remove(name);
+    }
+    bool isactive(const char* name) {
+        const char* f = NULL;
+        const char* c = activetriggers.find(name, f);
+        return c ? true : false;
+    }
+} triggerinfo;
+
+int getstickdz() {
+    return maxstickval * (stickdeadzone/100.0);
+}
+
+int gettriggerdz() {
+    return maxstickval * (triggerlevel/100.0);
+}
+
+static struct {
+    hashtable<const char*, int> axisvalues;
+    void add(const char* name, int val) {
+        axisvalues[name] = val;
+    }
+    void remove(const char* name) {
+        axisvalues.remove(name);
+    }
+    double get(const char* name) {
+        int v = axisvalues.find(name, 0);
+        if(!v) return 0.0;
+        return v; 
+    }
+    bool isactive(const char* name) {
+        int v = axisvalues.find(name, 0);
+        return v ? true : false;
+    }
+} axisinfo;
+
+const char* getaxisname(SDL_ControllerAxisEvent caxis) {
+    return SDL_GameControllerGetStringForAxis((SDL_GameControllerAxis)caxis.axis);
+}
+
+const char* getbuttonname(SDL_ControllerButtonEvent cbutton) {
+    return SDL_GameControllerGetStringForButton((SDL_GameControllerButton)cbutton.button);
+}
+
+double clampedstickvel(const char* name) {
+    int v = axisinfo.get(name);
+    if(!v) return 0.0;
+    int dz = getstickdz();
+    double activeval = (double)(v < 0 ? v+dz : v-dz);
+    double activescale = (double)(maxstickval-dz);
+    double result = clamp(activeval/activescale, -1.0, 1.0);
+    return result; 
+}
+
+bool istrigger(SDL_ControllerAxisEvent caxis) {
+    const char* axisname = getaxisname(caxis);
+    if(!strcmp(axisname, "lefttrigger") || !strcmp(axisname, "righttrigger")) {
+        return true;
+    }
+    return false;
+}
+
 void caxismove(SDL_ControllerAxisEvent caxis) {
     if(caxis.which != selectedcontrollernum) return;
-    int dz = 32767 * (stickdeadzone/100.0);
-    if(abs(caxis.value) > dz)
-        conoutf("%s: %d"
-                , SDL_GameControllerGetStringForAxis((SDL_GameControllerAxis)caxis.axis)
-                , caxis.value);
+    int val = caxis.value;
+    const char* name = getaxisname(caxis);
+    if(istrigger(caxis)) {
+        int dz = gettriggerdz();
+        bool active = triggerinfo.isactive(name);
+        if(val > dz && !active) {
+            triggerinfo.add(name);
+            conoutf("Trigger %s pressed", name);
+        } else if (active && val < dz) {
+            triggerinfo.remove(name);
+            conoutf("Trigger %s released", getaxisname(caxis));
+        }
+    } else {
+        int dz = getstickdz();
+        bool active = axisinfo.isactive(name);
+        if(abs(val) > dz) {
+            axisinfo.add(name, val);
+            conoutf("Stick velchange %s: %lf", getaxisname(caxis), clampedstickvel(name));
+        } else if(active && abs(val) < dz) {
+            axisinfo.remove(name);
+            conoutf("Stick stop %s: %lf", getaxisname(caxis), clampedstickvel(name));
+        }
+    }
 }
 
 void cbuttonpress(SDL_ControllerButtonEvent cbutton) {
     if(cbutton.which != selectedcontrollernum) return;
-    conoutf("Button %s", SDL_GameControllerGetStringForButton((SDL_GameControllerButton)cbutton.button));
+    conoutf("Button %s", getbuttonname(cbutton));
 }
 
 void checkinput()
