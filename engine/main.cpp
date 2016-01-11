@@ -1282,6 +1282,9 @@ void checkunfocused(SDL_Event event) {
 VARP(stickdeadzone, 0, 20, 40);
 XIDENTHOOK(stickdeadzone, IDF_EXTENDED);
 
+VARP(sticksens, 1, 10, 50);
+XIDENTHOOK(sticksens, IDF_EXTENDED);
+
 VARP(triggerlevel, 10, 75, 100);
 XIDENTHOOK(triggerlevel, IDF_EXTENDED);
 
@@ -1401,19 +1404,20 @@ void caxismove(SDL_ControllerAxisEvent caxis) {
         bool active = triggerinfo.isactive(name);
         if(val > dz && !active) {
             triggerinfo.add(name);
-            conoutf("Button %s", name);
+            conoutf("Button pressed %s", name);
         } else if (active && val < dz) {
             triggerinfo.remove(name);
+            conoutf("Button released %s", name);
         }
     } else {
         axisinfo.add(name, val);
         bool activedz = isdzactive(name);
         if(!activedz) {
             axisinfo.setactive(name);
-            conoutf("Stick %s: %lf", name, clampedstickvel(name));
+            // conoutf("Stick %s: %lf", name, clampedstickvel(name));
         } else if(axisinfo.isactive(name)) {
             axisinfo.setinactive(name);
-            conoutf("Stict stop %s %s", name, axisinfo.findpair(name));
+            // conoutf("Stict stop %s %s", name, axisinfo.findpair(name));
         }
     }
 }
@@ -1426,6 +1430,20 @@ void cbuttonevent(SDL_ControllerButtonEvent cbutton) {
     } else {
         conoutf("Button pressed %s", getbuttonname(cbutton));
     }
+}
+
+void processgamepad() {
+    if(!gamepad || selectedcontrollernum==-1) return;
+    static double xrestmovement = 0.0;
+    static double yrestmovement = 0.0;
+    double velx = clampedstickvel("rightx");
+    double vely = clampedstickvel("righty");
+    double xmotion = velx*elapsedtime*sticksens + xrestmovement;
+    double ymotion = vely*elapsedtime*sticksens + yrestmovement;
+    double dx, dy;
+    xrestmovement = modf(xmotion, &dx);
+    yrestmovement = modf(ymotion, &dy);
+    if(!g3d_movecursorstick((int)dx, (int)dy)) stickmove((int)dx, (int)dy);
 }
 
 void checkinput()
@@ -2155,6 +2173,7 @@ int gameloop (void* p)
         updatetime();
  
         checkinput();
+        processgamepad();
         menuprocess();
         tryedit();
 

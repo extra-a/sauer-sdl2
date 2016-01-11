@@ -1284,6 +1284,17 @@ bool g3d_movecursor(int dx, int dy)
     return true;
 }
 
+FVARP(guisticksens, 1, 10, 50);
+
+bool g3d_movecursorstick(int dx, int dy)
+{
+    if(!guis2d.length() || !hascursor) return false;
+    const float CURSORSCALE = 100000.0f;
+    cursorx = max(0.0f, min(1.0f, cursorx+guisticksens*dx*(screenh/(screenw*CURSORSCALE))));
+    cursory = max(0.0f, min(1.0f, cursory+guisticksens*dy/CURSORSCALE));
+    return true;
+}
+
 VARNP(guifollow, useguifollow, 0, 1, 1);
 VARNP(gui2d, usegui2d, 0, 1, 1);
 

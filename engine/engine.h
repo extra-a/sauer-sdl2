@@ -441,6 +441,7 @@ extern void clearchanges(int type);
 
 // physics
 extern void mousemove(int dx, int dy);
+extern void stickmove(int dx, int dy);
 extern bool pointincube(const clipplanes &p, const vec &v);
 extern bool overlapsdynent(const vec &o, float radius);
 extern void rotatebb(vec &center, vec &radius, int yaw);

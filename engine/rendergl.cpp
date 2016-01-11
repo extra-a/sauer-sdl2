@@ -951,6 +951,23 @@ void mousemove(int dx, int dy)
     }
 }
 
+void stickmove(int dx, int dy)
+{
+    if(!game::allowmouselook()) return;
+    float scale = 1.0;
+    if(zoom) {
+        scale = zoomfov/(float)fov;
+    }
+    camera1->yaw += dx/100.0*scale;
+    camera1->pitch -= dy/100.0*scale;
+    fixcamerarange();
+    if(camera1!=player && !detachedcamera)
+    {
+        player->yaw = camera1->yaw;
+        player->pitch = camera1->pitch;
+    }
+}
+
 void recomputecamera()
 {
     game::setupcamera();
