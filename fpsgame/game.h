@@ -746,7 +746,7 @@ struct extplayerdata {
 };
 
 #define MAXPREVIEWPLAYERS 128
-#define SERVUPDATEINTERVAL 3000
+#define SERVUPDATEINTERVAL 5000
 #define SERVUPDATETEAMGAP 500
 
 struct serverpreviewdata {
@@ -814,7 +814,7 @@ struct serverpreviewdata {
 
 #define MAXEXTRETRIES 2
 #define EXTRETRIESINT 500
-#define EXTREFRESHINT 3000
+#define EXTREFRESHINT 15000
 struct extplayerinfo
 {
     bool finished;
