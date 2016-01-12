@@ -1,4 +1,4 @@
-CXXFLAGS= -O3 -fomit-frame-pointer -ffast-math -rdynamic
+CXXFLAGS= -O3 -fomit-frame-pointer -ffast-math
 ifdef _DEBUG
   CXXFLAGS+= -D_DEBUG=$(_DEBUG)
 endif
