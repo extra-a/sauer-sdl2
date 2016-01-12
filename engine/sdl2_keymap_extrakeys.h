@@ -68,28 +68,84 @@ static const sdl2_keymap sdl2_keymap_extrakeys[] = {
 		sdl2_keymap(0x4000009a, "SYSREQ"),
 		sdl2_keymap(0x40000076, "MENU"),
                 // gamepad map
-                sdl2_keymap(0xFF000001, "gbtn_lefttrigger"),
-                sdl2_keymap(0xFF000002, "gbtn_righttrigger"),
-                sdl2_keymap(0xFF000003, "gbtn_leftshoulder"),
-                sdl2_keymap(0xFF000004, "gbtn_rightshoulder"),
-                sdl2_keymap(0xFF000005, "gbtn_x"),
-                sdl2_keymap(0xFF000006, "gbtn_y"),
-                sdl2_keymap(0xFF000007, "gbtn_a"),
-                sdl2_keymap(0xFF000008, "gbtn_b"),
-                sdl2_keymap(0xFF000009, "gbtn_start"),
-                sdl2_keymap(0xFF00000a, "gbtn_back"),
-                sdl2_keymap(0xFF00000b, "gbtn_guide"),
-                sdl2_keymap(0xFF00000c, "gbtn_leftstick"),
-                sdl2_keymap(0xFF00000d, "gbtn_rightstick"),
-                sdl2_keymap(0xFF00000e, "gbtn_spup"),
-                sdl2_keymap(0xFF00000f, "gbtn_spright"),
-                sdl2_keymap(0xFF000010, "gbtn_spdown"),
-                sdl2_keymap(0xFF000011, "gbtn_spleft"),
-                sdl2_keymap(0xFF000012, "gbtn_dpup"),
-                sdl2_keymap(0xFF000013, "gbtn_dpright"),
-                sdl2_keymap(0xFF000014, "gbtn_dpdown"),
-                sdl2_keymap(0xFF000015, "gbtn_dpleft")
-
+                sdl2_keymap(0xFF000001, "GP_LT"),
+                sdl2_keymap(0xFF000002, "GP_RT"),
+                sdl2_keymap(0xFF000003, "GP_LB"),
+                sdl2_keymap(0xFF000004, "GP_RB"),
+                sdl2_keymap(0xFF000005, "GP_A"),
+                sdl2_keymap(0xFF000006, "GP_B"),
+                sdl2_keymap(0xFF000007, "GP_X"),
+                sdl2_keymap(0xFF000008, "GP_Y"),
+                sdl2_keymap(0xFF000009, "GP_START"),
+                sdl2_keymap(0xFF00000a, "GP_BACK"),
+                sdl2_keymap(0xFF00000b, "GP_GUIDE"),
+                sdl2_keymap(0xFF00000c, "GP_LS"),
+                sdl2_keymap(0xFF00000d, "GP_RS"),
+                sdl2_keymap(0xFF00000e, "GP_UP"),
+                sdl2_keymap(0xFF00000f, "GP_RIGHT"),
+                sdl2_keymap(0xFF000010, "GP_DOWN"),
+                sdl2_keymap(0xFF000011, "GP_LEFT"),
+                sdl2_keymap(0xFF000012, "GP_DUP"),
+                sdl2_keymap(0xFF000013, "GP_DRIGHT"),
+                sdl2_keymap(0xFF000014, "GP_DDOWN"),
+                sdl2_keymap(0xFF000015, "GP_DLEFT")
 };
+
+// gamepad related data
+static struct ShortNames {
+    hashtable<const char*, const char*> names;
+    hashtable<const char*, int> codes;
+    ShortNames() {
+        names["lefttrigger"] = "GP_LT";
+        names["righttrigger"] = "GP_RT";
+        names["leftshoulder"] = "GP_LB";
+        names["rightshoulder"] = "GP_RB";
+        names["a"] = "GP_A";
+        names["b"] = "GP_B";
+        names["x"] = "GP_X";
+        names["y"] = "GP_Y";
+        names["start"] = "GP_START";
+        names["back"] = "GP_BACK";
+        names["guide"] = "GP_GUIDE";
+        names["leftstick"] = "GP_LS";
+        names["rightstick"] = "GP_RS";
+        names["spup"] = "GP_UP";
+        names["spright"] = "GP_RIGHT";
+        names["spdown"] = "GP_DOWN";
+        names["spleft"] = "GP_LEFT";
+        names["dpup"] = "GP_DUP";
+        names["dpright"] = "GP_DRIGHT";
+        names["dpdown"] = "GP_DDOWN";
+        names["dpleft"] = "GP_DLEFT";
+        codes["lefttrigger"] = 0xFF000001;
+        codes["righttrigger"] = 0xFF000002;
+        codes["leftshoulder"] = 0xFF000003;
+        codes["rightshoulder"] = 0xFF000004;
+        codes["a"] = 0xFF000005;
+        codes["b"] = 0xFF000006;
+        codes["x"] = 0xFF000007;
+        codes["y"] = 0xFF000008;
+        codes["start"] = 0xFF000009;
+        codes["back"] = 0xFF00000a;
+        codes["guide"] = 0xFF00000b;
+        codes["leftstick"] = 0xFF00000c;
+        codes["rightstick"] = 0xFF00000d;
+        codes["spup"] = 0xFF00000e;
+        codes["spright"] = 0xFF00000f;
+        codes["spdown"] = 0xFF000010;
+        codes["spleft"] = 0xFF000011;
+        codes["dpup"] = 0xFF000012;
+        codes["dpright"] = 0xFF000013;
+        codes["dpdown"] = 0xFF000014;
+        codes["dpleft"] = 0xFF000015;
+    }
+    char* getshortname(const char* name) {
+        return (char*)names.find(name,NULL);
+    }
+    int getcode(const char* name) {
+        return codes.find(name, 0);
+    }
+} padbuttons;
+
 
 #endif /* SDL2_KEYMAP_EXTRAKEYS_H_ */

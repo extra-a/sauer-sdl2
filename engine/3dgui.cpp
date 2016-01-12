@@ -1200,14 +1200,16 @@ bool g3d_key(int code, bool isdown)
         return true;
     }
 
-    if(code==-1 && g3d_windowhit(isdown, true)) return true;
-    else if(code==-3 && g3d_windowhit(isdown, false)) return true;
+    // 0xFF00000d GP_RS
+    // 0xFF000006 GP_B
+    if((code==-1 || code==(int)0xFF00000d) && g3d_windowhit(isdown, true)) return true;
+    else if((code==-3 || code==(int)0xFF000006) && g3d_windowhit(isdown, false)) return true;
 
     if(fieldmode == FIELDSHOW || !e)
     {
         if(windowhit) switch(code)
         {
-            case -4: // window "management" 
+            case -4: // window "management"
                 if(isdown)
                 {
                     if(windowhit->gui2d) 
@@ -1243,7 +1245,6 @@ bool g3d_key(int code, bool isdown)
                 }
                 return true;
         }
-
         return false;
     }
     switch(code)

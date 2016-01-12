@@ -443,20 +443,6 @@ void execbind(keym &k, bool isdown)
     k.pressed = isdown;
 }
 
-void execgamepadbind(const char* name, bool isdown) {
-    #define MAXSLEN 200
-    static char buff[MAXSLEN];
-    snprintf(buff, MAXSLEN, "gbtn_%s", name);
-    keym *fakekey = findbind(buff);
-    if(!fakekey) return;
-    execbind(*fakekey, isdown);
-    if(isdown) {
-        // conoutf("Button pressed %s", buff);
-    } else {
-        // conoutf("Button released %s", buff);
-    }
-}
-
 bool consoleinput(const char *str, int len)
 {
     if(commandmillis < 0) return false;
@@ -600,6 +586,26 @@ void processkey(int code, bool isdown)
     keym *haskey = keyms.access(code);
     if(haskey && haskey->pressed) execbind(*haskey, isdown); // allow pressed keys to release
     else if(!g3d_key(code, isdown)) // 3D GUI mouse button intercept   
+    {
+        if(!consolekey(code, isdown))
+        {
+            if(haskey) execbind(*haskey, isdown);
+        }
+    }
+}
+
+void execgamepadbind(const char* name, bool isdown) {
+    char* sname = padbuttons.getshortname(name);
+    if(!sname) return;
+    int code = padbuttons.getcode(name);
+    if(!code) return;
+    // 0xFF00000b GP_GUIDE
+    if(code == (int)0xFF00000b) {
+        code = SDLK_ESCAPE;
+    }
+    keym *haskey = keyms.access(code);
+    if(haskey && haskey->pressed) execbind(*haskey, isdown); // allow pressed keys to release
+    else if(!g3d_key(code, isdown)) // 3D GUI mouse button intercept
     {
         if(!consolekey(code, isdown))
         {

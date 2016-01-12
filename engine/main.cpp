@@ -1289,11 +1289,11 @@ XIDENTHOOK(stickdeadzone, IDF_EXTENDED);
 VARP(stickpadlevel, 10, 50, 90);
 XIDENTHOOK(stickpadlevel, IDF_EXTENDED);
 
-VARP(sticksens, 1, 10, 100);
+VARP(sticksens, 1, 25, 100);
 XIDENTHOOK(sticksens, IDF_EXTENDED);
 
-VARP(sticksensscale, 1, 5, 10);
-XIDENTHOOK(sticksensscale, IDF_EXTENDED);
+VARP(sticksenscurvepow, 1, 3, 10);
+XIDENTHOOK(sticksenscurvepow, IDF_EXTENDED);
 
 VARP(triggerlevel, 10, 75, 100);
 XIDENTHOOK(triggerlevel, IDF_EXTENDED);
@@ -1508,10 +1508,8 @@ void caxismove(SDL_ControllerAxisEvent caxis) {
         bool activedz = isdzactive(name, getstickdzmagnitude());
         if(!activedz) {
             axisinfo.setactive(name);
-            // conoutf("Stick %s: %lf", name, clampedstickvel(name));
         } else if(axisinfo.isactive(name)) {
             axisinfo.setinactive(name);
-            // conoutf("Stict stop %s %s", name, axisinfo.findpair(name));
         }
     }
 }
@@ -1532,8 +1530,8 @@ void processgamepad() {
     static double yrestmovement = 0.0;
     double velx = clampedstickvel("rightx");
     double vely = clampedstickvel("righty");
-    velx *= pow(sticksensscale, fabs(velx))/(double)sticksensscale;
-    vely *= pow(sticksensscale, fabs(vely))/(double)sticksensscale;
+    velx *= pow(sticksenscurvepow, fabs(velx))/(double)sticksenscurvepow;
+    vely *= pow(sticksenscurvepow, fabs(vely))/(double)sticksenscurvepow;
     double xmotion = velx*elapsedtime*sticksens + xrestmovement;
     double ymotion = vely*elapsedtime*sticksens + yrestmovement;
     double dx, dy;
