@@ -1289,8 +1289,11 @@ XIDENTHOOK(stickdeadzone, IDF_EXTENDED);
 VARP(stickpadlevel, 10, 50, 90);
 XIDENTHOOK(stickpadlevel, IDF_EXTENDED);
 
-VARP(sticksens, 1, 10, 50);
+VARP(sticksens, 1, 10, 100);
 XIDENTHOOK(sticksens, IDF_EXTENDED);
+
+VARP(sticksensscale, 1, 5, 10);
+XIDENTHOOK(sticksensscale, IDF_EXTENDED);
 
 VARP(triggerlevel, 10, 75, 100);
 XIDENTHOOK(triggerlevel, IDF_EXTENDED);
@@ -1529,6 +1532,8 @@ void processgamepad() {
     static double yrestmovement = 0.0;
     double velx = clampedstickvel("rightx");
     double vely = clampedstickvel("righty");
+    velx *= pow(sticksensscale, fabs(velx))/(double)sticksensscale;
+    vely *= pow(sticksensscale, fabs(vely))/(double)sticksensscale;
     double xmotion = velx*elapsedtime*sticksens + xrestmovement;
     double ymotion = vely*elapsedtime*sticksens + yrestmovement;
     double dx, dy;
