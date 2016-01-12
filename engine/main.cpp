@@ -482,6 +482,37 @@ SDL_GameController **gamecontrollers = NULL;
 const int maxhaptics = 10;
 int nhaptics = 0;
 SDL_Haptic **haptics = NULL;
+vector<char *> hapticsnames;
+
+void reconfigregamepads();
+void reconfigrehaptics();
+
+VARFP(gamepad, 0, 0, 1, reconfigregamepads());
+XIDENTHOOK(gamepad, IDF_EXTENDED);
+
+VARFP(haptic, 0, 0, 1, reconfigrehaptics());
+XIDENTHOOK(haptic, IDF_EXTENDED);
+
+void getpadname(int &i) {
+    if(i<0 || i>=ngamecontrollers) {
+        return result("N/A");
+    }
+    result(SDL_GameControllerName(gamecontrollers[i]));
+}
+
+void gethapticname(int &i) {
+    if(i>=nhaptics || i<0) {
+        return result("N/A");
+    }
+    result(hapticsnames[i]);
+}
+
+ICOMMAND(getnumpads, "", (), intret(ngamecontrollers))
+COMMAND(getpadname, "i");
+ICOMMAND(selectedpadnum, "i", (int &i), intret(selectedcontrollernum))
+
+ICOMMAND(getnumhaptics, "", (), intret(nhaptics))
+COMMAND(gethapticname, "i");
 
 SVARP(gamecontroller, "");
 XIDENTHOOK(gamecontroller, IDF_EXTENDED);
@@ -498,7 +529,7 @@ void initgamecontrollers(bool enable) {
     }
     selectedcontrollernum = -1;
     if(enable) {
-        char guid_str[1024];
+        char guid_str[MAXSTRLEN];
         ngamecontrollers = SDL_NumJoysticks();
         if(ngamecontrollers <= 0) return;
         SDL_RWops* bindings = SDL_RWFromConstMem(gamepadmappingsdb, strlen(gamepadmappingsdb));
@@ -514,26 +545,32 @@ void initgamecontrollers(bool enable) {
                 SDL_JoystickGetGUIDString(guid, guid_str, sizeof(guid_str));
                 if(!strcmp(gamecontroller, guid_str)) {
                     selectedcontrollernum = i;
-                    conoutf("selected gamepad#%d: %s", i, SDL_GameControllerName(gamecontrollers[i]));
-                } else {
-                    conoutf("gamepad#%d: %s", i, SDL_GameControllerName(gamecontrollers[i]));
                 }
             } else {
-                conoutf("failed to setup gamepad#%d: %s", i , SDL_GetError());
+                conoutf("Failed to setup gamepad %d: %s", i , SDL_GetError());
             }
         }
         if(ngamecontrollers > 0 && selectedcontrollernum < 0) {
             if(gamecontrollers[0]) {
-                conoutf("Setting '%s' as the main gamepad",  SDL_GameControllerName(gamecontrollers[0]));
+                conoutf("Setting '%s' as the main gamepad.",  SDL_GameControllerName(gamecontrollers[0]));
                 selectedcontrollernum = 0;
                 SDL_Joystick* j = SDL_GameControllerGetJoystick(gamecontrollers[0]);
                 SDL_JoystickGUID guid = SDL_JoystickGetGUID(j);
                 SDL_JoystickGetGUIDString(guid, guid_str, sizeof(guid_str));
-                conoutf(guid_str);
                 setsvar("gamecontroller", guid_str);
             }
         }
     }
+}
+
+void changepad(int& num) {
+    if(num < 0 || num >= ngamecontrollers ) return;
+    char guid_str[MAXSTRLEN];
+    SDL_Joystick* j = SDL_GameControllerGetJoystick(gamecontrollers[num]);
+    SDL_JoystickGUID guid = SDL_JoystickGetGUID(j);
+    SDL_JoystickGetGUIDString(guid, guid_str, sizeof(guid_str));
+    setsvar("gamecontroller", guid_str);
+    reconfigregamepads();
 }
 
 VARP(haptic0Mode, 0, 0, 3);
@@ -587,10 +624,26 @@ VARP(haptic9Cap, 0, 50, 100);
 XIDENTHOOK(haptic9Cap, IDF_EXTENDED);
 
 
+void makehapticcapname(int &num) {
+    static char cmdbuff[MAXSTRLEN];
+    snprintf(cmdbuff, MAXSTRLEN, "haptic%dCap", num);
+    result(cmdbuff);
+}
+
+void makehapticmodename(int &num) {
+    static char cmdbuff[MAXSTRLEN];
+    snprintf(cmdbuff, MAXSTRLEN, "haptic%dMode" , num);
+    result(cmdbuff);
+}
+
+COMMAND(makehapticcapname, "i");
+COMMAND(makehapticmodename, "i");
+
 int gethapticcap(int num) {
-    #define MAXPATLEN 200
-    static char cmdbuff[MAXPATLEN];
-    snprintf(cmdbuff, MAXPATLEN, "$haptic%dCap", num);
+    if(num < 0 || num >= maxhaptics) return 0;
+    static char cmdbuff[MAXSTRLEN];
+    snprintf(cmdbuff, MAXSTRLEN, "$haptic%dCap", num);
+    if(num < 0 || num >= maxhaptics) return 0;
     const char* result = executestr(cmdbuff);
     if(!result) return 0;
     int v = parseint(result);
@@ -599,15 +652,18 @@ int gethapticcap(int num) {
 }
 
 int gethapticmode(int num) {
-    #define MAXPATLEN 200
-    static char cmdbuff[MAXPATLEN];
-    snprintf(cmdbuff, MAXPATLEN, "$haptic%dMode", num);
+    if(num < 0 || num >= maxhaptics) return 0;
+    static char cmdbuff[MAXSTRLEN];
+    snprintf(cmdbuff, MAXSTRLEN, "$haptic%dMode", num);
     const char* result = executestr(cmdbuff);
     if(!result) return 0;
     int v = parseint(result);
     DELETEA(result);
     return v;
 }
+
+ICOMMAND(gethapticmode, "i", (int &i), intret(gethapticmode(i)));
+ICOMMAND(gethapticcap, "i", (int &i), intret(gethapticcap(i)));
 
 void rumblehaptics(int mode, int power, int duration) {
     power = clamp(power, 0, 100);
@@ -620,7 +676,8 @@ void rumblehaptics(int mode, int power, int duration) {
 }
 
 void inithaptics(bool enable) {
-   if(nhaptics && haptics) {
+    if(nhaptics && haptics) {
+        hapticsnames.deletearrays();
         loopi(nhaptics) {
             if(haptics[i])
                 SDL_HapticClose(haptics[i]);
@@ -641,25 +698,23 @@ void inithaptics(bool enable) {
             }
         }
         loopi(nhaptics) {
-            conoutf("haptic#%d: %s, mode: %d, cap: %d", i
-                    , SDL_HapticName(i), gethapticmode(i), gethapticcap(i));
-            if(gethapticmode(i))
-                SDL_HapticRumblePlay(haptics[i], gethapticcap(i)/100.0, 1000);
+            const char *name = SDL_HapticName(i);
+            char *str = new char[MAXSTRLEN];
+            snprintf(str, MAXSTRLEN, "%s", (name ? name : "N/A"));
+            hapticsnames.add(str);
+            SDL_HapticRumblePlay(haptics[i], gethapticcap(i)/100.0, 1000);
         }
     }
 }
 
-void reconfigrecontrollers();
-
-VARFP(gamepad, 0, 0, 1, reconfigrecontrollers());
-XIDENTHOOK(gamepad, IDF_EXTENDED);
-
-VARFP(haptic, 0, 0, 1, reconfigrecontrollers());
-XIDENTHOOK(haptic, IDF_EXTENDED);
-
-void reconfigrecontrollers() {
+void reconfigregamepads() {
     if(initing < INIT_LOAD) {
         initgamecontrollers(gamepad);
+    }
+}
+
+void reconfigrehaptics() {
+    if(initing < INIT_LOAD) {
         inithaptics(haptic);
     }
 }
@@ -1283,7 +1338,7 @@ void checkunfocused(SDL_Event event) {
     hasalt = false;
 }
 
-VARP(stickdeadzone, 0, 20, 40);
+VARP(stickdeadzone, 0, 20, 50);
 XIDENTHOOK(stickdeadzone, IDF_EXTENDED);
 
 VARP(stickpadlevel, 10, 50, 90);
@@ -1650,7 +1705,8 @@ void checkinput()
                 break;
             case SDL_JOYDEVICEADDED:
             case SDL_JOYDEVICEREMOVED:
-                reconfigrecontrollers();
+                reconfigregamepads();
+                reconfigrehaptics();
                 break;
             case SDL_CONTROLLERBUTTONDOWN:
             case SDL_CONTROLLERBUTTONUP:

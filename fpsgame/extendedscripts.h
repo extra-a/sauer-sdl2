@@ -783,6 +783,65 @@ const char *extended_settings_gui =
 
 "] \"General\" \n";
 
+const char *gamepad_settings_gui =
+"newgui gamepad_settings [\n"
+    "guicheckbox \"Enable gamepad\" gamepad\n"
+    "guistrut 1\n"
+    "if (getnumpads) [\n"
+        "loop i (getnumpads) [\n"
+            "guiradio (getpadname i) (selectedpadnum) $i \n"
+        "]\n"
+        "guistrut 2\n"
+        "guititle \"Note: You can change gamepad binding via the standard menu.\"\n"
+        "guititle \"Use right stick to move a cursor or look around in the game.\"\n"
+        "guititle \"In gui right stick click is mouse1, logo(guide) button is esc.\"\n"
+    "] [\n"
+        "if $gamepad [\n"
+            "guitext \"No gamepads found.\" 0\n"
+        "]\n"
+     "]\n"
+    "guitab \"Rumble\"\n"
+    "guicheckbox \"Enable rumble\" haptic\n"
+    "guistrut 1\n"
+    "if (getnumhaptics) [\n"
+        "loop i (getnumhaptics) [\n"
+            "guilist [\n"
+            "guitext (gethapticname i) 0\n"
+            "guibar\n"
+            "guiradio \"Off\" (makehapticmodename i) 0 (concat (makehapticmodename i) 0) \n"
+            "guibar\n"
+            "guiradio \"Shoot\" (makehapticmodename i) 1 (concat (makehapticmodename i) 1) \n"
+            "guibar\n"
+            "guiradio \"Damage\" (makehapticmodename i) 2 (concat (makehapticmodename i) 2) \n"
+            "guibar\n"
+            "guiradio \"Both\" (makehapticmodename i) 3 (concat (makehapticmodename i) 3) \n"
+            "]\n"
+            "guislider (makehapticcapname i)\n"
+            "guistrut 1\n"
+        "]\n"
+    "] [\n"
+        "if $haptic [\n"
+            "guitext \"No rumble devices found.\" 0\n"
+        "]\n"
+     "]\n"
+    "guitab \"Advanced\"\n"
+    "guitext \"Stick look sensitivity:\" 0\n"
+    "guislider sticksens\n"
+    "guistrut 1\n"
+    "guitext \"Stick look sensitivity curve power:\" 0\n"
+    "guislider sticksenscurvepow\n"
+    "guistrut 1\n"
+    "guitext \"Stick deadzone:\" 0\n"
+    "guislider stickdeadzone\n"
+    "guistrut 1\n"
+    "guitext \"Trigger buttons emulation level:\" 0\n"
+    "guislider triggerlevel\n"
+    "guistrut 1\n"
+    "guitext \"Stick buttons emulation level:\" 0\n"
+    "guislider stickpadlevel\n"
+    "guistrut 1\n"
+
+"] \"Gamepad\" \n";
 
 const char *hud_settings_gui =
 "newgui hud_settings [\n"
@@ -1314,6 +1373,7 @@ const char *new_main_menu =
 "        guibar\n"
 "        guibutton \"options..\"  \"showgui options\"\n"
 "        guibutton \"more options..\"  \"showgui extended_settings\"\n"
+"        guibutton \"gamepad..\"    \"showgui gamepad_settings\"\n"
 "        guibutton \"hud settings..\"  \"showgui hud_settings\"\n"
 "        guibutton \"disconnect\" \"disconnect\"         \"exit\"\n"
 "    ] [\n"
@@ -1322,6 +1382,7 @@ const char *new_main_menu =
 "        guibar\n"
 "        guibutton \"options..\"        \"showgui options\"\n"
 "        guibutton \"more options..\"    \"showgui extended_settings\"\n"
+"        guibutton \"gamepad..\"    \"showgui gamepad_settings\"\n"
 "        guibutton \"hud settings..\"    \"showgui hud_settings\"\n"
 "        guibutton \"about..\"          \"showgui about\"\n"
 "        guibutton \"quit\"             \"quit\"                 \"exit\"\n"
@@ -1345,6 +1406,7 @@ const char *game_scripts[] = { extended_settings_gui,
                                extended_menus,
                                new_main_menu,
                                hit_sound,
+                               gamepad_settings_gui,
                                0 };
 
 
