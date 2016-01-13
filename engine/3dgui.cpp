@@ -1285,7 +1285,7 @@ bool g3d_movecursor(int dx, int dy)
     return true;
 }
 
-VARP(guisticksens, 1, 10, 100);
+VARP(guisticksens, 1, 10, 20);
 
 bool g3d_movecursorstick(int dx, int dy)
 {

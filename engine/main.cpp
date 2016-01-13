@@ -478,6 +478,8 @@ void renderprogress(float bar, const char *text, GLuint tex, bool background)   
 
 int selectedcontrollernum = -1;
 int selectedcontrollerid = -1;
+void changepad();
+VARF(selectedpad, 0, 0, 100, changepad());
 int ngamecontrollers = 0;
 SDL_GameController **gamecontrollers = NULL;
 const int maxhaptics = 10;
@@ -511,7 +513,6 @@ void gethapticname(int &i) {
 
 ICOMMAND(getnumpads, "", (), intret(ngamecontrollers))
 COMMAND(getpadname, "i");
-ICOMMAND(selectedpadnum, "i", (int &i), intret(selectedcontrollernum))
 
 ICOMMAND(getnumhaptics, "", (), intret(nhaptics))
 COMMAND(gethapticname, "i");
@@ -520,6 +521,7 @@ SVARP(gamecontroller, "");
 XIDENTHOOK(gamecontroller, IDF_EXTENDED);
 
 void setcontrollerids(int num, int id) {
+    selectedpad = num;
     selectedcontrollernum = num;
     selectedcontrollerid = id;
 }
@@ -527,6 +529,7 @@ void setcontrollerids(int num, int id) {
 void clearcontrollerids() {
     selectedcontrollernum = -1;
     selectedcontrollerid = -1;
+    selectedpad = -1;
 }
 
 void initgamecontrollers(bool enable) {
@@ -579,8 +582,12 @@ void initgamecontrollers(bool enable) {
     }
 }
 
-void changepad(int& num) {
-    if(num < 0 || num >= ngamecontrollers) return;
+void changepad() {
+    int num = selectedpad;
+    if(num < 0 || num >= ngamecontrollers) {
+        selectedpad = -1;
+        return;
+    }
     char guid_str[MAXSTRLEN];
     SDL_Joystick* j = SDL_GameControllerGetJoystick(gamecontrollers[num]);
     SDL_JoystickGUID guid = SDL_JoystickGetGUID(j);
@@ -718,7 +725,6 @@ void inithaptics(bool enable) {
             char *str = new char[MAXSTRLEN];
             snprintf(str, MAXSTRLEN, "%s", (name ? name : "N/A"));
             hapticsnames.add(str);
-            SDL_HapticRumblePlay(haptics[i], gethapticcap(i)/100.0, 1000);
         }
     }
 }
