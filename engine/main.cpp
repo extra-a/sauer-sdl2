@@ -532,7 +532,7 @@ void clearcontrollerids() {
     selectedpad = -1;
 }
 
-void initgamecontrollers(bool enable) {
+void initgamecontrollers(int enable) {
     resetpaddata();
     clearcontrollerids();
     if(ngamecontrollers && gamecontrollers) {
@@ -698,7 +698,7 @@ void rumblehaptics(int mode, int power, int duration) {
     }
 }
 
-void inithaptics(bool enable) {
+void inithaptics(int enable) {
     if(nhaptics && haptics) {
         hapticsnames.deletearrays();
         loopi(nhaptics) {
@@ -2340,7 +2340,7 @@ int gameloop (void* p)
     inputgrab(grabinput = true);
     ignoremousemotion();
 
-    conoutf("\f0Sauerbraten SDL2 Client\f1 Version 2.2.2");
+    conoutf("\f0Sauerbraten SDL2 Client\f1 Version 2.3.0");
 
     ullong prevcycletime = 0;
     for(;;)

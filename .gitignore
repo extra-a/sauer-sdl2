@@ -12,4 +12,6 @@ vcpp/sauerbraten.vcxproj.user
 vcpp/Debug/
 vcpp/Release/
 vcpp/ipch
-vcpp/sauerbraten.v12.suo
+vcpp/*.suo
+vcpp/.vs
+vcpp/*.opendb

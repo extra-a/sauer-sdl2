@@ -255,6 +255,9 @@
     <ClInclude Include="..\engine\sdl2_keymap_extrakeys.h">
       <Filter>engine</Filter>
     </ClInclude>
+    <ClInclude Include="..\engine\controllerdb.h">
+      <Filter>engine</Filter>
+    </ClInclude>
     <ClInclude Include="..\engine\skelmodel.h">
       <Filter>engine</Filter>
     </ClInclude>
@@ -313,4 +316,3 @@
     </Filter>
   </ItemGroup>
 </Project>
-
