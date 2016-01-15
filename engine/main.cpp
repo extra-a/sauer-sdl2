@@ -18,6 +18,7 @@ void cleanup()
     extern void clear_console(); clear_console();
     extern void clear_mdls();    clear_mdls();
     extern void clear_sound();   clear_sound();
+    extern void clear_syncwin(); clear_syncwin();
     closelogfile();
     SDL_Quit();
 }
@@ -880,7 +881,7 @@ void cleargamma()
 
 VAR(dbgmodes, 0, 0, 1);
 
-VARP(tearfree_method, 0, 0, 2);
+VARP(tearfree_method, 1, 1, 2);
 XIDENTHOOK(tearfree_method, IDF_EXTENDED);
 
 struct SyncWindow
@@ -971,6 +972,8 @@ int syncwindow_threadfn(void *data)
     bool is_init = false;
     if(synctype == 2) {
         SDL_GL_SetSwapInterval(1);
+    } else {
+        SDL_GL_SetSwapInterval(0);
     }
 
     uint sync_counter = 0;
@@ -991,12 +994,14 @@ int syncwindow_threadfn(void *data)
         is_init = true;
     }
 
+    if(debugsyncthreadinfo) conoutf("Sync Window thread started.");
     while(true) {
 
         if(obj->killthread) {
             if(synctype == 1 || synctype == 2) {
                 SDL_GL_DeleteContext(obj->glcontext);
                 SDL_DestroyWindow(obj->window);
+                if(debugsyncthreadinfo) conoutf("Sync Window destroyed.");
             }
             return 0;
         }
@@ -1075,9 +1080,15 @@ SyncWindow::~SyncWindow()
 SyncWindow *syncwin;
 
 bool checksyncwin() {
-    if(!syncwin) return false;
-    if(!syncwin->isconstructed || syncwin->isbroken) return false;
+    if(!syncwin || !syncwin->isconstructed || syncwin->isbroken) return false;
     return true;
+}
+
+void clear_syncwin() {
+    if(syncwin) {
+        delete syncwin;
+        syncwin = NULL;
+    }
 }
 
 void setupscreen(int &useddepthbits, int &usedfsaa)
@@ -1894,7 +1905,7 @@ int getfpsalt(int id)
     return currentfps[n];
 }
 
-VARP(tearfree_expectedtimererror, 0, 200, 1000);
+VARP(tearfree_expectedtimererror, 0, 200, 1000000);
 XIDENTHOOK(tearfree_expectedtimererror, IDF_EXTENDED);
 
 VARP(tearfree_allowbusywait, 0, 1, 1);
@@ -1958,23 +1969,19 @@ void limitfpsalt(ullong &tick_now)
     if(!vsync && tearfree) {
         if(!syncwin) syncwin = new SyncWindow;
         if(!checksyncwin()) {
-            delete syncwin;
-            syncwin = NULL;
+            clear_syncwin();
             tearfree = 0;
             return limitfpsalt(tick_now);
         }
         if(tearfree_method && (syncwin->synctype != tearfree_method)) {
-            delete syncwin;
+            clear_syncwin();
             syncwin = new SyncWindow;
             return limitfpsalt(tick_now);
         }
         fpslimit = 1;
         nextdraw = calcnextdraw(lastdraw, tick_now);
     } else {
-        if(syncwin) {
-            delete syncwin;
-            syncwin = NULL;
-        }
+        clear_syncwin();
         fpslimit = (mainmenu || minimized) && menufps ? (maxfps ? min(maxfps, menufps) : menufps) : maxfps;
         nextdraw = (fpslimit ? 1000000000ULL / fpslimit : 0) + lastdraw;
         updatefpsalt(5, 0);
@@ -2130,17 +2137,8 @@ int getclockmillis()
 
 VAR(numcpus, 1, 1, 16);
 
-struct args {
-    int argc;
-    char** argv;
-};
-
-int gameloop (void* p)
+int gameloop (int argc, char** argv)
 {
-    struct args* a = (struct args*)p;
-    int argc = a->argc;
-    char** argv = a->argv;
-
     setlogfile(NULL);
 
     int dedicated = 0;
@@ -2354,6 +2352,7 @@ int gameloop (void* p)
             limitfpsalt(tick);
             millis = getclockmillis();
         } else {
+            clear_syncwin();
             limitfps(millis, totalmillis);
         }
         elapsedtime = millis - totalmillis;
@@ -2462,11 +2461,7 @@ int main(int argc, char **argv)
     signal(SIGABRT, handler);
     #endif
 
-    struct args a;
-    a.argc = argc;
-    a.argv = argv;
-    SDL_Thread* main_thread = SDL_CreateThread(gameloop, "mainloop", (void *)(&a));
-    SDL_WaitThread(main_thread, NULL);
+    gameloop(argc, argv);
 
     ASSERT(0);   
     return EXIT_FAILURE;
