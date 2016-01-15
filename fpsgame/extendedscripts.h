@@ -798,9 +798,11 @@ const char *gamepad_settings_gui =
         "guititle \"In UI right stick click is mouse1, B is mouse2, logo(guide) button is esc.\"\n"
     "] [\n"
         "if $gamepad [\n"
-            "guitext \"No gamepads found.\" 0\n"
+            "guititle \"No gamepads found.\"\n"
         "]\n"
-     "]\n"
+    "]\n"
+    "guititle \"Use gamecontrollerdb.txt as SDL2 gamepad settings in the game config directory.\"\n"
+
     "guitab \"Rumble\"\n"
     "guicheckbox \"Enable rumble\" haptic\n"
     "guistrut 1\n"

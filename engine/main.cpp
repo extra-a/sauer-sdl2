@@ -498,14 +498,14 @@ VARFP(haptic, 0, 0, 1, reconfigurehaptics());
 XIDENTHOOK(haptic, IDF_EXTENDED);
 
 void getpadname(int &i) {
-    if(i<0 || i>=ngamecontrollers) {
+    if(i<0 || i>=ngamecontrollers || !gamecontrollers[i]) {
         return result("N/A");
     }
     result(SDL_GameControllerName(gamecontrollers[i]));
 }
 
 void gethapticname(int &i) {
-    if(i>=nhaptics || i<0) {
+    if(i>=nhaptics || i<0 || !hapticsnames[i]) {
         return result("N/A");
     }
     result(hapticsnames[i]);
@@ -564,7 +564,7 @@ void initgamecontrollers(int enable) {
                     setcontrollerids(i, id);
                 }
             } else {
-                conoutf("Failed to setup gamepad %d: %s", i , SDL_GetError());
+                conoutf("Failed to setup gamepad (%d): %s", i , SDL_GetError());
             }
         }
         if(ngamecontrollers > 0 && selectedcontrollernum < 0) {
@@ -584,7 +584,7 @@ void initgamecontrollers(int enable) {
 
 void changepad() {
     int num = selectedpad;
-    if(num < 0 || num >= ngamecontrollers) {
+    if(num < 0 || num >= ngamecontrollers || !gamecontrollers[num]) {
         selectedpad = -1;
         return;
     }
@@ -693,7 +693,9 @@ void rumblehaptics(int mode, int power, int duration) {
     duration = clamp(duration, 0, 1000);
     loopi(nhaptics) {
         if(gethapticmode(i) & mode) {
-            SDL_HapticRumblePlay(haptics[i], power * gethapticcap(i)/10000.0, duration);
+            if(haptics[i]) {
+                SDL_HapticRumblePlay(haptics[i], power * gethapticcap(i)/10000.0, duration);
+            }
         }
     }
 }
@@ -2340,7 +2342,7 @@ int gameloop (void* p)
     inputgrab(grabinput = true);
     ignoremousemotion();
 
-    conoutf("\f0Sauerbraten SDL2 Client\f1 Version 2.3.0");
+    conoutf("\f0Sauerbraten SDL2 Client\f1 Version 2.3.1");
 
     ullong prevcycletime = 0;
     for(;;)
