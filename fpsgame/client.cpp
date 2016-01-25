@@ -599,6 +599,7 @@ namespace game
         return NULL;
     }
 
+    extern int showserveracc;
     extern vector<fpsent *> clients;
     void checkextinfos()
     {
@@ -609,8 +610,13 @@ namespace game
             fpsent * d = clients[i];
             if(!d) continue;
             if(d->extdata.needretry()) {
-                d->extdata.addattempt();
-                requestextinfo(d->clientnum);
+                if(showserveracc) {
+                    d->extdata.addattempt();
+                    requestextinfo(d->clientnum);
+                } else if(!d->extdata.finished) {
+                    d->extdata.addattempt();
+                    requestextinfo(d->clientnum);
+                }
             }
         }
         if(player1->extdata.needretry()) {
