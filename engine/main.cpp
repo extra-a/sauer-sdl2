@@ -881,7 +881,7 @@ void cleargamma()
 
 VAR(dbgmodes, 0, 0, 1);
 
-VARP(tearfree_method, 1, 1, 2);
+VARP(tearfree_method, 1, 1, 1);
 XIDENTHOOK(tearfree_method, IDF_EXTENDED);
 
 struct SyncWindow
@@ -944,20 +944,20 @@ int syncwindow_threadfn(void *data)
     int synctype = obj->synctype;
     glXGetVideoSyncSGI_fn getsyncstamp = NULL;
     glXWaitVideoSyncSGI_fn waitforsync = NULL;
-    int i = 0;
 
-    if(synctype == 1 || synctype == 2) {
-        if(synctype == 1 || synctype == 2) {
+    if(synctype == 1) {
+        if(synctype == 1) {
             obj->window = SDL_CreateWindow("Sync Window", 0, 0, 100, 100, SDL_WINDOW_OPENGL | SDL_WINDOW_HIDDEN);
             SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
             obj->glcontext = SDL_GL_CreateContext(obj->window);
             glFinish();
         }
+        int i = 0;
         while(SDL_GL_MakeCurrent(obj->window, obj->glcontext)) {
             sleepwrapper(0,250000000);
             i++;
             if(debugsyncthreadinfo) conoutf("Setting GL context failed (attempt %d), error: %s", i, SDL_GetError());
-            if(i >= 20) {
+            if(i >= 5) {
                 conoutf("Setting GL context error, tearfree is disabled");
                 obj->isbroken++;
                 return -1;
@@ -966,13 +966,9 @@ int syncwindow_threadfn(void *data)
         if(i && debugsyncthreadinfo) {
             conoutf("Setting GL context success (attempt %d)", i+1);
         }
-        i = 0;
     }
 
-    bool is_init = false;
-    if(synctype == 2) {
-        SDL_GL_SetSwapInterval(1);
-    } else {
+    if(synctype == 1) {
         SDL_GL_SetSwapInterval(0);
     }
 
@@ -991,7 +987,6 @@ int syncwindow_threadfn(void *data)
             obj->isbroken++;
             return -1;
         }
-        is_init = true;
     }
 
     if(debugsyncthreadinfo) conoutf("Sync Window thread started.");
@@ -1004,29 +999,6 @@ int syncwindow_threadfn(void *data)
                 if(debugsyncthreadinfo) conoutf("Sync Window destroyed.");
             }
             return 0;
-        }
-
-        if(synctype == 2) {
-            if(!is_init) {
-                if(SDL_GL_GetCurrentWindow() != obj->window || SDL_GL_GetCurrentContext() != obj->glcontext || ! SDL_GL_GetSwapInterval()) {
-                    i++;
-                    if(debugsyncthreadinfo) conoutf("GL context params mismatch (attempt %d)", i);
-                    if(i > 20) {
-                        conoutf("Setting GL params failed, tearfree is disabled");
-                        obj->isbroken++;
-                        return -1;
-                    }
-                    SDL_GL_MakeCurrent(obj->window, obj->glcontext);
-                    SDL_GL_SetSwapInterval(1);
-                    sleepwrapper(0, 250000000);
-                    continue;
-                } else {
-                    if(i && debugsyncthreadinfo) conoutf("GL context params are set (attempt %d)", i+1);
-                    is_init = true;
-                }
-            }
-            SDL_GL_SwapWindow(obj->window);
-            glFinish();
         }
 
         if(synctype == 1) {
