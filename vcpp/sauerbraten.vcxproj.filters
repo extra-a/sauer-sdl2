@@ -58,9 +58,6 @@
     <ClCompile Include="..\engine\main.cpp">
       <Filter>engine</Filter>
     </ClCompile>
-    <ClCompile Include="..\engine\master.cpp">
-      <Filter>engine</Filter>
-    </ClCompile>
     <ClCompile Include="..\engine\material.cpp">
       <Filter>engine</Filter>
     </ClCompile>
@@ -250,12 +247,6 @@
       <Filter>engine</Filter>
     </ClInclude>
     <ClInclude Include="..\engine\scale.h">
-      <Filter>engine</Filter>
-    </ClInclude>
-    <ClInclude Include="..\engine\sdl2_keymap_extrakeys.h">
-      <Filter>engine</Filter>
-    </ClInclude>
-    <ClInclude Include="..\engine\controllerdb.h">
       <Filter>engine</Filter>
     </ClInclude>
     <ClInclude Include="..\engine\skelmodel.h">
