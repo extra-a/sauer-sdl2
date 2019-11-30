@@ -1671,6 +1671,7 @@ void checkinput()
 
                     case SDL_WINDOWEVENT_FOCUS_GAINED:
                         isfocused = true;
+			minimized = false;
                         if(isentered && isfocused) inputhandling(true);
                         break;
 
