@@ -2056,6 +2056,24 @@ namespace game
             return false;
         }
 
+        const char* playerscolor;
+        if(attr.length() >= 4) {
+            if(np >= attr[3]) {
+                // full server
+                playerscolor = "\f3";
+            } else if (np > attr[3] - 1) {
+                // almost full server (only one slot left)
+                playerscolor = "\f2";
+            } else if (np <= 0) {
+                // empty server
+                playerscolor = "\f4";
+            } else {
+                playerscolor = "";
+            }
+        } else {
+            playerscolor = "";
+        }
+
         if(attr.empty() || attr[0]!=PROTOCOL_VERSION)
         {
             switch(i)
@@ -2067,7 +2085,7 @@ namespace game
                 case 1:
                     if(attr.length()>=4)
                     {
-                        if(g->buttonf(np >= attr[3] ? "\f3%d/%d " : "%d/%d ", 0xFFFFDD, NULL, np, attr[3])&G3D_UP) return true;
+                        if(g->buttonf("%s%d/%d ", 0xFFFFDD, NULL, playerscolor, np, attr[3])&G3D_UP) return true;
                     }
                     else if(g->buttonf("%d ", 0xFFFFDD, NULL, np)&G3D_UP) return true;
                     break;
@@ -2122,7 +2140,7 @@ namespace game
             case 1:
                 if(attr.length()>=4)
                 {
-                    if(g->buttonf(np >= attr[3] ? "\f3%d/%d " : "%d/%d ", 0xFFFFDD, NULL, np, attr[3])&G3D_UP) return true;
+                    if(g->buttonf("%s%d/%d ", 0xFFFFDD, NULL, playerscolor, np, attr[3])&G3D_UP) return true;
                 }
                 else if(g->buttonf("%d ", 0xFFFFDD, NULL, np)&G3D_UP) return true;
                 break;
